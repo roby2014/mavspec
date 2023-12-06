@@ -34,6 +34,7 @@
 !/LICENSE-APACHE
 !/LICENSE-MIT
 !/avatar.png
+!/avatar.svg
 
 # CI
 !/.gitlab-ci.yml
