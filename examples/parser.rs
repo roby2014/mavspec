@@ -1,6 +1,14 @@
 use mavspec::parser::XMLInspector;
 
 fn main() {
+    // Setup logger
+    env_logger::builder()
+        // Suppress everything below `info` for third-party modules.
+        .filter_level(log::LevelFilter::Info)
+        // Allow everything from current package
+        .filter_module(env!("CARGO_PKG_NAME"), log::LevelFilter::Trace)
+        .init();
+
     // Instantiate inspector and load list of XML definitions
     let inspector = XMLInspector::new(vec![
         // Standard definitions from
@@ -20,7 +28,7 @@ fn main() {
     // Get `DUMMYFLIGHT_OUTCRY` message
     let outcry_message = crazyflight.messages().get(&54000u32).unwrap();
     assert_eq!(outcry_message.name(), "CRAZYFLIGHT_OUTCRY");
-    println!("\n`CRAZYFLIGHT_OUTCRY` message: {:#?}", outcry_message);
+    log::warn!("\n`CRAZYFLIGHT_OUTCRY` message: {:#?}", outcry_message);
 
     // Get `HEARTBEAT` message which custom dialect inherits from `standard` dialect
     let heartbeat_message = crazyflight.messages().get(&0u32).unwrap();

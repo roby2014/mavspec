@@ -316,7 +316,7 @@ impl Message {
     }
 }
 
-/// Builder for [`Message`].
+/// [`Builder`] for [`Message`].
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct MessageBuilder {

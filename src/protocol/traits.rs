@@ -1,7 +1,7 @@
 //! Common traits.
 
-/// Since [`crate::protocol`] entities are immutable by design (after all, they just represent XML
-/// definitions), we use
+/// Since [`protocol`](crate::protocol) entities are immutable by design (after all, they just
+/// represent XML definitions), we use
 /// [builder](https://rust-unofficial.github.io/patterns/patterns/creational/builder.html) pattern
 /// instead of constructor.
 pub trait Builder {

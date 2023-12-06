@@ -8,8 +8,9 @@ use crate::protocol::MavType;
 ///
 /// Each value corresponds to a specific [`MavType`].
 ///
-/// Used in [`crate::protocol::MessageField`], [`crate::protocol::EnumEntryMavCmdParam`], and
-/// [`crate::protocol::MessageFieldInvalidValue`].
+/// Used in [`MessageField`](crate::protocol::MessageField),
+/// [`EnumEntryMavCmdParam`](crate::protocol::EnumEntryMavCmdParam), and
+/// [`MessageFieldInvalidValue`](crate::protocol::MessageFieldInvalidValue).
 ///
 /// See: [message](https://mavlink.io/en/guide/xml_schema.html#messages) section in MAVLink XML schema documentation.
 #[derive(Debug, Clone)]

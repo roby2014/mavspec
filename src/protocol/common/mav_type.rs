@@ -22,7 +22,7 @@ const RE_ARRAY_FIELD_TYPE: &str = r"^(.+)\[(\d+)\]$";
 /// > See MAVLink message definitions
 /// > [XML schema](https://github.com/ArduPilot/pymavlink/blob/master/generator/mavschema.xsd).
 ///
-/// Used in [`crate::protocol::MessageField`]
+/// Defines type of a [`MessageField`](crate::protocol::MessageField) and [`Value`](crate::protocol::Value).
 ///
 /// # Examples
 ///

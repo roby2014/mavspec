@@ -7,7 +7,8 @@ use crate::protocol::errors::ParseError;
 
 /// Measurement units.
 ///
-/// Used in [`crate::protocol::MessageField`].
+/// Specifies measurement units for [`MessageField`](crate::protocol::MessageField) and
+/// [`EnumEntryMavCmdParam`](crate::protocol::EnumEntryMavCmdParam).
 ///
 /// # Examples
 ///

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::protocol::traits::{Buildable, Builder};
 
-/// [`super::EnumEntry`] `MAV_CMD` flags.
+/// [`EnumEntry`](super::EnumEntry) `MAV_CMD` flags.
 ///
 /// Contains flags like `hasLocation` or `isDestination`.
 ///

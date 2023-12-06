@@ -8,7 +8,7 @@ use crate::protocol::{MavType, Value};
 const VALUE_AS_INVALID_REGEX: &str = r"^(((-?\d+)(\.\d+)?)|NAN|NaN|[A-Z0-9]+_MAX)$";
 const ENUM_ENTRY_VALUE_AS_INVALID_REGEX: &str = r"^[A-Z]+[A-Z_]+[A-Z]+$";
 
-/// Describes how to specify invalid value for [`crate::protocol::MessageField`]
+/// Defines how to specify invalid value for [`MessageField`](crate::protocol::MessageField).
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum MessageFieldInvalidValue {

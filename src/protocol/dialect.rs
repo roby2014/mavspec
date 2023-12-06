@@ -46,8 +46,10 @@ impl Dialect {
     ///
     /// As a dialect we use a file base name of its XML definition (without extension). However,
     /// upon XML parsing loading, we convert this name to a canonical form
-    /// ([`crate::parser::XmlDialectDefinition::canonize_name`]). This may help avoiding naming
-    /// collisions when someone tries to generate source code based on the dialect name.
+    /// ([`XmlDialectDefinition::canonize_name`](crate::parser::XmlDialectDefinition::canonize_name)).
+    /// This may help avoiding naming collisions when someone tries to generate source code based
+    /// on the dialect
+    /// name.
     pub fn name(&self) -> &str {
         &self.name
     }

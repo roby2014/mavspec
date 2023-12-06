@@ -27,7 +27,11 @@ pub use common::value::Value;
 pub mod errors;
 pub mod traits;
 
-/// Builders. See: [`traits::Builder`].
+/// Builders.
+///
+/// Builders available for [`protocol`](self) entities.
+///
+/// See: [`Builder`](traits::Builder).
 pub mod builders {
     pub use super::enums::{
         EnumBuilder, EnumEntryBuilder, EnumEntryMavCmdFlagsBuilder, EnumEntryMavCmdParamBuilder,

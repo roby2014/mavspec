@@ -5,8 +5,8 @@ MAVSpec
 
 > ### WARNING!!!
 > 
-> This project is intended to be used with other Mavka tools. For now its API will be extremely unstable. Once the
-> library will be successfully consumed by these projects, API will be stabilised.
+> This project is intended to be used with other [Mavka](https://gitlab.com/mavka) tools. For now its API is still
+> unstable. Once the library will be successfully consumed by these projects, API will be stabilised.
 
 Documentation can be found [here](https://docs.rs/mavspec/latest/mavspec/).
 
@@ -23,8 +23,8 @@ use mavspec::parser::XMLInspector;
 fn main() {
   // Instantiate inspector and load list of XML definitions
   let inspector = XMLInspector::new(vec![
-    "./message_definitions/standard",
-    "./message_definitions/extra",
+    "./message_definitions/standard".to_string(),
+    "./message_definitions/extra".to_string(),
   ])
   .unwrap();
   
@@ -36,8 +36,8 @@ fn main() {
 
   // Get `DUMMYFLIGHT_OUTCRY` message
   let outcry_message = crazyflight.messages().get(&54000u32).unwrap();
-  assert_eq!(outcry_message.name(), "DUMMYFLIGHT_OUTCRY");
-  println!("\n`DUMMYFLIGHT_OUTCRY` message: {:#?}", outcry_message);
+  assert_eq!(outcry_message.name(), "CRAZYFLIGHT_OUTCRY");
+  println!("\n`CRAZYFLIGHT_OUTCRY` message: {:#?}", outcry_message);
 }
 ```
 

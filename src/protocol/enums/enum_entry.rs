@@ -6,7 +6,7 @@ use crate::protocol::{enums::EnumEntryMavCmdFlags, enums::EnumEntryMavCmdParam, 
 
 /// Enum entry specification.
 ///
-/// Used in [`super::Enum`].
+/// Represents enum entry in [`Enum`](super::Enum).
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct EnumEntry {

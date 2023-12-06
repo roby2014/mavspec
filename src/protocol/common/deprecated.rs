@@ -1,10 +1,10 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// Enum entry deprecation specs.
+/// MAVLink entity deprecation specs.
 ///
-/// Applicable to [`crate::protocol::Enum`], [`crate::protocol::EnumEntry`], and
-/// [`crate::protocol::Message`].
+/// Applicable to [`Enum`](crate::protocol::Enum), [`EnumEntry`](crate::protocol::EnumEntry), and
+/// [`Message`](crate::protocol::Message).
 #[derive(Debug, Clone, Default)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Deprecated {

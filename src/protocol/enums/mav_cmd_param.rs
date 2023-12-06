@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::protocol::traits::{Buildable, Builder};
 use crate::protocol::{Units, Value};
 
-/// [`super::EnumEntry`] `MAV_CMD` parameter.
+/// [`EnumEntry`](super::EnumEntry) `MAV_CMD` parameter.
 ///
 /// Makes sense only in the context of MAVLink command enum (`MAV_CMD`).
 ///
