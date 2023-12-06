@@ -1,4 +1,4 @@
-//! **MAVSpec** is a library and for parsing MAVLink
+//! **MAVSpec** is a library for parsing MAVLink
 //! [message definitions](https://github.com/mavlink/mavlink/tree/master/message_definitions/v1.0).
 //!
 //! Repository: [https://gitlab.com/mavka/libs/mavspec](https://gitlab.com/mavka/libs/mavspec).

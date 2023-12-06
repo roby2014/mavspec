@@ -1,6 +1,6 @@
 [package]
 name = "mavspec"
-description = "MAVSpec is a library for parsing MAVLink protocol XML definitions"
+description = "Tools for parsing MAVLink protocol XML definitions"
 version = "0.1.0-alpha1"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
