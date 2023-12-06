@@ -1,0 +1,33 @@
+use mavspec::parser::XMLInspector;
+
+fn main() {
+    // Instantiate inspector and load list of XML definitions
+    let inspector = XMLInspector::new(vec![
+        // Standard definitions from
+        // https://github.com/mavlink/mavlink/tree/master/message_definitions/v1.0
+        "./message_definitions/standard".to_string(),
+        // Extra definitions which depend on standard dialects
+        "./message_definitions/extra".to_string(),
+    ])
+    .unwrap();
+
+    // Parse all XML definitions
+    let protocol = inspector.parse().unwrap();
+
+    // Get `crazyflight` custom-defined dialect
+    let crazyflight = protocol.dialects().get("crazyflight").unwrap();
+
+    // Get `DUMMYFLIGHT_OUTCRY` message
+    let outcry_message = crazyflight.messages().get(&54000u32).unwrap();
+    assert_eq!(outcry_message.name(), "CRAZYFLIGHT_OUTCRY");
+    println!("\n`CRAZYFLIGHT_OUTCRY` message: {:#?}", outcry_message);
+
+    // Get `HEARTBEAT` message which custom dialect inherits from `standard` dialect
+    let heartbeat_message = crazyflight.messages().get(&0u32).unwrap();
+    assert_eq!(heartbeat_message.name(), "HEARTBEAT");
+    // Verify that `HEARTBEAT` message is defined in `minimal` dialect
+    assert_eq!(
+        heartbeat_message.defined_in().as_deref().unwrap(),
+        "minimal"
+    );
+}

@@ -1,0 +1,49 @@
+[package]
+name = "mavspec"
+description = "MAVSpec is a library to parse MAVLink protocol XML definitions"
+version = "0.1.0-alpha1"
+edition = "2021"
+authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
+repository = "https://gitlab.com/mavka/libs/mavspec"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
+homepage = "https://gitlab.com/mavka/libs/mavspec"
+keywords = ["MAVLink", "UAV", "drones", "parser"]
+categories = [
+    "aerospace::protocols",
+    "aerospace::drones",
+    "aerospace::unmanned-aerial-vehicles",
+    "parsing",
+]
+resolver = "2"
+
+[dependencies]
+env_logger = { version = "0.10.1", optional = true }
+heck = "0.5.0-rc.1"
+log = "0.4.20"
+regex = "1.10.2"
+serde = { version = "1.0.193", features = ["derive", "serde_derive"], optional = true }
+thiserror = "1.0.50"
+quick-xml = "0.31.0"
+
+[build-dependencies]
+
+[features]
+## Adds serde support.
+##
+## With serde support all `protocol` and `proto` definitions will be (de)serializable.
+## In addition, export will be availabe in CLI tool.
+serde = ["dep:serde"]
+
+[lib]
+name = "mavspec"
+path = "src/lib.rs"
+
+[[example]]
+name = "parser"
+required-features = ["serde"]
+
+# build with all features on docs.rs so that users viewing documentation
+# can see everything
+[package.metadata.docs.rs]
+features = ["serde"]
