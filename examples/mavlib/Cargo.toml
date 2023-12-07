@@ -1,0 +1,44 @@
+[package]
+name = "mavlib"
+description = "An example library to process MAVLink messages."
+version = "0.1.0-alpha1"
+edition = "2021"
+authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
+repository = "https://gitlab.com/mavka/libs/mavcodegen"
+readme = "../../README.md"
+license = "MIT OR Apache-2.0"
+homepage = "https://gitlab.com/mavka/libs/mavcodegen"
+keywords = ["MAVLink", "UAV", "drones"]
+categories = [
+    "aerospace::protocols",
+    "aerospace::drones",
+    "aerospace::unmanned-aerial-vehicles",
+    "no-std",
+    "no-std::no-alloc",
+]
+resolver = "2"
+publish = false
+
+[dependencies]
+#num-traits = { version = "0.2.17", default-features = false }
+mavlib_core = { path = "../../interfaces/mavlib_core", default-features = false }
+tbytes = "0.1.0-alpha2"
+
+
+[build-dependencies]
+mavcodegen = { path = "../../mavcodegen", features = ["rust"], default-features = false }
+mavspec = { version = "0.1.0-alpha1", features = ["serde"] }
+
+[features]
+## Enables memory allocation support.
+alloc = ["mavlib_core/alloc"]
+## Enables `std` library.
+std = ["alloc", "mavlib_core/std"]
+
+[lib]
+name = "mavlib"
+path = "src/lib.rs"
+
+[[example]]
+name = "basic"
+test = true

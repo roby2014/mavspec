@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<mavlink>
+    <include>../standard/minimal.xml</include>
+    <version>0</version>
+    <dialect>10</dialect>
+    <enums>
+        <enum name="CRAZYFLIGHT_CRAZINESS_LEVEL">
+            <entry name="CRAZYFLIGHT_CRAZINESS_LEVEL_DELUSIONAL" value="0"/>
+            <entry name="CRAZYFLIGHT_CRAZINESS_LEVEL_DAYDREAMING" value="1"/>
+            <entry name="CRAZYFLIGHT_CRAZINESS_LEVEL_CRAZY" value="2"/>
+            <entry name="CRAZYFLIGHT_CRAZINESS_LEVEL_INSANE" value="3"/>
+        </enum>
+    </enums>
+    <messages>
+        <message id="54000" name="CRAZYFLIGHT_OUTCRY">
+            <description>ICAROUS heartbeat</description>
+            <field type="uint32_t" name="craziness" enum="CRAZYFLIGHT_CRAZINESS_LEVEL">Defines craziness level.</field>
+        </message>
+    </messages>
+</mavlink>
