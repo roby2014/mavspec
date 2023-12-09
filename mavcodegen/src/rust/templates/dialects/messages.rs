@@ -62,19 +62,40 @@ pub struct MessageSpec {
     ///
     /// See: [`Message::has_extension_fields`].
     pub has_extension_fields: bool,
-    /// Path to the root module.
-    pub module_path: String,
+    /// Generator params.
+    pub params: RustGeneratorParams,
+}
+
+impl MessageSpec {
+    /// Constructs from [`Message`] and [``].
+    pub fn new(message: &Message, params: &RustGeneratorParams) -> Self {
+        Self {
+            id: message.id(),
+            name: message.name().to_string(),
+            fields: message.fields().to_vec(),
+            // `MAVLink 1`
+            is_v1_compatible: message.is_v1_compatible(),
+            fields_v1: message.fields_v1(),
+            payload_v1_size: message.size_v1(),
+            // `MAVLink 2`
+            fields_v2: message.fields_v2(),
+            payload_v2_size: message.size_v2(),
+            extension_fields: message.extension_fields(),
+            has_extension_fields: message.has_extension_fields(),
+            // Params
+            params: params.clone(),
+        }
+    }
 }
 
 /// Message template.
 ///
 /// Input: [`MessageSpec`].
-pub const MESSAGE: &str = "\
-//! MAVLink message `{{name}}` implementation.
+pub const MESSAGE: &str = r#"//! # MAVLink message `{{name}}` implementation
 
 use mavlib_core::errors::MavLinkMessageProcessingError;
 use mavlib_core::{
-    FromMavLinkPayload, IntoMavlinkPayload, MavLinkMessage, MavLinkMessagePayload, MavLinkVersion,
+    IntoMavLinkPayload, MavLinkMessage, MavLinkMessagePayload, MavLinkVersion,
 };
 
 /// MAVLink message ID.
@@ -88,9 +109,10 @@ pub const MIN_SUPPORTED_MAVLINK_VERSION: MavLinkVersion = MavLinkVersion::{{#if 
 ///
 /// # Encoding/Decoding
 /// 
-/// Message encoding/decoding are provided by implementing [`FromMavLinkPayload`] and
-/// [`IntoMavlinkPayload`] traits.
+/// Message encoding/decoding are provided by implementing [`TryFrom<MavLinkMessagePayload>`] for
+/// [`{{to-message-struct-name name}}`] (encoding) and [`IntoMavLinkPayload`] (decoding) traits.
 #[derive(Clone, Debug)]
+{{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
 pub struct {{to-message-struct-name name}} {
 {{#each fields}}
     /// MAVLink field `{{name}}`.
@@ -126,16 +148,15 @@ impl Default for {{to-message-struct-name name}} {
     }
 }
 
-impl FromMavLinkPayload for {{to-message-struct-name name}} {
+impl TryFrom<&MavLinkMessagePayload> for {{to-message-struct-name name}} {
+    type Error = MavLinkMessageProcessingError;
+
     /// Decodes [`MavLinkMessagePayload`] into [`{{to-message-struct-name name}}`] according to [`MavLinkVersion`].
-    fn decode(payload: &MavLinkMessagePayload) -> Result<Self, MavLinkMessageProcessingError>
-    where
-        Self: MavLinkMessage + Sized,
-    {
-        match payload.version() {
-            MavLinkVersion::V2 => v2::decode(payload.payload()),
+    fn try_from(value: &MavLinkMessagePayload) -> Result<Self, Self::Error> {
+        match value.version() {
+            MavLinkVersion::V2 => v2::decode(value.payload()),
 {{#if is_v1_compatible}}
-            MavLinkVersion::V1 => v1::decode(payload.payload()),
+            MavLinkVersion::V1 => v1::decode(value.payload()),
 {{else}}
             version => {
                 return Err(MavLinkMessageProcessingError::UnsupportedMavLinkVersion {
@@ -148,7 +169,7 @@ impl FromMavLinkPayload for {{to-message-struct-name name}} {
     }
 }
 
-impl IntoMavlinkPayload for {{to-message-struct-name name}} {
+impl IntoMavLinkPayload for {{to-message-struct-name name}} {
     /// Encodes [`{{to-message-struct-name name}}`] into [`MavLinkMessagePayload`] according to [`MavLinkVersion`].
     fn encode(
         &self,
@@ -346,29 +367,7 @@ mod tests {
     }
 {{/if}}
 }
-";
-
-impl MessageSpec {
-    /// Constructs from [`Message`] and [``].
-    pub fn new(message: &Message, params: &RustGeneratorParams) -> Self {
-        Self {
-            id: message.id(),
-            name: message.name().to_string(),
-            fields: message.fields().to_vec(),
-            // `MAVLink 1`
-            is_v1_compatible: message.is_v1_compatible(),
-            fields_v1: message.fields_v1(),
-            payload_v1_size: message.size_v1(),
-            // `MAVLink 2`
-            fields_v2: message.fields_v2(),
-            payload_v2_size: message.size_v2(),
-            extension_fields: message.extension_fields(),
-            has_extension_fields: message.has_extension_fields(),
-            // Params
-            module_path: params.module_path.clone(),
-        }
-    }
-}
+"#;
 
 /// Input for [`INHERITED_MESSAGE`] template.
 #[derive(Debug, Clone, Serialize)]

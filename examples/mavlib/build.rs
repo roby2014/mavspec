@@ -6,9 +6,13 @@ use mavcodegen::rust::{RustGenerator, RustGeneratorParams};
 use mavspec::parser::XMLInspector;
 
 fn main() {
+    let has_serde_feature = std::env::var("CARGO_FEATURE_SERDE").is_ok();
+
     // let destination = std::path::PathBuf::from(std::env::var("OUT_DIR").unwrap()).join("mavlink");
     let destination = PathBuf::from("src").join("mavlink");
 
+    // Create stub if code-generation is turned off
+    // TODO: remove before release
     if std::env::var("ALLOW_AUTOGEN").unwrap_or("false".to_string()) == "false" {
         // Ensure that root directory exists
         create_dir_all(&destination).unwrap();
@@ -30,6 +34,7 @@ fn main() {
         destination,
         RustGeneratorParams {
             module_path: "mavlib::mavlink".to_string(),
+            serde: has_serde_feature,
         },
     )
     .generate()

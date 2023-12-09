@@ -1,7 +1,8 @@
 MAVCodeGen
 ==========
 
-`MAVCodeGen` is a code-generator based on MAVLink protocol XML definitions.
+`MAVCodeGen` is a code-generator for [MAVLink](https://mavlink.io/en/) protocol based on
+[`MAVSpec`](https://gitlab.com/mavka/libs/mavspec).
 
 > ### WARNING!!!
 > 
@@ -49,7 +50,7 @@ cargo run --bin mavcodegen --features rust -- \
 Examples
 --------
 
-- [`mavlib/basic`](examples/mavlib/examples/basic.rs) — basic.
+- [`mavlib/basic`](examples/mavlib/examples/tcp_client.rs) — basic.
   ```shell
   cargo run --package mavlib --example basic
   ```

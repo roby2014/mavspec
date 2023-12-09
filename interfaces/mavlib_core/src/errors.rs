@@ -4,15 +4,42 @@ use tbytes::errors::TBytesError;
 
 use super::version::MavLinkVersion;
 
-// Reexport `MAVLink 1` frame errors
-pub use super::mav_frame_v1::{MavLinkFrameV1DecodeError, MavLinkFrameV1ValidationError};
-// Reexport `MAVLink 2` frame errors
-pub use super::mav_frame_v2::{MavLinkFrameV2DecodeError, MavLinkFrameV2ValidationError};
+/// Errors related to `MAVLink` frame decoding.
+#[derive(Debug, Clone, Copy)]
+pub enum MavLinkFrameDecodingError {
+    /// `MAVLink` header is too small.
+    HeaderIsTooSmall,
+    /// `MAVLink 1` header is too small.
+    V1HeaderIsTooSmall,
+    /// `MAVLink 2` header is too small.
+    V2HeaderIsTooSmall,
+    /// Incorrect `MAVLink` version.
+    InvalidMavLinkVersion,
+    /// Inconsistent `MAVLink 1` header: `MAVLink 2` fields are defined.
+    InconsistentV1Header,
+    /// Inconsistent `MAVLink 2` header: `MAVLink 2` fields are not defined.
+    InconsistentV2Header,
+    /// Error while reading from buffer.
+    BufferDecodeError(TBytesError),
+    /// `MAVLink 1` packet body is too small.
+    V1PacketBodyIsTooSmall,
+    /// `MAVLink 2` packet body is too small.
+    V2PacketBodyIsTooSmall,
+    /// `MAVLink 2` signature is too small.
+    V2SignatureIsTooSmall,
+}
 
-/// Errors related to MAVLink message encoding/decoding.
+impl From<TBytesError> for MavLinkFrameDecodingError {
+    /// Converts [`TBytesError`] into [`MavLinkFrameDecodingError`].
+    fn from(value: TBytesError) -> Self {
+        MavLinkFrameDecodingError::BufferDecodeError(value)
+    }
+}
+
+/// Errors related to `MAVLink` message encoding/decoding.
 #[derive(Debug, Clone, Copy)]
 pub enum MavLinkMessageProcessingError {
-    /// MAVLink version is not supported.
+    /// `MAVLink` version is not supported.
     UnsupportedMavLinkVersion {
         /// Actual requested version.
         actual: MavLinkVersion,

@@ -6,13 +6,13 @@ mod tests {
 
     fn default_xml_definition_paths() -> Vec<String> {
         vec![
-            // "../message_definitions/standard".to_string(),
+            "../message_definitions/standard".to_string(),
             "../message_definitions/extra".to_string(),
         ]
     }
 
     fn default_out_path() -> PathBuf {
-        Path::new("../examples/mavlib/src/mavlink").to_path_buf()
+        Path::new("../tmp/mavlib/src/mavlink").to_path_buf()
     }
 
     #[test]
@@ -30,6 +30,7 @@ mod tests {
             default_out_path(),
             RustGeneratorParams {
                 module_path: MODULE_PATH.to_string(),
+                serde: true,
             },
         );
         generator.generate().unwrap();

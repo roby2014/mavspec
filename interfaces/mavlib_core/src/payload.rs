@@ -6,8 +6,9 @@
 extern crate alloc;
 
 use core::cmp::min;
+use std::fmt::{Debug, Formatter};
 
-use super::{MavLinkMessage, MavLinkVersion};
+use super::MavLinkVersion;
 use crate::errors::MavLinkMessageProcessingError;
 
 /// Maximum size of a payload. Payloads of greater size in most cases will be truncated or cause
@@ -23,7 +24,8 @@ type PayloadContainer = alloc::vec::Vec<u8>;
 ///
 /// Encapsulates `MAVLink` payload. In `no_std` non-allocating targets it uses fixed-sized
 /// arrays of bytes. Otherwise payload is stored as a [`Vec`].
-#[derive(Clone, Debug)]
+#[derive(Clone)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MavLinkMessagePayload {
     /// MAVLink message ID.
     id: u32,
@@ -45,6 +47,21 @@ impl Default for MavLinkMessagePayload {
             version: MavLinkVersion::default(),
             max_size: MAX_PAYLOAD_SIZE,
         }
+    }
+}
+
+impl Debug for MavLinkMessagePayload {
+    /// Formats [`MavLinkMessagePayload`] with `payload` truncated up to `max_size`.
+    ///
+    /// This is important for `no_std` implementations where `payload` has fixed size of
+    /// [`MAX_PAYLOAD_SIZE`] bytes.
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let payload = &self.payload[0..min(self.payload.len(), self.max_size)];
+        write!(
+            f,
+            "MavLinkMessagePayload{{ id: {}, payload: {:?}, max_size: {}, version: {:?} }}",
+            self.id, payload, self.max_size, self.version
+        )
     }
 }
 
@@ -175,20 +192,10 @@ impl MavLinkMessagePayload {
     }
 }
 
-/// MAVLink message decoder.
-///
-/// Decodes [`MavLinkMessagePayload`] into [`MavLinkMessage`].
-pub trait FromMavLinkPayload {
-    /// Creates [`MavLinkMessage`] from specified `payload`.
-    fn decode(payload: &MavLinkMessagePayload) -> Result<Self, MavLinkMessageProcessingError>
-    where
-        Self: MavLinkMessage + Sized;
-}
-
 /// MAVLink message encoder.
 ///
-/// Decodes [`MavLinkMessage`] into [`MavLinkMessagePayload`].
-pub trait IntoMavlinkPayload: MavLinkMessage {
+/// Decodes `MAVLink` message into [`MavLinkMessagePayload`].
+pub trait IntoMavLinkPayload {
     /// Encodes message into MAVLink payload.
     ///
     /// # Errors

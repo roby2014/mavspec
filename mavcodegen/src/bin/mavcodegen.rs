@@ -29,9 +29,12 @@ mod cli {
         Proto {},
         #[cfg(feature = "rust")]
         Rust {
-            /// Path to module
+            /// Path to module.
             #[arg(short, long, default_value = DEFAULT_RUST_MODULE_PATH)]
             module_path: String,
+            /// Add serde support.
+            #[arg(short, long, default_value_t = false)]
+            serde: bool,
         },
     }
 }
@@ -67,11 +70,12 @@ mod process {
                         mavcodegen::proto::ProtobufGenerator::new(protocol, path).generate()
                     }
                     #[cfg(feature = "rust")]
-                    Commands::Rust { module_path } => mavcodegen::rust::RustGenerator::new(
+                    Commands::Rust { module_path, serde } => mavcodegen::rust::RustGenerator::new(
                         protocol,
                         path,
                         RustGeneratorParams {
                             module_path: module_path.clone(),
+                            serde: *serde,
                         },
                     )
                     .generate(),

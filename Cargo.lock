@@ -290,6 +290,7 @@ dependencies = [
  "mavcodegen",
  "mavlib_core",
  "mavspec",
+ "serde",
  "tbytes",
 ]
 
@@ -297,6 +298,7 @@ dependencies = [
 name = "mavlib_core"
 version = "0.1.0-alpha1"
 dependencies = [
+ "serde",
  "tbytes",
 ]
 

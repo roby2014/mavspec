@@ -20,10 +20,15 @@ resolver = "2"
 
 [dependencies]
 tbytes = { version = "0.1.0-alpha1", default-features = false }
+serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
 
 [features]
+## Enables memory allocation support.
+alloc = ["tbytes/alloc", "serde/alloc", "serde/std"]
+## Enables Rust std library.
 std = ["alloc", "tbytes/std"]
-alloc = ["tbytes/alloc"]
+## Enables serde support.
+serde = ["dep:serde"]
 
 [lib]
 name = "mavlib_core"

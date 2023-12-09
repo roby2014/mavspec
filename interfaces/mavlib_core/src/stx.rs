@@ -9,14 +9,8 @@
 //! * [MAVLink 1 Packet Format](https://mavlink.io/en/guide/serialization.html#v1_packet_format).
 //! * [MAVLink 2 Packet Format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
 
-/// `MAVLink 1` packet start marker value.
-///
-/// See [`MavSTX::MavLink1`].
-pub const STX_MAVLINK_1: u8 = 0xFE;
-/// `MAVLink 2` packet start marker value.
-///
-/// See [`MavSTX::MavLink2`].
-pub const STX_MAVLINK_2: u8 = 0xFD;
+use crate::consts::{STX_MAVLINK_1, STX_MAVLINK_2};
+use crate::MavLinkVersion;
 
 /// Packet start marker.
 ///
@@ -28,6 +22,7 @@ pub const STX_MAVLINK_2: u8 = 0xFD;
 /// * [MAVLink 1 Packet Format](https://mavlink.io/en/guide/serialization.html#v1_packet_format).
 /// * [MAVLink 2 Packet Format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum MavSTX {
     /// Designates `MAVLink 1` protocol, equals to [`STX_MAVLINK_1`].
     MavLink1,
@@ -65,5 +60,22 @@ impl From<u8> for MavSTX {
             STX_MAVLINK_2 => MavSTX::MavLink2,
             unknown => MavSTX::Unknown(unknown),
         }
+    }
+}
+
+impl From<MavLinkVersion> for MavSTX {
+    /// Creates [`MavSTX`] from [`MavLinkVersion`].
+    fn from(value: MavLinkVersion) -> Self {
+        match value {
+            MavLinkVersion::V1 => MavSTX::MavLink1,
+            MavLinkVersion::V2 => MavSTX::MavLink2,
+        }
+    }
+}
+
+impl MavSTX {
+    /// Checks that `value` represents `MAVLink` magic (start-of-text) byte.
+    pub fn is_magic_byte(value: u8) -> bool {
+        value == STX_MAVLINK_1 || value == STX_MAVLINK_2
     }
 }

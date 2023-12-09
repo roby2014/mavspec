@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use handlebars::Handlebars;
 use serde::Serialize;
 
+use crate::rust::templates::dialects::DialectModuleSpec;
 use mavspec::protocol::{Dialect, Protocol};
 
 use super::conventions;
@@ -17,6 +18,8 @@ pub struct RustGeneratorParams {
     ///
     /// For example: `my_crate::mavlink`.
     pub module_path: String,
+    /// Add `serde` support for all generated entities
+    pub serde: bool,
 }
 
 /// # Rust code generator
@@ -91,8 +94,14 @@ impl<'a> RustGenerator<'a> {
 
         // Generate root module
         let file = File::create(self.dialect_mod_rs(dialect.name()))?;
-        self.handlebars
-            .render_to_write("dialects/{dialect}/mod.rs", dialect, file)?;
+        self.handlebars.render_to_write(
+            "dialects/{dialect}/mod.rs",
+            &DialectModuleSpec {
+                dialect: dialect,
+                params: &self.params,
+            },
+            file,
+        )?;
         log::debug!("Generated: 'dialects::{}' root module.", dialect.name());
 
         // Generate enums
