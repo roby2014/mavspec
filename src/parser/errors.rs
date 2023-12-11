@@ -25,6 +25,9 @@ pub enum XmlInspectionError {
     /// IO error.
     #[error("IO error: {0}")]
     IoError(std::io::Error),
+    /// Invalid path.
+    #[error("invalid path")]
+    InvalidPath,
 }
 
 impl From<std::io::Error> for XmlInspectionError {

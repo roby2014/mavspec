@@ -24,8 +24,8 @@ pub use common::mav_type::MavType;
 pub use common::units::Units;
 pub use common::value::Value;
 
+// Errors
 pub mod errors;
-pub mod traits;
 
 /// Builders.
 ///

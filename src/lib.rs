@@ -17,11 +17,13 @@
 //! use mavspec::parser::XMLInspector;
 //!
 //! // Instantiate inspector and load list of XML definitions
-//! let inspector = XMLInspector::new(vec![
-//!     "./message_definitions/standard".to_string(),
-//!     "./message_definitions/extra".to_string(),
-//! ])
-//! .unwrap();
+//! let inspector = XMLInspector::builder()
+//!     .set_sources(vec![
+//!         "./message_definitions/standard".to_string(),
+//!         "./message_definitions/extra".to_string(),
+//!     ])
+//!     .build()
+//!     .unwrap();
 //!   
 //! // Parse all XML definitions
 //! let protocol = inspector.parse().unwrap();
@@ -51,3 +53,6 @@ pub mod parser;
 
 // MAVLink protocol entities.
 pub mod protocol;
+
+// Common utils
+pub mod utils;

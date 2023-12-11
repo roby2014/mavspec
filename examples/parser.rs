@@ -10,14 +10,23 @@ fn main() {
         .init();
 
     // Instantiate inspector and load list of XML definitions
-    let inspector = XMLInspector::new(vec![
-        // Standard definitions from
-        // https://github.com/mavlink/mavlink/tree/master/message_definitions/v1.0
-        "./message_definitions/standard".to_string(),
-        // Extra definitions which depend on standard dialects
-        "./message_definitions/extra".to_string(),
-    ])
-    .unwrap();
+    let inspector = XMLInspector::builder()
+        .set_sources(vec![
+            // Standard definitions from
+            // https://github.com/mavlink/mavlink/tree/master/message_definitions/v1.0
+            "./message_definitions/standard".to_string(),
+            // Extra definitions which depend on standard dialects
+            "./message_definitions/extra".to_string(),
+        ])
+        .set_include(vec![
+            "common".to_string(),
+            "crazyflight".to_string(),
+            "ardupilotmega".to_string(),
+            "matrixpilot".to_string(),
+        ])
+        .set_exclude(vec!["matrixpilot".to_string(), "paparazzi".to_string()])
+        .build()
+        .unwrap();
 
     // Parse all XML definitions
     let protocol = inspector.parse().unwrap();

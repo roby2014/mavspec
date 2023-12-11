@@ -1,8 +1,8 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::protocol::traits::{Buildable, Builder};
 use crate::protocol::{MavType, Units, Value};
+use crate::utils::{Buildable, Builder};
 
 use super::message_field_invalid_value::MessageFieldInvalidValue;
 
@@ -34,7 +34,7 @@ impl Buildable for MessageField {
     ///
     /// ```rust
     /// use mavspec::protocol::{MessageField, MessageFieldBuilder};
-    /// use mavspec::protocol::traits::{Buildable, Builder};
+    /// use mavspec::utils::{Buildable, Builder};
     ///
     /// let original = MessageField::builder()
     ///     .set_name("original".to_string())
@@ -68,7 +68,7 @@ impl MessageField {
     ///
     /// ```rust
     /// use mavspec::protocol::MessageField;
-    /// use mavspec::protocol::traits::Builder;
+    /// use mavspec::utils::Builder;
     ///
     /// let field = MessageField::builder()
     ///     .set_name("name".to_string())

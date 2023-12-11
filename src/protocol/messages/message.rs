@@ -4,8 +4,8 @@ use crc_any::CRCu16;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::protocol::traits::{Buildable, Builder};
 use crate::protocol::{Deprecated, MavType, MessageField};
+use crate::utils::{Buildable, Builder};
 
 /// Type of MAVLink message ID
 pub type MessageId = u32;
@@ -39,7 +39,7 @@ impl Buildable for Message {
     ///
     /// ```rust
     /// use mavspec::protocol::{Message, MessageBuilder};
-    /// use mavspec::protocol::traits::{Buildable, Builder};
+    /// use mavspec::utils::{Buildable, Builder};
     ///
     /// let original = Message::builder()
     ///     .set_name("original".to_string())
@@ -73,7 +73,7 @@ impl Message {
     ///
     /// ```rust
     /// use mavspec::protocol::Message;
-    /// use mavspec::protocol::traits::Builder;
+    /// use mavspec::utils::Builder;
     ///
     /// let message = Message::builder()
     ///     .set_name("name".to_string())
@@ -132,7 +132,7 @@ impl Message {
     ///
     /// ```rust
     /// use mavspec::protocol::{MavType, Message, MessageField};
-    /// use mavspec::protocol::traits::Builder;
+    /// use mavspec::utils::Builder;
     ///
     /// let msg = Message::builder()
     ///     .set_fields(vec![
@@ -163,7 +163,7 @@ impl Message {
     ///
     /// ```rust
     /// use mavspec::protocol::{MavType, Message, MessageField};
-    /// use mavspec::protocol::traits::Builder;
+    /// use mavspec::utils::Builder;
     ///
     /// let msg = Message::builder()
     ///     .set_fields(vec![

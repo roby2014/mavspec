@@ -58,10 +58,10 @@ pub mod enums {
     use std::collections::HashMap;
 
     use crate::parser::errors::XmlParseError;
-    use crate::protocol::traits::Builder;
     use crate::protocol::{
         Enum, EnumEntry, EnumEntryMavCmdFlags, EnumEntryMavCmdParam, MavType, Units, Value,
     };
+    use crate::utils::Builder;
 
     use super::deprecated::XmlDeprecated;
 
@@ -295,10 +295,10 @@ pub mod enums {
 pub mod messages {
     use super::deprecated::XmlDeprecated;
     use crate::parser::errors::XmlParseError;
-    use crate::protocol::traits::Builder;
     use crate::protocol::{
         MavType, Message, MessageField, MessageFieldInvalidValue, MessageId, Units, Value,
     };
+    use crate::utils::Builder;
 
     #[derive(Debug, Clone)]
     pub struct XmlMessageField {

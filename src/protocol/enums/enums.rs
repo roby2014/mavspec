@@ -3,8 +3,8 @@ use std::collections::HashMap;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::protocol::traits::{Buildable, Builder};
 use crate::protocol::{enums::EnumEntry, Deprecated};
+use crate::utils::{Buildable, Builder};
 
 /// Enum
 ///
@@ -33,7 +33,7 @@ impl Buildable for Enum {
     ///
     /// ```rust
     /// use mavspec::protocol::Enum;
-    /// use mavspec::protocol::traits::{Buildable, Builder};
+    /// use mavspec::utils::{Buildable, Builder};
     ///
     /// let original = Enum::builder()
     ///     .set_name("original".to_string())
@@ -67,7 +67,7 @@ impl Enum {
     ///
     /// ```rust
     /// use mavspec::protocol::Enum;
-    /// use mavspec::protocol::traits::Builder;
+    /// use mavspec::utils::Builder;
     ///
     /// let mav_enum = Enum::builder()
     ///     .set_name("name".to_string())
@@ -108,7 +108,7 @@ impl Enum {
     }
 
     /// Dialects in which this enum was defined.
-    /// 
+    ///
     /// The dialect list in order of inheritance. The former is a "parent" dialect to the latter.
     pub fn defined_in(&self) -> &[String] {
         &self.defined_in

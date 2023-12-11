@@ -1,4 +1,4 @@
-//! Common traits.
+//! # Common utils
 
 /// Since [`protocol`](crate::protocol) entities are immutable by design (after all, they just
 /// represent XML definitions), we use

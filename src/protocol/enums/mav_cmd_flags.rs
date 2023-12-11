@@ -1,7 +1,7 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::protocol::traits::{Buildable, Builder};
+use crate::utils::{Buildable, Builder};
 
 /// [`EnumEntry`](super::EnumEntry) `MAV_CMD` flags.
 ///
@@ -28,7 +28,7 @@ impl Buildable for EnumEntryMavCmdFlags {
     ///
     /// ```rust
     /// use mavspec::protocol::EnumEntryMavCmdFlags;
-    /// use mavspec::protocol::traits::{Buildable, Builder};
+    /// use mavspec::utils::{Buildable, Builder};
     ///
     /// let original = EnumEntryMavCmdFlags::builder()
     ///     .set_has_location(Some(true))
@@ -62,7 +62,7 @@ impl EnumEntryMavCmdFlags {
     ///
     /// ```rust
     /// use mavspec::protocol::EnumEntryMavCmdFlags;
-    /// use mavspec::protocol::traits::Builder;
+    /// use mavspec::utils::Builder;
     ///
     /// let flags = EnumEntryMavCmdFlags::builder()
     ///     .set_has_location(Some(true))

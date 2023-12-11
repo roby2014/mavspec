@@ -1,8 +1,8 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::protocol::traits::{Buildable, Builder};
 use crate::protocol::{Units, Value};
+use crate::utils::{Buildable, Builder};
 
 /// [`EnumEntry`](super::EnumEntry) `MAV_CMD` parameter.
 ///
@@ -55,7 +55,7 @@ impl Buildable for EnumEntryMavCmdParam {
     ///
     /// ```rust
     /// use mavspec::protocol::EnumEntryMavCmdParam;
-    /// use mavspec::protocol::traits::{Buildable, Builder};
+    /// use mavspec::utils::{Buildable, Builder};
     ///
     /// let original = EnumEntryMavCmdParam::builder()
     ///     .set_index(3)
@@ -87,7 +87,7 @@ impl EnumEntryMavCmdParam {
     ///
     /// ```rust
     /// use mavspec::protocol::EnumEntryMavCmdParam;
-    /// use mavspec::protocol::traits::Builder;
+    /// use mavspec::utils::Builder;
     ///
     /// let param = EnumEntryMavCmdParam::builder()
     ///     .set_index(3)

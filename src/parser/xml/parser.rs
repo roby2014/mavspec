@@ -5,8 +5,8 @@ use quick_xml::events::{BytesStart, BytesText, Event};
 use quick_xml::reader::Reader;
 
 use crate::parser::errors::XmlParseError;
-use crate::protocol::traits::{Buildable, Builder};
 use crate::protocol::{Enum, Message, MessageId};
+use crate::utils::{Buildable, Builder};
 
 use super::context::XmlParsingContext;
 use super::context_stack::XmlParsingContextStack;

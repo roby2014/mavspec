@@ -199,8 +199,8 @@ impl MavType {
     ///
     /// for expected in ["int8_t", "float", "double[4]"] {
     ///     let mav_type = MavType::parse(expected).unwrap();
-    ///     let actual = mav_type.definition_name();
-    ///     assert_eq!(actual, expected.crc_type());
+    ///     let actual = mav_type.c_type();
+    ///     assert_eq!(actual, expected);
     /// }
     ///
     /// // `uint8_t_mavlink_version` has to be represented as `uint8_t` instead of its original name.

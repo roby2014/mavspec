@@ -1,8 +1,8 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::protocol::traits::{Buildable, Builder};
 use crate::protocol::{enums::EnumEntryMavCmdFlags, enums::EnumEntryMavCmdParam, Deprecated};
+use crate::utils::{Buildable, Builder};
 
 /// Enum entry specification.
 ///
@@ -29,7 +29,7 @@ impl Buildable for EnumEntry {
     ///
     /// ```rust
     /// use mavspec::protocol::EnumEntry;
-    /// use mavspec::protocol::traits::{Buildable, Builder};
+    /// use mavspec::utils::{Buildable, Builder};
     ///
     /// let original = EnumEntry::builder()
     ///     .set_name("original".to_string())
@@ -63,7 +63,7 @@ impl EnumEntry {
     ///
     /// ```rust
     /// use mavspec::protocol::EnumEntry;
-    /// use mavspec::protocol::traits::Builder;
+    /// use mavspec::utils::Builder;
     ///
     /// let entry = EnumEntry::builder()
     ///     .set_name("name".to_string())

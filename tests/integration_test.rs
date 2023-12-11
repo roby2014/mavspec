@@ -11,7 +11,7 @@ fn default_dialect_paths() -> Vec<String> {
 #[test]
 fn naming_collisions_are_avoided() {
     let paths = vec!["./message_definitions/colliding".to_string()];
-    let inspector = XMLInspector::new(paths);
+    let inspector = XMLInspector::builder().set_sources(paths).build();
     assert!(
         inspector.is_err(),
         "XMLInspector should recognize naming collisions"
@@ -28,7 +28,7 @@ fn wrong_paths_do_not_cause_panic() {
         "./message_definitions/invalid".to_string(), // Non-existing
         "./message_definitions/standard".to_string(),
     ];
-    let inspector = XMLInspector::new(paths);
+    let inspector = XMLInspector::builder().set_sources(paths).build();
     assert!(
         inspector.is_err(),
         "XMLInspector should return error for non-existing paths"
@@ -42,7 +42,7 @@ fn empty_paths_do_not_cause_errors() {
         "./tests".to_string(), // Clearly don't have any definitions
         "./message_definitions/standard".to_string(),
     ];
-    let inspector = XMLInspector::new(paths);
+    let inspector = XMLInspector::builder().set_sources(paths).build();
     assert!(
         inspector.is_ok(),
         "XMLInspector should non return error for paths without definitions"
@@ -51,7 +51,9 @@ fn empty_paths_do_not_cause_errors() {
 
 #[test]
 fn xml_definitions_are_loaded() {
-    let inspector = XMLInspector::new(default_dialect_paths());
+    let inspector = XMLInspector::builder()
+        .set_sources(default_dialect_paths())
+        .build();
     assert!(inspector.is_ok(), "failed to instantiate XMLInspector");
     let inspector = inspector.unwrap();
 
@@ -60,7 +62,11 @@ fn xml_definitions_are_loaded() {
 
 #[test]
 fn default_message_definitions_are_parsed() {
-    let inspector = XMLInspector::new(default_dialect_paths()).unwrap();
+    let inspector = XMLInspector::builder()
+        .set_sources(default_dialect_paths())
+        .build()
+        .unwrap();
+
     let protocol = inspector.parse();
     assert!(protocol.is_ok(), "failed to instantiate XMLInspector");
     let protocol = protocol.unwrap();
@@ -76,7 +82,10 @@ fn default_message_definitions_are_parsed() {
 
 #[test]
 fn default_minimal_dialect_is_parsed_correctly() {
-    let inspector = XMLInspector::new(default_dialect_paths()).unwrap();
+    let inspector = XMLInspector::builder()
+        .set_sources(default_dialect_paths())
+        .build()
+        .unwrap();
     let protocol = inspector.parse().unwrap();
 
     let minimal = protocol.dialects().get("minimal").unwrap();
