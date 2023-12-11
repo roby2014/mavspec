@@ -16,25 +16,23 @@
 //!
 //! use mavspec::parser::XMLInspector;
 //!
-//! fn main() {
-//!   // Instantiate inspector and load list of XML definitions
-//!   let inspector = XMLInspector::new(vec![
+//! // Instantiate inspector and load list of XML definitions
+//! let inspector = XMLInspector::new(vec![
 //!     "./message_definitions/standard".to_string(),
 //!     "./message_definitions/extra".to_string(),
-//!   ])
-//!   .unwrap();
+//! ])
+//! .unwrap();
 //!   
-//!   // Parse all XML definitions
-//!   let protocol = inspector.parse().unwrap();
+//! // Parse all XML definitions
+//! let protocol = inspector.parse().unwrap();
 //!   
-//!   // Get `crazyflight` custom dialect
-//!   let crazyflight = protocol.dialects().get("crazyflight").unwrap();
+//! // Get `crazyflight` custom dialect
+//! let crazyflight = protocol.dialects().get("crazyflight").unwrap();
 //!
-//!   // Get `DUMMYFLIGHT_OUTCRY` message
-//!   let outcry_message = crazyflight.messages().get(&54000u32).unwrap();
-//!   assert_eq!(outcry_message.name(), "CRAZYFLIGHT_OUTCRY");
-//!   println!("\n`CRAZYFLIGHT_OUTCRY` message: {:#?}", outcry_message);
-//! }
+//! // Get `DUMMYFLIGHT_OUTCRY` message
+//! let outcry_message = crazyflight.messages().get(&54000u32).unwrap();
+//! assert_eq!(outcry_message.name(), "CRAZYFLIGHT_OUTCRY");
+//! println!("\n`CRAZYFLIGHT_OUTCRY` message: {:#?}", outcry_message);
 //! ```
 //!
 //! # Features

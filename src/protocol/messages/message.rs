@@ -1,9 +1,11 @@
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
+use crc_any::CRCu16;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 use crate::protocol::traits::{Buildable, Builder};
-use crate::protocol::{Deprecated, MessageField};
+use crate::protocol::{Deprecated, MavType, MessageField};
 
 /// Type of MAVLink message ID
 pub type MessageId = u32;
@@ -277,8 +279,8 @@ impl Message {
     pub fn base_fields(&self) -> Vec<MessageField> {
         self.fields()
             .iter()
-            .cloned()
             .filter(|field| !field.extension())
+            .cloned()
             .collect()
     }
 
@@ -292,8 +294,8 @@ impl Message {
     pub fn base_fields_reordered(&self) -> Vec<MessageField> {
         self.reordered_fields()
             .iter()
-            .cloned()
             .filter(|field| !field.extension())
+            .cloned()
             .collect()
     }
 
@@ -303,8 +305,8 @@ impl Message {
     pub fn extension_fields(&self) -> Vec<MessageField> {
         self.fields()
             .iter()
-            .cloned()
             .filter(|field| field.extension())
+            .cloned()
             .collect()
     }
 
@@ -313,6 +315,39 @@ impl Message {
     /// See: [MAVLink versions](https://mavlink.io/en/guide/mavlink_version.html).
     pub fn is_v1_compatible(&self) -> bool {
         self.id <= 255
+    }
+
+    /// Message `EXTRA_CRC` calculated from message XML definition.
+    ///
+    /// Calculates CRC for message name and key message fields to detect incompatible changes in
+    /// message definition.
+    ///
+    /// See: [CRC_EXTRA calculation](https://mavlink.io/en/guide/serialization.html#crc_extra) in
+    /// `MAVLink` docs.
+    pub fn extra_crc(&self) -> u8 {
+        let mut crc_calculator = CRCu16::crc16mcrf4cc();
+
+        crc_calculator.digest(self.name.as_bytes());
+        crc_calculator.digest(b" ");
+
+        for field in self.base_fields_reordered() {
+            // Primitive type name as in definition
+            crc_calculator.digest(field.r#type().base_type().c_type().as_bytes());
+            crc_calculator.digest(b" ");
+
+            // Field name
+            crc_calculator.digest(field.name().as_bytes());
+            crc_calculator.digest(b" ");
+
+            // Type length for array types
+            if let MavType::Array(_, length) = field.r#type() {
+                crc_calculator.digest(&[*length as u8]);
+            }
+        }
+
+        // Get CRC and convert it to `u8`
+        let crc_value = crc_calculator.get_crc();
+        ((crc_value & 0xFF) ^ (crc_value >> 8)) as u8
     }
 }
 
@@ -388,6 +423,14 @@ impl MessageBuilder {
     /// See: [`Message::fields`].
     pub fn set_fields(&mut self, fields: Vec<MessageField>) -> &mut Self {
         self.message.fields = fields;
+        self
+    }
+
+    /// Appends [`MessageField`] to the fields.
+    ///
+    /// See: [`Message::fields`].
+    pub fn add_field(&mut self, field: MessageField) -> &mut Self {
+        self.message.fields.push(field);
         self
     }
 
@@ -533,5 +576,103 @@ mod tests {
         assert_eq!(reordered.get(2).unwrap().name(), "1");
         assert_eq!(reordered.get(3).unwrap().name(), "3");
         assert_eq!(reordered.get(4).unwrap().name(), "4");
+    }
+
+    #[test]
+    fn extra_crc_heartbeat() {
+        // `HEARTBEAT` message from `minimal` dialect (Dec 2023).
+        //
+        // We want to add this message to test suite since it contains a field with
+        // `uint8_t_mavlink_version` type.
+        let message = MessageBuilder::new()
+            .set_name("HEARTBEAT".to_string())
+            .add_field(
+                MessageFieldBuilder::new()
+                    .set_name("type".to_string())
+                    .set_type(MavType::UInt8)
+                    .build(),
+            )
+            .add_field(
+                MessageFieldBuilder::new()
+                    .set_name("autopilot".to_string())
+                    .set_type(MavType::UInt8)
+                    .build(),
+            )
+            .add_field(
+                MessageFieldBuilder::new()
+                    .set_name("base_mode".to_string())
+                    .set_type(MavType::UInt8)
+                    .build(),
+            )
+            .add_field(
+                MessageFieldBuilder::new()
+                    .set_name("custom_mode".to_string())
+                    .set_type(MavType::UInt32)
+                    .build(),
+            )
+            .add_field(
+                MessageFieldBuilder::new()
+                    .set_name("system_status".to_string())
+                    .set_type(MavType::UInt8)
+                    .build(),
+            )
+            .add_field(
+                MessageFieldBuilder::new()
+                    .set_name("mavlink_version".to_string())
+                    .set_type(MavType::UInt8MavlinkVersion)
+                    .build(),
+            )
+            .build();
+
+        println!("{:#?}", message.base_fields_reordered());
+
+        let crc = message.extra_crc();
+        assert_eq!(crc, 50u8);
+    }
+
+    #[test]
+    fn extra_crc_protocol_version() {
+        // `PROTOCOL_VERSION` message from `minimal` dialect (Dec 2023)
+        //
+        // This message is still WIP at the moment of writing this code but it contains arrays
+        // and this is what we need for the test.
+        let message = MessageBuilder::new()
+            .set_name("PROTOCOL_VERSION".to_string())
+            .add_field(
+                MessageFieldBuilder::new()
+                    .set_name("version".to_string())
+                    .set_type(MavType::UInt16)
+                    .build(),
+            )
+            .add_field(
+                MessageFieldBuilder::new()
+                    .set_name("min_version".to_string())
+                    .set_type(MavType::UInt16)
+                    .build(),
+            )
+            .add_field(
+                MessageFieldBuilder::new()
+                    .set_name("max_version".to_string())
+                    .set_type(MavType::UInt16)
+                    .build(),
+            )
+            .add_field(
+                MessageFieldBuilder::new()
+                    .set_name("spec_version_hash".to_string())
+                    .set_type(MavType::Array(Box::new(MavType::UInt8), 8))
+                    .build(),
+            )
+            .add_field(
+                MessageFieldBuilder::new()
+                    .set_name("library_version_hash".to_string())
+                    .set_type(MavType::Array(Box::new(MavType::UInt8), 8))
+                    .build(),
+            )
+            .build();
+
+        println!("{:#?}", message.base_fields_reordered());
+
+        let crc = message.extra_crc();
+        assert_eq!(crc, 217u8);
     }
 }

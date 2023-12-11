@@ -1,7 +1,7 @@
 MAVSpec
 =======
 
-`MAVSpec` is a library to parse MAVLink protocol XML definitions.
+`MAVSpec` is a library to parse [MAVLink](https://mavlink.io/en/) protocol XML definitions.
 
 > ### WARNING!!!
 > 

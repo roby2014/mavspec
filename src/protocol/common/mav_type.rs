@@ -153,6 +153,67 @@ impl MavType {
         Ok(mav_type)
     }
 
+    /// Type name as in XML definition.
+    ///
+    /// Returns original type name.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use mavspec::protocol::MavType;
+    ///
+    /// for expected in ["int8_t", "float", "double[4]"] {
+    ///     let mav_type = MavType::parse(expected).unwrap();
+    ///     let actual = mav_type.definition_name();
+    ///     assert_eq!(actual, expected.to_string());
+    /// }
+    /// ```
+    pub fn definition_name(&self) -> String {
+        match self {
+            MavType::Int8 => "int8_t".to_string(),
+            MavType::Int16 => "int16_t".to_string(),
+            MavType::Int32 => "int32_t".to_string(),
+            MavType::Int64 => "int64_t".to_string(),
+            MavType::UInt8 => "uint8_t".to_string(),
+            MavType::UInt16 => "uint16_t".to_string(),
+            MavType::UInt32 => "uint32_t".to_string(),
+            MavType::UInt64 => "uint64_t".to_string(),
+            MavType::Float => "float".to_string(),
+            MavType::Double => "double".to_string(),
+            MavType::Char => "char".to_string(),
+            MavType::UInt8MavlinkVersion => "uint8_t_mavlink_version".to_string(),
+            MavType::Array(mav_type, length) => format!("{}[{length}]", mav_type.definition_name()),
+        }
+    }
+
+    /// Types name as a C-type.
+    ///
+    /// Type as they required for [`extra_crc`](crate::protocol::Message::extra_crc) calculation.
+    ///
+    /// Returns original type name.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use mavspec::protocol::MavType;
+    ///
+    /// for expected in ["int8_t", "float", "double[4]"] {
+    ///     let mav_type = MavType::parse(expected).unwrap();
+    ///     let actual = mav_type.definition_name();
+    ///     assert_eq!(actual, expected.crc_type());
+    /// }
+    ///
+    /// // `uint8_t_mavlink_version` has to be represented as `uint8_t` instead of its original name.
+    /// assert_eq!(
+    ///     MavType::parse("uint8_t_mavlink_version").unwrap().c_type(),
+    ///     "uint8_t".to_string()
+    /// );
+    /// ```
+    pub fn c_type(&self) -> String {
+        self.definition_name()
+            .replace("uint8_t_mavlink_version", "uint8_t")
+    }
+
     /// Returns a corresponding Rust type.
     ///
     /// # Examples
@@ -240,5 +301,24 @@ mod tests {
 
         assert_eq!(type_name, "char");
         assert_eq!(vec_length, "123");
+    }
+
+    #[test]
+    fn definition_types_are_reversible() {
+        for expected in [
+            "int8_t",
+            "uint32_t",
+            "float",
+            "double",
+            "uint8_t_mavlink_version",
+            "int64_t[5]",
+            "uint16_t[5]",
+            "float[2]",
+            "double[4]",
+        ] {
+            let mav_type = MavType::parse(expected).unwrap();
+            let actual = mav_type.definition_name();
+            assert_eq!(actual, expected.to_string());
+        }
     }
 }
