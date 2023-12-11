@@ -31,7 +31,7 @@ pub mod errors;
 ///
 /// Builders available for [`protocol`](self) entities.
 ///
-/// See: [`Builder`](traits::Builder).
+/// See: [`Builder`](crate::utils::Builder).
 pub mod builders {
     pub use super::enums::{
         EnumBuilder, EnumEntryBuilder, EnumEntryMavCmdFlagsBuilder, EnumEntryMavCmdParamBuilder,
