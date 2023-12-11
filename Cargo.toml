@@ -4,6 +4,7 @@ resolver = "2"
 
 members = [
     "mavcodegen",
-    "examples/mavlib",
-    "interfaces/mavlib_core",
+    "mavlib",
+    "mavlib_spec",
+    "mavlib_core",
 ]

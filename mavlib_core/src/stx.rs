@@ -9,8 +9,12 @@
 //! * [MAVLink 1 Packet Format](https://mavlink.io/en/guide/serialization.html#v1_packet_format).
 //! * [MAVLink 2 Packet Format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
 
+use std::convert::TryFrom;
+
+use mavlib_spec::MavLinkVersion;
+
 use crate::consts::{STX_MAVLINK_1, STX_MAVLINK_2};
-use crate::MavLinkVersion;
+use crate::errors::FrameError;
 
 /// Packet start marker.
 ///
@@ -70,6 +74,23 @@ impl From<MavLinkVersion> for MavSTX {
             MavLinkVersion::V1 => MavSTX::MavLink1,
             MavLinkVersion::V2 => MavSTX::MavLink2,
         }
+    }
+}
+
+impl TryFrom<MavSTX> for MavLinkVersion {
+    type Error = FrameError;
+
+    /// Tries to convert [`MavSTX`] into [`MavLinkVersion`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`FrameError::InvalidMavLinkVersion`] if [`MavSTX::Unknown`] provided.
+    fn try_from(value: MavSTX) -> Result<Self, Self::Error> {
+        Ok(match value {
+            MavSTX::MavLink1 => Self::V1,
+            MavSTX::MavLink2 => Self::V2,
+            MavSTX::Unknown(_) => return Err(FrameError::InvalidMavLinkVersion),
+        })
     }
 }
 

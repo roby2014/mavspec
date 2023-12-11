@@ -8,20 +8,8 @@ pub mod consts;
 // Common types
 pub mod types;
 
-// MAVLink message trait
-pub mod message;
-pub use message::MavLinkMessage;
-
-// MAVLink message payload
-pub mod payload;
-pub use payload::{IntoMavLinkPayload, MavLinkMessagePayload};
-
 // MAVlink magic byte
 pub mod stx;
-
-// MAVLink version
-mod version;
-pub use version::MavLinkVersion;
 
 // Errors
 pub mod errors;
@@ -32,3 +20,12 @@ pub mod header;
 // MAVLink frame
 pub mod frame;
 pub use frame::MavLinkFrame;
+
+// MAVLink I/O interface
+pub mod io;
+
+// MAVLink 2 signature
+pub mod signature;
+
+// Utils
+pub mod utils;

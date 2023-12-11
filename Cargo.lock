@@ -142,6 +142,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "crc-any"
+version = "2.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "774646b687f63643eb0f4bf13dc263cb581c8c9e57973b6ddf78bda3994d88df"
+
+[[package]]
 name = "crypto-common"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -289,6 +295,7 @@ version = "0.1.0-alpha1"
 dependencies = [
  "mavcodegen",
  "mavlib_core",
+ "mavlib_spec",
  "mavspec",
  "serde",
  "tbytes",
@@ -296,6 +303,17 @@ dependencies = [
 
 [[package]]
 name = "mavlib_core"
+version = "0.1.0-alpha1"
+dependencies = [
+ "crc-any",
+ "mavlib_spec",
+ "serde",
+ "tbytes",
+ "thiserror",
+]
+
+[[package]]
+name = "mavlib_spec"
 version = "0.1.0-alpha1"
 dependencies = [
  "serde",

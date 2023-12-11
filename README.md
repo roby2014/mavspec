@@ -37,7 +37,7 @@ See [examples](#examples) for advanced usage.
 CLI
 ---
 
-Generate `Rust` bindings for an example [`mavlib`](examples/mavlib) library:
+Generate `Rust` bindings for an example [`mavlib`](mavlib) library:
 
 ```shell
 cargo run --bin mavcodegen --features rust -- \
@@ -50,7 +50,7 @@ cargo run --bin mavcodegen --features rust -- \
 Examples
 --------
 
-- [`mavlib/basic`](examples/mavlib/examples/tcp_client.rs) — basic.
+- [`mavlib/basic`](mavlib/examples/tcp_client.rs) — basic.
   ```shell
   cargo run --package mavlib --example basic
   ```

@@ -1,5 +1,5 @@
 [package]
-name = "mavlib_core"
+name = "mavlib_spec"
 description = "Core interfaces for MAVLib."
 version = "0.1.0-alpha1"
 edition = "2021"
@@ -31,5 +31,5 @@ std = ["alloc", "tbytes/std"]
 serde = ["dep:serde"]
 
 [lib]
-name = "mavlib_core"
+name = "mavlib_spec"
 path = "src/lib.rs"

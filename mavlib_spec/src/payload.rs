@@ -9,7 +9,7 @@ use core::cmp::min;
 use std::fmt::{Debug, Formatter};
 
 use super::MavLinkVersion;
-use crate::errors::MavLinkMessageProcessingError;
+use crate::errors::MessageError;
 
 /// Maximum size of a payload. Payloads of greater size in most cases will be truncated or cause
 /// errors.
@@ -200,12 +200,9 @@ pub trait IntoMavLinkPayload {
     ///
     /// # Errors
     ///
-    /// * Returns [`MavLinkMessageProcessingError::UnsupportedMavLinkVersion`] if specified
+    /// * Returns [`MessageError::UnsupportedMavLinkVersion`] if specified
     /// MAVLink `version` is not supported.
-    fn encode(
-        &self,
-        version: MavLinkVersion,
-    ) -> Result<MavLinkMessagePayload, MavLinkMessageProcessingError>;
+    fn encode(&self, version: MavLinkVersion) -> Result<MavLinkMessagePayload, MessageError>;
 }
 
 #[cfg(test)]

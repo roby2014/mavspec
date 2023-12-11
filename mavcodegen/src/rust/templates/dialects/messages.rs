@@ -93,8 +93,8 @@ impl MessageSpec {
 /// Input: [`MessageSpec`].
 pub const MESSAGE: &str = r#"//! # MAVLink message `{{name}}` implementation
 
-use mavlib_core::errors::MavLinkMessageProcessingError;
-use mavlib_core::{
+use mavlib_spec::errors::MessageError;
+use mavlib_spec::{
     IntoMavLinkPayload, MavLinkMessage, MavLinkMessagePayload, MavLinkVersion,
 };
 
@@ -149,7 +149,7 @@ impl Default for {{to-message-struct-name name}} {
 }
 
 impl TryFrom<&MavLinkMessagePayload> for {{to-message-struct-name name}} {
-    type Error = MavLinkMessageProcessingError;
+    type Error = MessageError;
 
     /// Decodes [`MavLinkMessagePayload`] into [`{{to-message-struct-name name}}`] according to [`MavLinkVersion`].
     fn try_from(value: &MavLinkMessagePayload) -> Result<Self, Self::Error> {
@@ -159,7 +159,7 @@ impl TryFrom<&MavLinkMessagePayload> for {{to-message-struct-name name}} {
             MavLinkVersion::V1 => v1::decode(value.payload()),
 {{else}}
             version => {
-                return Err(MavLinkMessageProcessingError::UnsupportedMavLinkVersion {
+                return Err(MessageError::UnsupportedMavLinkVersion {
                     actual: version,
                     minimal: MIN_SUPPORTED_MAVLINK_VERSION,
                 })
@@ -174,14 +174,14 @@ impl IntoMavLinkPayload for {{to-message-struct-name name}} {
     fn encode(
         &self,
         version: MavLinkVersion,
-    ) -> Result<MavLinkMessagePayload, MavLinkMessageProcessingError> {
+    ) -> Result<MavLinkMessagePayload, MessageError> {
         Ok(match version {
             MavLinkVersion::V2 => v2::encode(self)?,
 {{#if is_v1_compatible}}
             MavLinkVersion::V1 => v1::encode(self)?,
 {{else}}
             _ => {
-                return Err(MavLinkMessageProcessingError::UnsupportedMavLinkVersion {
+                return Err(MessageError::UnsupportedMavLinkVersion {
                     actual: version,
                     minimal: MIN_SUPPORTED_MAVLINK_VERSION,
                 })
@@ -195,8 +195,8 @@ impl IntoMavLinkPayload for {{to-message-struct-name name}} {
 ///
 /// See [MAVLink 2](https://mavlink.io/en/guide/mavlink_2.html).
 pub mod v2 {
-    use mavlib_core::errors::MavLinkMessageProcessingError;
-    use mavlib_core::{MavLinkMessagePayload, MavLinkVersion};
+    use mavlib_spec::errors::MessageError;
+    use mavlib_spec::{MavLinkMessagePayload, MavLinkVersion};
     use tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
     
     use super::{ {{to-message-struct-name name}}, MESSAGE_ID };
@@ -213,8 +213,8 @@ pub mod v2 {
     ///
     /// # Errors
     /// 
-    /// Returns [`MavLinkMessageProcessingError::BufferError`] in case of malformed `payload`.
-    pub fn decode(payload: &[u8]) -> Result<{{to-message-struct-name name}}, MavLinkMessageProcessingError> {
+    /// Returns [`MessageError::BufferError`] in case of malformed `payload`.
+    pub fn decode(payload: &[u8]) -> Result<{{to-message-struct-name name}}, MessageError> {
         let reader = TBytesReader::from(payload);
 
         Ok({{to-message-struct-name name}} {
@@ -238,7 +238,7 @@ pub mod v2 {
     /// reserved for future implementations where such errors may happen.
     pub fn encode(
         message: &{{to-message-struct-name name}}
-    ) -> Result<MavLinkMessagePayload, MavLinkMessageProcessingError> {
+    ) -> Result<MavLinkMessagePayload, MessageError> {
         let mut buf = [0u8; PAYLOAD_SIZE];
         let mut writer = TBytesWriter::from(buf.as_mut_slice());
 
@@ -257,8 +257,8 @@ pub mod v2 {
 ///
 /// See [MAVLink versions](https://mavlink.io/en/guide/mavlink_version.html).
 pub mod v1 {
-    use mavlib_core::errors::MavLinkMessageProcessingError;
-    use mavlib_core::{MavLinkMessagePayload, MavLinkVersion};
+    use mavlib_spec::errors::MessageError;
+    use mavlib_spec::{MavLinkMessagePayload, MavLinkVersion};
     use tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
     
     use super::{ {{to-message-struct-name name}}, MESSAGE_ID };
@@ -272,12 +272,12 @@ pub mod v1 {
     ///
     /// # Errors
     /// 
-    /// * Returns [`MavLinkMessageProcessingError::InvalidPayloadSize`] if `payload` has incorrect size.
+    /// * Returns [`MessageError::InvalidPayloadSize`] if `payload` has incorrect size.
     ///   Payload size is defined in [`PAYLOAD_SIZE`].
-    /// * Returns [`MavLinkMessageProcessingError::BufferError`] in case of malformed `payload`.
-    pub fn decode(payload: &[u8]) -> Result<{{to-message-struct-name name}}, MavLinkMessageProcessingError> {
+    /// * Returns [`MessageError::BufferError`] in case of malformed `payload`.
+    pub fn decode(payload: &[u8]) -> Result<{{to-message-struct-name name}}, MessageError> {
         if payload.len() != PAYLOAD_SIZE {
-            return Err(MavLinkMessageProcessingError::InvalidPayloadSize {
+            return Err(MessageError::InvalidPayloadSize {
                 actual: payload.len(),
                 expected: PAYLOAD_SIZE,
             });
@@ -308,7 +308,7 @@ pub mod v1 {
     /// reserved for future implementations where such errors may happen.
     pub fn encode(
         message: &{{to-message-struct-name name}}
-    ) -> Result<MavLinkMessagePayload, MavLinkMessageProcessingError> {
+    ) -> Result<MavLinkMessagePayload, MessageError> {
         let mut buf = [0u8; PAYLOAD_SIZE];
         let mut writer = TBytesWriter::from(buf.as_mut_slice());
 
@@ -396,7 +396,7 @@ impl InheritedMessageSpec {
 pub const INHERITED_MESSAGE: &str = "\
 //! MAVLink message `{{message_name}}` inherited from [`super::super::super::{{to-dialect-name dialect_name}}`] dialect.
 
-use mavlib_core::MavLinkVersion;
+use mavlib_spec::MavLinkVersion;
 
 use super::super::super::minimal as dialect;
 

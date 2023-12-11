@@ -1,0 +1,2 @@
+//! # MAVLink endpoint
+

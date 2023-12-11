@@ -8,12 +8,10 @@
 # Sources
 !/mavcodegen/
 !/mavcodegen/**
-!/examples/
-!/examples/**
-!/interfaces/
-!/interfaces/**
+!/mavlib*/
+!/mavlib*/**
 
-# Submodules
+# MAVLink
 !/mavlink
 !/message_definitions
 !/message_definitions/**

@@ -32,8 +32,8 @@ pub struct DialectModuleSpec<'a> {
 /// Input: [`DialectModuleSpec`].
 pub const DIALECT_MODULE: &str = r#"//! # MAVLink dialect `{{dialect.name}}`
 
-use mavlib_core::errors::MavLinkMessageProcessingError;
-use mavlib_core::{IntoMavLinkPayload, MavLinkMessagePayload, MavLinkVersion};
+use mavlib_spec::errors::MessageError;
+use mavlib_spec::{IntoMavLinkPayload, MavLinkMessagePayload, MavLinkVersion};
 
 // MAVLink messages.
 pub mod messages;
@@ -52,7 +52,7 @@ pub enum Message {
 }
 
 impl TryFrom<&MavLinkMessagePayload> for Message {
-    type Error = MavLinkMessageProcessingError;
+    type Error = MessageError;
 
     /// Decodes message from `MAVLink` payload.
     fn try_from(value: &MavLinkMessagePayload) -> Result<Self, Self::Error> {
@@ -65,7 +65,7 @@ impl IntoMavLinkPayload for Message {
     fn encode(
         &self,
         version: MavLinkVersion,
-    ) -> Result<MavLinkMessagePayload, MavLinkMessageProcessingError> {
+    ) -> Result<MavLinkMessagePayload, MessageError> {
         self.encode(version)
     }
 }
@@ -74,17 +74,17 @@ impl Message {
     /// Decodes message from `MAVLink` payload.
     pub fn decode(
         payload: &MavLinkMessagePayload,
-    ) -> Result<Self, MavLinkMessageProcessingError> {
+    ) -> Result<Self, MessageError> {
         Ok(match payload.id() {
 {{#each dialect.messages}}
             messages::{{to-message-mod-name name}}::MESSAGE_ID => Self::{{to-messages-enum-entry-name name}}(messages::{{to-message-struct-name name}}::try_from(payload)?),
 {{/each}}
-            id => return Err(MavLinkMessageProcessingError::UnsupportedMessageId(id)),
+            id => return Err(MessageError::UnsupportedMessageId(id)),
         })
     }
 
     /// Encodes message to `MAVLink` payload.
-    pub fn encode(&self, version: MavLinkVersion) -> Result<MavLinkMessagePayload, MavLinkMessageProcessingError> {
+    pub fn encode(&self, version: MavLinkVersion) -> Result<MavLinkMessagePayload, MessageError> {
         Ok(match self {
 {{#each dialect.messages}}
             Self::{{to-messages-enum-entry-name name}}(message) => {message.encode(version)?}
