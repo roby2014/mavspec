@@ -1,16 +1,23 @@
-//! # MAVLib errors
+//! # Errors
+//!
+//! This errors used in `mavlib_core`.
+//!
+//! The top-level error is [`CoreError`]. Library API returns versions of this error possibly wrapping other types of
+//! errors.
 
 use tbytes::errors::TBytesError;
 
+use mavlib_spec::MessageError;
 #[cfg(feature = "std")]
 use thiserror::Error;
 
-/// This is a common result returned by `mavlib_core` functions and methods.
+/// Common result type returned by `mavlib_core` functions and methods.
 pub type Result<T> = core::result::Result<T, CoreError>;
 
-/// `mavlib` base error.
+/// `mavlib_core` top-level error.
 ///
-/// [`CoreError`] is returned by most of the functions and methods across `mavlib_core`.
+/// [`CoreError`] is returned by most of the functions and methods across `mavlib_core`. Other errors are either
+/// converted to [`CoreError`] or wrapped by its variants.
 #[derive(Debug)]
 #[cfg_attr(feature = "std", derive(Error))]
 pub enum CoreError {
@@ -28,13 +35,17 @@ pub enum CoreError {
     /// Frame encoding/decoding error.
     #[cfg_attr(feature = "std", error("frame decoding/encoding error"))]
     Frame(FrameError),
+
+    /// Message encoding/decoding and specification discovery error.
+    #[cfg_attr(feature = "std", error("frame decoding/encoding error"))]
+    Message(MessageError),
 }
 
-/// Errors related to `MAVLink` frame decoding.
+/// Errors related to MAVLink frame encoding/decoding.
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(feature = "std", derive(Error))]
 pub enum FrameError {
-    /// `MAVLink` header is too small.
+    /// MAVLink header is too small.
     #[cfg_attr(feature = "std", error("header is too small"))]
     HeaderIsTooSmall,
     /// `MAVLink 1` header is too small.
@@ -43,7 +54,7 @@ pub enum FrameError {
     /// `MAVLink 2` header is too small.
     #[cfg_attr(feature = "std", error("MAVLink 2 header is too small"))]
     V2HeaderIsTooSmall,
-    /// Incorrect `MAVLink` version.
+    /// Incorrect MAVLink version.
     #[cfg_attr(feature = "std", error("invalid MAVLink version"))]
     InvalidMavLinkVersion,
     /// Inconsistent `MAVLink 1` header: `MAVLink 2` fields are defined.
@@ -64,7 +75,7 @@ pub enum FrameError {
     /// Buffer error.
     #[cfg_attr(feature = "std", error("MAVLink 2 signature is too small"))]
     Buffer(TBytesError),
-    /// Upon calculation CRC does not match received [MavLinkFrame::checksum](crate::MavLinkFrame::checksum).
+    /// Upon calculation CRC does not match received [MavLinkFrame::checksum](crate::Frame::checksum).
     #[cfg_attr(feature = "std", error("checksum validation failed"))]
     InvalidChecksum,
 }
@@ -87,7 +98,15 @@ impl From<TBytesError> for CoreError {
 }
 
 impl From<FrameError> for CoreError {
+    /// Converts [`FrameError`] into [`CoreError`].
     fn from(value: FrameError) -> Self {
         Self::Frame(value)
+    }
+}
+
+impl From<MessageError> for CoreError {
+    /// Converts [`MessageError`] into [`CoreError`].
+    fn from(value: MessageError) -> Self {
+        Self::Message(value)
     }
 }

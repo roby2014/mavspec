@@ -1,77 +1,34 @@
 //! # MAVLink frame
 
 use crc_any::CRCu16;
-use mavlib_spec::{MavLinkMessagePayload, MavLinkVersion};
+use mavlib_spec::{MavLinkDialectSpec, MavLinkMessagePayload, MavLinkVersion};
 
-use crate::consts::{MAVLINK_CHECKSUM_SIZE, MAVLINK_V2_SIGNATURE_LENGTH};
-use crate::errors::{CoreError, FrameError, Result};
-use crate::header::MavLinkHeader;
+use crate::consts::{CHECKSUM_SIZE, SIGNATURE_LENGTH};
+use crate::errors::{FrameError, Result};
+use crate::header::Header;
 use crate::io::Read;
-use crate::signature::MavLinkV2Signature;
-use crate::types::{MAVLinkExtraCrc, MavLinkChecksum};
+use crate::signature::Signature;
+use crate::types::{Checksum, ExtraCrc};
 
-/// `MAVLink` frame.
+/// MAVLink frame.
 #[derive(Clone, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct MavLinkFrame {
-    /// Generic `MAVLink` header.
-    header: MavLinkHeader,
+pub struct Frame {
+    /// Generic MAVLink header.
+    header: Header,
     /// Payload data.
     payload: MavLinkMessagePayload,
-    /// `MAVLink` packet checksum.
-    checksum: MavLinkChecksum,
+    /// MAVLink packet checksum.
+    checksum: Checksum,
     /// Signature.
-    signature: Option<MavLinkV2Signature>,
+    signature: Option<Signature>,
 }
 
-/// `MAVLink` raw frame with everything but header encoded.
-///
-/// [`MavLinkRawFrame`] is a utility structure that holds links to [`MavLinkHeader`] and encoded
-/// frame body. It is intended to be constructed and immediately converted to [`MavLinkFrame`] which
-/// implements [`TryFrom<MavLinkRawFrame>`].
-#[derive(Clone, Copy, Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-pub struct MavLinkRawFrame<'a> {
-    /// Generic `MAVLink` header.
-    pub(crate) header: &'a MavLinkHeader,
-    /// Frame body as bytes.
-    pub(crate) body: &'a [u8],
-}
-
-impl<'a> MavLinkRawFrame<'a> {
-    /// Default constructor.
-    pub fn new(header: &'a MavLinkHeader, body: &'a [u8]) -> Self {
-        Self { header, body }
-    }
-}
-
-impl<'a> TryFrom<MavLinkRawFrame<'a>> for MavLinkFrame {
-    type Error = CoreError;
-
-    /// Converts [`MavLinkRawFrame`] into [`MavLinkFrame`].
+impl Frame {
+    /// Generic MAVLink header.
     ///
-    /// See [`MavLinkFrame::try_from_raw_frame`].
-    fn try_from(value: MavLinkRawFrame) -> Result<Self> {
-        Self::try_from_raw_frame(value)
-    }
-}
-
-impl<'a> MavLinkRawFrame<'a> {
-    /// Generic `MAVLink` header.
-    pub fn header(&self) -> &'a MavLinkHeader {
-        self.header
-    }
-    /// Frame body as bytes.
-    pub fn body(&self) -> &'a [u8] {
-        self.body
-    }
-}
-
-impl MavLinkFrame {
-    /// Generic `MAVLink` header.
-    ///
-    /// See [`MavLinkHeader`].
-    pub fn header(&self) -> &MavLinkHeader {
+    /// See [`Header`].
+    pub fn header(&self) -> &Header {
         &self.header
     }
 
@@ -84,7 +41,7 @@ impl MavLinkFrame {
         &self.payload
     }
 
-    /// `MAVLink` packet checksum.
+    /// MAVLink packet checksum.
     ///
     /// `CRC-16/MCRF4XX` [checksum](https://mavlink.io/en/guide/serialization.html#checksum) for
     /// message (excluding magic byte).
@@ -94,33 +51,33 @@ impl MavLinkFrame {
     /// Checksum is encoded with little endian (low byte, high byte).
     ///
     /// See:
-    ///  * [`MavLinkFrame::calculate_crc`] for implementation.
+    ///  * [`Frame::calculate_crc`] for implementation.
     ///  * [MAVLink checksum definition](https://mavlink.io/en/guide/serialization.html#checksum).
     ///  * [CRC-16/MCRF4XX](https://ww1.microchip.com/downloads/en/AppNotes/00752a.pdf) (PDF).
-    pub fn checksum(&self) -> MavLinkChecksum {
+    pub fn checksum(&self) -> Checksum {
         self.checksum
     }
 
     /// Signature.
     ///
     /// Signature to ensure the link is tamper-proof.
-    pub fn signature(&self) -> Option<&MavLinkV2Signature> {
+    pub fn signature(&self) -> Option<&Signature> {
         self.signature.as_ref()
     }
 
-    /// `MAVLink` protocol version defined by [`MavLinkHeader`].
+    /// MAVLink protocol version defined by [`Header`].
     ///
     /// See:
     ///  * [MavLinkVersion]
-    ///  * [MavLinkHeader::mavlink_version]
+    ///  * [Header::mavlink_version]
     pub fn mavlink_version(&self) -> MavLinkVersion {
         self.header.mavlink_version()
     }
 
-    /// Read and decode [`MavLinkFrame`] frame from the instance of [`Read`].
+    /// Read and decode [`Frame`] frame from the instance of [`Read`].
     pub fn recv<R: Read>(reader: &mut R) -> Result<Self> {
         // Retrieve header
-        let header = MavLinkHeader::recv(reader)?;
+        let header = Header::recv(reader)?;
 
         let body_length = header.expected_body_length()?;
 
@@ -130,27 +87,26 @@ impl MavLinkFrame {
         #[cfg(not(feature = "std"))]
         let mut body_buf = {
             use mavlib_spec::payload::MAX_PAYLOAD_SIZE;
-            [0u8; MAX_PAYLOAD_SIZE + MAVLINK_V2_SIGNATURE_LENGTH]
+            [0u8; MAX_PAYLOAD_SIZE + SIGNATURE_LENGTH]
         };
         let body_bytes = &mut body_buf[0..body_length];
 
+        // Read and decode
         reader.read_exact(body_bytes)?;
-
-        let raw_frame = MavLinkRawFrame::new(&header, body_bytes);
-        let frame = MavLinkFrame::try_from_raw_frame(raw_frame)?;
+        let frame = Self::try_from_raw_body(&header, body_bytes)?;
 
         Ok(frame)
     }
 
-    /// Calculates CRC for [`MavLinkFrame`] within `extra_crc`.
+    /// Calculates CRC for [`Frame`] within `extra_crc`.
     ///
     /// Provided `extra_crc` depends on a dialect and contains a digest of message XML definition.
     ///
     /// See:
-    ///  * [`MavLinkFrame::checksum`].
+    ///  * [`Frame::checksum`].
     ///  * [MAVLink checksum definition](https://mavlink.io/en/guide/serialization.html#checksum).
     ///  * [CRC-16/MCRF4XX](https://ww1.microchip.com/downloads/en/AppNotes/00752a.pdf) (PDF).
-    pub fn calculate_crc(&self, extra_crc: MAVLinkExtraCrc) -> MavLinkChecksum {
+    pub fn calculate_crc(&self, extra_crc: ExtraCrc) -> Checksum {
         let mut crc_calculator = CRCu16::crc16mcrf4cc();
 
         crc_calculator.digest(self.header.crc_data());
@@ -165,10 +121,10 @@ impl MavLinkFrame {
         crc_calculator.get_crc()
     }
 
-    /// Validates [`MavLinkFrame::checksum`] using provided `extra_crc`.
+    /// Validates [`Frame::checksum`] using provided `extra_crc`.
     ///
-    /// See: [`MavLinkFrame::calculate_crc`] for CRC implementation details.
-    pub fn validate_crc(&self, extra_crc: MAVLinkExtraCrc) -> Result<()> {
+    /// See: [`Frame::calculate_crc`] for CRC implementation details.
+    pub fn validate_checksum(&self, extra_crc: ExtraCrc) -> Result<()> {
         if self.calculate_crc(extra_crc) != self.checksum {
             return Err(FrameError::InvalidChecksum.into());
         }
@@ -176,27 +132,46 @@ impl MavLinkFrame {
         Ok(())
     }
 
-    /// Converts [`MavLinkRawFrame`] into [`MavLinkFrame`].
-    pub fn try_from_raw_frame(raw_frame: MavLinkRawFrame) -> Result<Self> {
-        let body = raw_frame.body;
-        let header = raw_frame.header;
+    /// Validates frame in the context of specific dialect.
+    ///
+    /// Receives dialect specification in `dialect_spec`, ensures that message with such ID
+    /// exists in this dialect, and compares checksums using `EXTRA_CRC`.
+    ///
+    /// # Errors
+    ///
+    /// * Returns [`CoreError::Message`](crate::errors::CoreError::Message) if message discovery failed.  
+    /// * Returns [`FrameError::InvalidChecksum`] (wrapped by [`CoreError`](crate::errors::CoreError)) if checksum
+    ///   validation failed.  
+    ///
+    /// # Links
+    ///
+    /// * [`MavLinkDialectSpec`] for dialect specification.
+    /// * [`Frame::calculate_crc`] for CRC implementation details.
+    pub fn validate(&self, dialect_spec: &dyn MavLinkDialectSpec) -> Result<()> {
+        let message_info = dialect_spec.message_info(self.header().message_id())?;
+        self.validate_checksum(message_info.extra_crc())?;
 
+        Ok(())
+    }
+
+    /// Converts slice of body bytes into [`Frame`].
+    fn try_from_raw_body(header: &Header, body_bytes: &[u8]) -> Result<Self> {
         // Validate body size
         let body_length = header.expected_body_length()?;
         match header.mavlink_version() {
             MavLinkVersion::V1 => {
-                if body.len() < body_length {
+                if body_bytes.len() < body_length {
                     return Err(FrameError::V1PacketBodyIsTooSmall.into());
                 }
             }
             MavLinkVersion::V2 => {
-                if body.len() < body_length {
+                if body_bytes.len() < body_length {
                     return Err(FrameError::V2PacketBodyIsTooSmall.into());
                 }
             }
         }
 
-        let payload_bytes = &body[0..header.payload_length() as usize];
+        let payload_bytes = &body_bytes[0..header.payload_length() as usize];
         let payload = MavLinkMessagePayload::new(
             header.message_id(),
             payload_bytes,
@@ -205,14 +180,13 @@ impl MavLinkFrame {
 
         // Decode checksum
         let checksum_start = header.payload_length() as usize;
-        let checksum_bytes = [body[checksum_start], body[checksum_start + 1]];
-        let checksum: MavLinkChecksum = MavLinkChecksum::from_le_bytes(checksum_bytes);
+        let checksum_bytes = [body_bytes[checksum_start], body_bytes[checksum_start + 1]];
+        let checksum: Checksum = Checksum::from_le_bytes(checksum_bytes);
 
-        let signature: Option<MavLinkV2Signature> = if header.is_signature_required()? {
-            let signature_start = checksum_start + MAVLINK_CHECKSUM_SIZE;
-            let signature_bytes =
-                &body[signature_start..signature_start + MAVLINK_V2_SIGNATURE_LENGTH];
-            Some(MavLinkV2Signature::try_from(signature_bytes)?)
+        let signature: Option<Signature> = if header.is_signature_required()? {
+            let signature_start = checksum_start + CHECKSUM_SIZE;
+            let signature_bytes = &body_bytes[signature_start..signature_start + SIGNATURE_LENGTH];
+            Some(Signature::try_from(signature_bytes)?)
         } else {
             None
         };

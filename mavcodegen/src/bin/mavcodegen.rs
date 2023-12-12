@@ -46,7 +46,9 @@ mod specs {
     use mavspec::protocol::Protocol;
 
     pub fn parse_definitions(src: &[String]) -> anyhow::Result<Protocol> {
-        XMLInspector::new(src.to_vec())?
+        XMLInspector::builder()
+            .set_sources(src.to_vec())
+            .build()?
             .parse()
             .map_err(|err| anyhow!(err))
     }

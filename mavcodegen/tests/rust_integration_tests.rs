@@ -1,18 +1,19 @@
 #[cfg(feature = "rust")]
 mod tests {
+    use std::fs::remove_dir_all;
     use std::path::{Path, PathBuf};
 
     const MODULE_PATH: &str = "mavlib::mavlink";
 
-    fn default_xml_definition_paths() -> Vec<String> {
+    fn xml_definition_paths() -> Vec<String> {
         vec![
             "../message_definitions/standard".to_string(),
             "../message_definitions/extra".to_string(),
         ]
     }
 
-    fn default_out_path() -> PathBuf {
-        Path::new("../tmp/mavlib/src/mavlink").to_path_buf()
+    fn out_path() -> PathBuf {
+        Path::new("../tmp/mavlink").to_path_buf()
     }
 
     #[test]
@@ -20,19 +21,24 @@ mod tests {
         use mavcodegen::rust::{RustGenerator, RustGeneratorParams};
         use mavspec::parser::XMLInspector;
 
-        let protocol = XMLInspector::new(default_xml_definition_paths())
+        let protocol = XMLInspector::builder()
+            .set_sources(xml_definition_paths())
+            .build()
             .unwrap()
             .parse()
             .unwrap();
 
         let generator = RustGenerator::new(
             protocol,
-            default_out_path(),
+            out_path(),
             RustGeneratorParams {
                 module_path: MODULE_PATH.to_string(),
                 serde: true,
             },
         );
         generator.generate().unwrap();
+
+        // Clean up
+        remove_dir_all(out_path()).unwrap();
     }
 }

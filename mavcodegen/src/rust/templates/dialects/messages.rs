@@ -62,6 +62,7 @@ pub struct MessageSpec {
     ///
     /// See: [`Message::has_extension_fields`].
     pub has_extension_fields: bool,
+    pub extra_crc: u8,
     /// Generator params.
     pub params: RustGeneratorParams,
 }
@@ -82,6 +83,8 @@ impl MessageSpec {
             payload_v2_size: message.size_v2(),
             extension_fields: message.extension_fields(),
             has_extension_fields: message.has_extension_fields(),
+            // CRC
+            extra_crc: message.extra_crc(),
             // Params
             params: params.clone(),
         }
@@ -93,15 +96,17 @@ impl MessageSpec {
 /// Input: [`MessageSpec`].
 pub const MESSAGE: &str = r#"//! # MAVLink message `{{name}}` implementation
 
-use mavlib_spec::errors::MessageError;
 use mavlib_spec::{
-    IntoMavLinkPayload, MavLinkMessage, MavLinkMessagePayload, MavLinkVersion,
+    IntoMavLinkPayload, MavLinkMessageInfo, MavLinkMessagePayload, MavLinkMessageSpec,
+    MavLinkVersion, MessageError,
 };
 
 /// MAVLink message ID.
 pub const MESSAGE_ID: u32 = {{id}};
-/// Minimum supported MAVLink version.
-pub const MIN_SUPPORTED_MAVLINK_VERSION: MavLinkVersion = MavLinkVersion::{{#if is_v1_compatible}}V1{{else}}V2{{/if}};
+/// Message `EXTRA_CRC` calculated from message XML definition.
+pub const EXTRA_CRC: u8 = {{extra_crc}};
+/// Generic message info.
+pub static MESSAGE_INFO: MavLinkMessageInfo = MavLinkMessageInfo::new(MESSAGE_ID, EXTRA_CRC);
 
 /// MAVLink message `{{name}}`.
 ///
@@ -112,7 +117,7 @@ pub const MIN_SUPPORTED_MAVLINK_VERSION: MavLinkVersion = MavLinkVersion::{{#if 
 /// Message encoding/decoding are provided by implementing [`TryFrom<MavLinkMessagePayload>`] for
 /// [`{{to-message-struct-name name}}`] (encoding) and [`IntoMavLinkPayload`] (decoding) traits.
 #[derive(Clone, Debug)]
-{{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
+// {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
 pub struct {{to-message-struct-name name}} {
 {{#each fields}}
     /// MAVLink field `{{name}}`.
@@ -120,19 +125,29 @@ pub struct {{to-message-struct-name name}} {
 {{/each}}
 }
 
-impl MavLinkMessage for {{to-message-struct-name name}} {
+impl MavLinkMessageSpec for {{to-message-struct-name name}} {
     /// MAVLink message ID.
     ///
-    /// See [`MavLinkMessage::id`].
+    /// See [`MavLinkMessageSpec::id`].
+    #[inline]
     fn id(&self) -> u32 {
         MESSAGE_ID
     }
 
     /// Minimum supported MAVLink version.
     ///
-    /// See [`MavLinkMessage::min_supported_mavlink_version`].
+    /// See [`MavLinkMessageSpec::min_supported_mavlink_version`].
+    #[inline]
     fn min_supported_mavlink_version(&self) -> MavLinkVersion {
-        MIN_SUPPORTED_MAVLINK_VERSION
+        MESSAGE_INFO.min_supported_mavlink_version()
+    }
+    
+    /// Message `EXTRA_CRC` calculated from message XML definition.
+    ///
+    /// See: [`MavLinkMessageSpec::extra_crc`].
+    #[inline]
+    fn extra_crc(&self) -> u8 {
+        EXTRA_CRC
     }
 }
 
@@ -159,9 +174,9 @@ impl TryFrom<&MavLinkMessagePayload> for {{to-message-struct-name name}} {
             MavLinkVersion::V1 => v1::decode(value.payload()),
 {{else}}
             version => {
-                return Err(MessageError::UnsupportedMavLinkVersion {
+                Err(MessageError::UnsupportedMavLinkVersion {
                     actual: version,
-                    minimal: MIN_SUPPORTED_MAVLINK_VERSION,
+                    minimal: MESSAGE_INFO.min_supported_mavlink_version(),
                 })
             }
 {{/if}}
@@ -183,7 +198,7 @@ impl IntoMavLinkPayload for {{to-message-struct-name name}} {
             _ => {
                 return Err(MessageError::UnsupportedMavLinkVersion {
                     actual: version,
-                    minimal: MIN_SUPPORTED_MAVLINK_VERSION,
+                    minimal: MESSAGE_INFO.min_supported_mavlink_version(),
                 })
             }
 {{/if}}
@@ -195,8 +210,7 @@ impl IntoMavLinkPayload for {{to-message-struct-name name}} {
 ///
 /// See [MAVLink 2](https://mavlink.io/en/guide/mavlink_2.html).
 pub mod v2 {
-    use mavlib_spec::errors::MessageError;
-    use mavlib_spec::{MavLinkMessagePayload, MavLinkVersion};
+    use mavlib_spec::{MavLinkMessagePayload, MavLinkVersion, MessageError};
     use tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
     
     use super::{ {{to-message-struct-name name}}, MESSAGE_ID };
@@ -218,7 +232,7 @@ pub mod v2 {
         let reader = TBytesReader::from(payload);
 
         Ok({{to-message-struct-name name}} {
-            // Fields are reordered according to `MAVLink` specification
+            // Fields are reordered according to MAVLink specification
 {{#each fields_v2}}
             {{to-rust-var name}}: reader.{{to-reader-fn type}}()?,
 {{/each}}
@@ -242,7 +256,7 @@ pub mod v2 {
         let mut buf = [0u8; PAYLOAD_SIZE];
         let mut writer = TBytesWriter::from(buf.as_mut_slice());
 
-        // Fields are reordered according to `MAVLink` specification
+        // Fields are reordered according to MAVLink specification
 {{#each fields_v2}}
         writer.{{to-writer-fn type}}(message.{{to-rust-var name}})?;
 {{/each}}
@@ -257,8 +271,7 @@ pub mod v2 {
 ///
 /// See [MAVLink versions](https://mavlink.io/en/guide/mavlink_version.html).
 pub mod v1 {
-    use mavlib_spec::errors::MessageError;
-    use mavlib_spec::{MavLinkMessagePayload, MavLinkVersion};
+    use mavlib_spec::{MavLinkMessagePayload, MavLinkVersion, MessageError};
     use tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
     
     use super::{ {{to-message-struct-name name}}, MESSAGE_ID };
@@ -285,7 +298,7 @@ pub mod v1 {
         let reader = TBytesReader::from(payload);
 
         Ok({{to-message-struct-name name}} {
-            // Fields are reordered according to `MAVLink` specification
+            // Fields are reordered according to MAVLink specification
 {{#each fields_v1}}
             {{to-rust-var name}}: reader.{{to-reader-fn type}}()?,
 {{/each}}
@@ -312,7 +325,7 @@ pub mod v1 {
         let mut buf = [0u8; PAYLOAD_SIZE];
         let mut writer = TBytesWriter::from(buf.as_mut_slice());
 
-        // Fields are reordered according to `MAVLink` specification
+        // Fields are reordered according to MAVLink specification
 {{#each fields_v1}}
         writer.{{to-writer-fn type}}(message.{{to-rust-var name}})?;
 {{/each}}
@@ -396,15 +409,15 @@ impl InheritedMessageSpec {
 pub const INHERITED_MESSAGE: &str = "\
 //! MAVLink message `{{message_name}}` inherited from [`super::super::super::{{to-dialect-name dialect_name}}`] dialect.
 
-use mavlib_spec::MavLinkVersion;
+use mavlib_spec::MavLinkMessageInfo;
 
-use super::super::super::minimal as dialect;
+use super::super::super::{{to-dialect-name dialect_name}} as dialect;
 
 /// MAVLink message ID originally defined in [`dialect::messages::{{to-message-mod-name message_name}}::MESSAGE_ID`].
 pub const MESSAGE_ID: u32 = dialect::messages::{{to-message-mod-name message_name}}::MESSAGE_ID;
-/// Minimum supported MAVLink version originally defined in [`dialect::messages::{{to-message-mod-name message_name}}::MIN_SUPPORTED_MAVLINK_VERSION`].
-pub const MIN_SUPPORTED_MAVLINK_VERSION: MavLinkVersion =
-    dialect::messages::{{to-message-mod-name message_name}}::MIN_SUPPORTED_MAVLINK_VERSION;
+/// Message info originally defined in [`dialect::messages::{{to-message-mod-name message_name}}::MESSAGE_INFO`].
+pub static MESSAGE_INFO: MavLinkMessageInfo =
+    dialect::messages::{{to-message-mod-name message_name}}::MESSAGE_INFO;
 
 /// MAVLink message `{{message_name}}` originally defined in [`dialect::messages::{{to-message-struct-name message_name}}`].
 pub type {{to-message-struct-name message_name}} = dialect::messages::{{to-message-struct-name message_name}};

@@ -1,7 +1,7 @@
-//! # Basic `MAVLink` I/O
+//! # Basic MAVLink I/O
 //!
-//! This module includes basic `MAVLink` I/O utils for reading and writing frames
-//! ([`MavLinkFrame`](crate::MavLinkFrame)).
+//! This module includes basic MAVLink I/O utils for reading and writing frames
+//! ([`MavLinkFrame`](crate::Frame)).
 //!
 //! # Targets
 //!
@@ -50,6 +50,7 @@
 #[cfg(not(feature = "std"))]
 pub use no_std::{Read, Write};
 #[cfg(feature = "std")]
+#[doc(hidden)]
 pub use std::io::{Read, Write};
 
 #[cfg(not(feature = "std"))]
@@ -143,27 +144,27 @@ pub mod no_std {
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
 mod tests {
-    use crate::consts::{STX_MAVLINK_1, STX_MAVLINK_2};
-    use crate::header::MavLinkHeader;
+    use crate::consts::{STX_V1, STX_V2};
+    use crate::header::Header;
     use crate::utils::SliceReader;
     use mavlib_spec::MavLinkVersion;
 
     #[test]
     fn read_v1_header() {
         let content = [
-            12,            // \
-            24,            //  |Junk bytes
-            240,           // /
-            STX_MAVLINK_1, // magic byte
-            8,             // payload_length
-            1,             // sequence
-            10,            // system ID
-            255,           // component ID
-            0,             // message ID
+            12,     // \
+            24,     //  |Junk bytes
+            240,    // /
+            STX_V1, // magic byte
+            8,      // payload_length
+            1,      // sequence
+            10,     // system ID
+            255,    // component ID
+            0,      // message ID
         ];
         let mut buffer = SliceReader::new(&content);
 
-        let header = MavLinkHeader::recv(&mut buffer).unwrap();
+        let header = Header::recv(&mut buffer).unwrap();
 
         assert!(matches!(header.mavlink_version(), MavLinkVersion::V1));
         assert_eq!(header.payload_length(), 8u8);
@@ -177,23 +178,23 @@ mod tests {
     #[test]
     fn read_v2_header() {
         let content = [
-            12,            // \
-            24,            //  |Junk bytes
-            240,           // /
-            STX_MAVLINK_2, // magic byte
-            8,             // payload_length
-            1,             // incompatibility flags
-            0,             // compatibility flags
-            1,             // sequence
-            10,            // system ID
-            255,           // component ID
-            0,             // \
-            0,             //  | message ID
-            0,             // /
+            12,     // \
+            24,     //  |Junk bytes
+            240,    // /
+            STX_V2, // magic byte
+            8,      // payload_length
+            1,      // incompatibility flags
+            0,      // compatibility flags
+            1,      // sequence
+            10,     // system ID
+            255,    // component ID
+            0,      // \
+            0,      //  | message ID
+            0,      // /
         ];
         let mut reader = SliceReader::new(&content);
 
-        let header = MavLinkHeader::recv(&mut reader).unwrap();
+        let header = Header::recv(&mut reader).unwrap();
 
         assert!(matches!(header.mavlink_version(), MavLinkVersion::V2));
         assert_eq!(header.payload_length(), 8u8);

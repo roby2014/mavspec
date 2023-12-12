@@ -30,7 +30,8 @@ tbytes = "0.1.0-alpha2"
 
 [build-dependencies]
 mavcodegen = { path = "../mavcodegen", features = ["rust"], default-features = false }
-mavspec = { version = "0.1.0-alpha1", default-features = false, features = ["serde"] }
+#mavspec = { version = "0.1.0-alpha4", default-features = false, features = ["serde"] }
+mavspec = { git = "https://gitlab.com/mavka/libs/mavspec.git", features = ["serde"] }
 
 [dev-dependencies]
 

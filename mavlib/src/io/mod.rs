@@ -1,3 +1,3 @@
-//! # `MAVLink` I/O utils
+//! # MAVLink I/O utils
 
 pub mod endpoint;

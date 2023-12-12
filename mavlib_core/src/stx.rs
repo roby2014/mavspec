@@ -9,12 +9,12 @@
 //! * [MAVLink 1 Packet Format](https://mavlink.io/en/guide/serialization.html#v1_packet_format).
 //! * [MAVLink 2 Packet Format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
 
-use std::convert::TryFrom;
+use core::convert::TryFrom;
 
 use mavlib_spec::MavLinkVersion;
 
-use crate::consts::{STX_MAVLINK_1, STX_MAVLINK_2};
-use crate::errors::FrameError;
+use crate::consts::{STX_V1, STX_V2};
+use crate::errors::{CoreError, FrameError, Result};
 
 /// Packet start marker.
 ///
@@ -28,10 +28,10 @@ use crate::errors::FrameError;
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum MavSTX {
-    /// Designates `MAVLink 1` protocol, equals to [`STX_MAVLINK_1`].
-    MavLink1,
-    /// Designates `MAVLink 2` protocol, equals to [`STX_MAVLINK_2`].
-    MavLink2,
+    /// Designates `MAVLink 1` protocol, equals to [`STX_V1`].
+    V1,
+    /// Designates `MAVLink 2` protocol, equals to [`STX_V2`].
+    V2,
     /// Unknown protocol.
     Unknown(u8),
 }
@@ -49,8 +49,8 @@ impl From<MavSTX> for u8 {
     /// Converts from `u8` into [`MavSTX`].
     fn from(value: MavSTX) -> Self {
         match value {
-            MavSTX::MavLink1 => STX_MAVLINK_1,
-            MavSTX::MavLink2 => STX_MAVLINK_2,
+            MavSTX::V1 => STX_V1,
+            MavSTX::V2 => STX_V2,
             MavSTX::Unknown(unknown) => unknown,
         }
     }
@@ -60,8 +60,8 @@ impl From<u8> for MavSTX {
     /// Converts from `u8` into [`MavSTX`].
     fn from(value: u8) -> Self {
         match value {
-            STX_MAVLINK_1 => MavSTX::MavLink1,
-            STX_MAVLINK_2 => MavSTX::MavLink2,
+            STX_V1 => MavSTX::V1,
+            STX_V2 => MavSTX::V2,
             unknown => MavSTX::Unknown(unknown),
         }
     }
@@ -71,32 +71,32 @@ impl From<MavLinkVersion> for MavSTX {
     /// Creates [`MavSTX`] from [`MavLinkVersion`].
     fn from(value: MavLinkVersion) -> Self {
         match value {
-            MavLinkVersion::V1 => MavSTX::MavLink1,
-            MavLinkVersion::V2 => MavSTX::MavLink2,
+            MavLinkVersion::V1 => MavSTX::V1,
+            MavLinkVersion::V2 => MavSTX::V2,
         }
     }
 }
 
 impl TryFrom<MavSTX> for MavLinkVersion {
-    type Error = FrameError;
+    type Error = CoreError;
 
     /// Tries to convert [`MavSTX`] into [`MavLinkVersion`].
     ///
     /// # Errors
     ///
     /// Returns [`FrameError::InvalidMavLinkVersion`] if [`MavSTX::Unknown`] provided.
-    fn try_from(value: MavSTX) -> Result<Self, Self::Error> {
+    fn try_from(value: MavSTX) -> Result<Self> {
         Ok(match value {
-            MavSTX::MavLink1 => Self::V1,
-            MavSTX::MavLink2 => Self::V2,
-            MavSTX::Unknown(_) => return Err(FrameError::InvalidMavLinkVersion),
+            MavSTX::V1 => Self::V1,
+            MavSTX::V2 => Self::V2,
+            MavSTX::Unknown(_) => return Err(FrameError::InvalidMavLinkVersion.into()),
         })
     }
 }
 
 impl MavSTX {
-    /// Checks that `value` represents `MAVLink` magic (start-of-text) byte.
+    /// Checks that `value` represents MAVLink magic (start-of-text) byte.
     pub fn is_magic_byte(value: u8) -> bool {
-        value == STX_MAVLINK_1 || value == STX_MAVLINK_2
+        value == STX_V1 || value == STX_V2
     }
 }

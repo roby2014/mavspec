@@ -4,10 +4,10 @@ use tbytes::errors::TBytesError;
 
 use super::version::MavLinkVersion;
 
-/// Errors related to `MAVLink` message encoding/decoding.
+/// Errors related to MAVLink message encoding/decoding.
 #[derive(Debug, Clone, Copy)]
 pub enum MessageError {
-    /// `MAVLink` version is not supported.
+    /// MAVLink version is not supported.
     UnsupportedMavLinkVersion {
         /// Actual requested version.
         actual: MavLinkVersion,

@@ -1,4 +1,6 @@
 //! # Utils
+//!
+//! Utility functions, structs and traits which does not fall into any category.
 
 use crate::io::Read;
 
@@ -12,7 +14,7 @@ use crate::io::Read;
 /// [`SliceReader`] created mainly for testing purposes. In most cases
 /// [`std::io::Cursor`](https://doc.rust-lang.org/std/io/struct.Cursor.html) will be a better
 /// alternative. However, since it may have a limited potential use, we've decide to include this
-/// struct into [`mavlib_core`](crate) API.
+/// struct into `mavlib_core` API.
 #[derive(Debug, Default)]
 pub struct SliceReader<'a> {
     content: &'a [u8],

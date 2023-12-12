@@ -8,7 +8,7 @@ stages:
   - release
 
 variables:
-  DRY_CARGO_RELEASE: "false"
+  DRY_CARGO_RELEASE: "true"
   CI_CARGO_PACKAGE: mavcodegen
 
 # ---------------------------------------------------------

@@ -6,6 +6,8 @@
 extern crate alloc;
 
 use core::cmp::min;
+
+#[cfg(feature = "std")]
 use std::fmt::{Debug, Formatter};
 
 use super::MavLinkVersion;
@@ -15,21 +17,23 @@ use crate::errors::MessageError;
 /// errors.
 pub const MAX_PAYLOAD_SIZE: usize = 255;
 
-#[cfg(not(feature = "alloc"))]
-type PayloadContainer = [u8; MAX_PAYLOAD_SIZE];
 #[cfg(feature = "alloc")]
 type PayloadContainer = alloc::vec::Vec<u8>;
+#[cfg(not(feature = "alloc"))]
+use no_alloc_payload_container::PayloadContainer;
 
 /// MAVlink message payload.
 ///
-/// Encapsulates `MAVLink` payload. In `no_std` non-allocating targets it uses fixed-sized
+/// Encapsulates MAVLink payload. In `no_std` non-allocating targets it uses fixed-sized
 /// arrays of bytes. Otherwise payload is stored as a [`Vec`].
 #[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(not(feature = "std"), derive(Debug))]
 pub struct MavLinkMessagePayload {
     /// MAVLink message ID.
     id: u32,
     /// Message payload as a sequence of bytes.
+    #[cfg_attr(feature = "serde", serde(skip))]
     payload: PayloadContainer,
     /// Payload size.
     max_size: usize,
@@ -50,6 +54,7 @@ impl Default for MavLinkMessagePayload {
     }
 }
 
+#[cfg(feature = "std")]
 impl Debug for MavLinkMessagePayload {
     /// Formats [`MavLinkMessagePayload`] with `payload` truncated up to `max_size`.
     ///
@@ -99,7 +104,7 @@ impl MavLinkMessagePayload {
         }
     }
 
-    /// `MAVLink` message ID.
+    /// MAVLink message ID.
     pub fn id(&self) -> u32 {
         self.id
     }
@@ -112,7 +117,11 @@ impl MavLinkMessagePayload {
         if let MavLinkVersion::V2 = self.version {
             self.truncated()
         } else if self.payload.len() < self.max_size {
-            &self.payload
+            #[cfg(not(feature = "alloc"))]
+            let res = &self.payload.content;
+            #[cfg(feature = "alloc")]
+            let res = &self.payload;
+            res
         } else {
             &self.payload[0..self.max_size]
         }
@@ -159,20 +168,21 @@ impl MavLinkMessagePayload {
         };
 
         #[cfg(not(feature = "alloc"))]
-        let payload: PayloadContainer = {
-            let mut no_std_payload = [0u8; MAX_PAYLOAD_SIZE];
-            let max_len = if MAX_PAYLOAD_SIZE < value.len() {
-                MAX_PAYLOAD_SIZE
-            } else {
-                value.len()
-            };
-            no_std_payload[0..max_len].copy_from_slice(&value[0..max_len]);
-            no_std_payload
+        let payload: PayloadContainer = PayloadContainer {
+            content: {
+                let mut no_std_payload = [0u8; MAX_PAYLOAD_SIZE];
+                let max_len = if MAX_PAYLOAD_SIZE < value.len() {
+                    MAX_PAYLOAD_SIZE
+                } else {
+                    value.len()
+                };
+                no_std_payload[0..max_len].copy_from_slice(&value[0..max_len]);
+                no_std_payload
+            },
         };
         #[cfg(feature = "alloc")]
         let payload: PayloadContainer = if value.len() < max_size {
-            println!();
-            let mut payload = vec![0u8; max_size];
+            let mut payload = alloc::vec![0u8; max_size];
             payload[0..value.len()].copy_from_slice(value);
             payload
         } else {
@@ -184,17 +194,13 @@ impl MavLinkMessagePayload {
 
     /// Creates [`PayloadContainer`] populated with default values.
     fn container_default() -> PayloadContainer {
-        #[cfg(not(feature = "alloc"))]
-        let default = [0u8; MAX_PAYLOAD_SIZE];
-        #[cfg(feature = "alloc")]
-        let default = PayloadContainer::default();
-        default
+        PayloadContainer::default()
     }
 }
 
 /// MAVLink message encoder.
 ///
-/// Decodes `MAVLink` message into [`MavLinkMessagePayload`].
+/// Decodes MAVLink message into [`MavLinkMessagePayload`].
 pub trait IntoMavLinkPayload {
     /// Encodes message into MAVLink payload.
     ///
@@ -203,6 +209,41 @@ pub trait IntoMavLinkPayload {
     /// * Returns [`MessageError::UnsupportedMavLinkVersion`] if specified
     /// MAVLink `version` is not supported.
     fn encode(&self, version: MavLinkVersion) -> Result<MavLinkMessagePayload, MessageError>;
+}
+
+#[cfg(not(feature = "alloc"))]
+mod no_alloc_payload_container {
+    use crate::payload::MAX_PAYLOAD_SIZE;
+
+    #[derive(Clone, Debug)]
+    pub struct PayloadContainer {
+        pub(super) content: [u8; MAX_PAYLOAD_SIZE],
+    }
+
+    impl Default for PayloadContainer {
+        fn default() -> Self {
+            Self {
+                content: [0u8; MAX_PAYLOAD_SIZE],
+            }
+        }
+    }
+
+    impl<Idx> core::ops::Index<Idx> for PayloadContainer
+    where
+        Idx: core::slice::SliceIndex<[u8]>,
+    {
+        type Output = Idx::Output;
+
+        fn index(&self, index: Idx) -> &Self::Output {
+            &self.content[index]
+        }
+    }
+
+    impl PayloadContainer {
+        pub fn len(&self) -> usize {
+            self.content.len()
+        }
+    }
 }
 
 #[cfg(test)]

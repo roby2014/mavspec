@@ -97,7 +97,7 @@ impl<'a> RustGenerator<'a> {
         self.handlebars.render_to_write(
             "dialects/{dialect}/mod.rs",
             &DialectModuleSpec {
-                dialect: dialect,
+                dialect,
                 params: &self.params,
             },
             file,

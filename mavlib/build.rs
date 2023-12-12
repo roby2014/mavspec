@@ -27,7 +27,12 @@ fn main() {
 
     let sources = vec!["../../message_definitions/extra".to_string()];
 
-    let protocol = XMLInspector::new(sources).unwrap().parse().unwrap();
+    let protocol = XMLInspector::builder()
+        .set_sources(sources)
+        .build()
+        .unwrap()
+        .parse()
+        .unwrap();
 
     RustGenerator::new(
         protocol,

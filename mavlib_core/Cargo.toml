@@ -25,9 +25,14 @@ tbytes = { version = "0.1.0-alpha1", default-features = false }
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
 thiserror = { version = "1.0.50", optional = true }
 
+[build-dependencies]
+mavcodegen = { path = "../mavcodegen", features = ["rust"], default-features = false }
+#mavspec = { version = "0.1.0-alpha4", default-features = false, features = ["serde"] }
+mavspec = { git = "https://gitlab.com/mavka/libs/mavspec.git" }
+
 [features]
 ## Default features
-default = ["std"]
+default = ["std", "minimal"]
 ## Enables memory allocation support.
 alloc = [
     "mavlib_spec/alloc",
@@ -47,6 +52,14 @@ serde = [
     "dep:serde",
     "mavlib_spec/serde"
 ]
+## Include `minimal` dialect
+minimal = []
+## Include `common` dialect
+common = ["minimal"]
+## Include `common` dialect
+ardupilotmega = ["minimal", "common"]
+## Include `all` meta-dialect
+all = ["common", "ardupilotmega"]
 
 [lib]
 name = "mavlib_core"
@@ -55,3 +68,8 @@ path = "src/lib.rs"
 [[example]]
 name = "tcp_basic"
 test = true
+required-features = ["minimal"]
+
+[package.metadata.docs.rs]
+# Features to include into `docs.rs` documentation
+features = ["default", "serde", "all"]

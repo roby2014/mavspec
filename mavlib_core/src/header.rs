@@ -1,20 +1,19 @@
-//! # `MAVLink` header
+//! # MAVLink header
 //!
-//! This module contains implementation for `MAVLink` packet header both for `MAVLink 1` and
+//! This module contains implementation for MAVLink packet header both for `MAVLink 1` and
 //! `MAVLink 2`.
 
 use mavlib_spec::MavLinkVersion;
 use tbytes::{TBytesReader, TBytesReaderFor};
 
 use crate::consts::{
-    MAVLINK_CHECKSUM_SIZE, MAVLINK_MAX_HEADER_SIZE, MAVLINK_MIN_HEADER_SIZE,
-    MAVLINK_V1_HEADER_SIZE, MAVLINK_V2_HEADER_SIZE, MAVLINK_V2_IFLAG_SIGNED,
-    MAVLINK_V2_SIGNATURE_LENGTH, STX_MAVLINK_1, STX_MAVLINK_2,
+    CHECKSUM_SIZE, HEADER_MAX_SIZE, HEADER_MIN_SIZE, HEADER_V1_SIZE, HEADER_V2_SIZE,
+    MAVLINK_IFLAG_SIGNED, SIGNATURE_LENGTH, STX_V1, STX_V2,
 };
 use crate::errors::{CoreError, FrameError, Result};
 use crate::io::Read;
 use crate::stx::MavSTX;
-use crate::types::{MavLinkMessageId, MavLinkV1Header, MavLinkV2Header};
+use crate::types::{HeaderV1Bytes, HeaderV2Bytes, MessageId};
 
 /// MAVLink frame header.
 ///
@@ -25,13 +24,13 @@ use crate::types::{MavLinkMessageId, MavLinkV1Header, MavLinkV2Header};
 ///  * [MAVLink 2 packet format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
 #[derive(Clone, Copy, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct MavLinkHeader {
-    /// `MAVLink` protocol version.
+pub struct Header {
+    /// MAVLink protocol version.
     mavlink_version: MavLinkVersion,
     /// Payload length.
     payload_length: u8,
     /// Fields related to `MAVLink 2` headers.
-    mavlink_v2_fields: Option<MavLinkV2HeaderFields>,
+    mavlink_v2_fields: Option<HeaderV2Fields>,
     /// Packet sequence number.
     sequence: u8,
     /// System `ID`.
@@ -39,9 +38,9 @@ pub struct MavLinkHeader {
     /// Component `ID`.
     component_id: u8,
     /// Message `ID`.
-    message_id: MavLinkMessageId,
+    message_id: MessageId,
     /// Header as a sequence of bytes.
-    bytes: [u8; MAVLINK_MAX_HEADER_SIZE],
+    bytes: [u8; HEADER_MAX_SIZE],
 }
 
 /// Fields related to `MAVLink 2` packet header.
@@ -49,7 +48,7 @@ pub struct MavLinkHeader {
 /// See: [MAVLink 2 packet format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct MavLinkV2HeaderFields {
+pub struct HeaderV2Fields {
     /// Incompatibility Flags.
     ///
     /// Flags that must be understood for MAVLink compatibility (implementation discards packet if
@@ -66,54 +65,54 @@ pub struct MavLinkV2HeaderFields {
     pub compat_flags: u8,
 }
 
-impl TryFrom<MavLinkV1Header> for MavLinkHeader {
+impl TryFrom<HeaderV1Bytes> for Header {
     type Error = CoreError;
 
-    /// Decodes [`MavLinkHeader`] from [`MavLinkV1Header`] bytes.
+    /// Decodes [`Header`] from [`HeaderV1Bytes`] bytes.
     ///
-    /// See [`MavLinkHeader::try_from_v1_bytes`].
-    fn try_from(value: MavLinkV1Header) -> Result<Self> {
+    /// See [`Header::try_from_v1_bytes`].
+    fn try_from(value: HeaderV1Bytes) -> Result<Self> {
         Self::try_from_v1_bytes(value)
     }
 }
 
-impl TryFrom<MavLinkV2Header> for MavLinkHeader {
+impl TryFrom<HeaderV2Bytes> for Header {
     type Error = CoreError;
 
-    /// Decodes [`MavLinkHeader`] from [`MavLinkV2Header`] bytes.
+    /// Decodes [`Header`] from [`HeaderV2Bytes`] bytes.
     ///
-    /// See [`MavLinkHeader::try_from_v2_bytes`].
-    fn try_from(value: MavLinkV2Header) -> Result<Self> {
+    /// See [`Header::try_from_v2_bytes`].
+    fn try_from(value: HeaderV2Bytes) -> Result<Self> {
         Self::try_from_v2_bytes(value)
     }
 }
 
-impl TryFrom<&[u8]> for MavLinkHeader {
+impl TryFrom<&[u8]> for Header {
     type Error = CoreError;
 
-    /// Decodes a slice of bytes into [`MavLinkHeader`].
+    /// Decodes a slice of bytes into [`Header`].
     ///
-    /// See [`MavLinkHeader::try_from_slice`].
+    /// See [`Header::try_from_slice`].
     fn try_from(value: &[u8]) -> Result<Self> {
         Self::try_from_slice(value)
     }
 }
 
-impl MavLinkHeader {
-    /// Initiates builder for [`MavLinkHeader`].
+impl Header {
+    /// Initiates builder for [`Header`].
     ///
     /// Instead of constructor we use
     /// [builder](https://rust-unofficial.github.io/patterns/patterns/creational/builder.html)
-    /// pattern. An instance of [`MavLinkHeaderBuilder`] returned by this function is initialized
-    /// with default values. Once desired values are set, you can call [`MavLinkHeaderBuilder::build`]
-    /// to obtain [`MavLinkHeader`].
-    pub fn builder() -> MavLinkHeaderBuilder {
-        MavLinkHeaderBuilder::new()
+    /// pattern. An instance of [`HeaderBuilder`] returned by this function is initialized
+    /// with default values. Once desired values are set, you can call [`HeaderBuilder::build`]
+    /// to obtain [`Header`].
+    pub fn builder() -> HeaderBuilder {
+        HeaderBuilder::new()
     }
 
-    /// `MAVLink` protocol version.
+    /// MAVLink protocol version.
     ///
-    /// `MAVLink` version defined by the magic byte (STX).
+    /// MAVLink version defined by the magic byte (STX).
     ///
     /// See [`MavSTX`].
     pub fn mavlink_version(&self) -> MavLinkVersion {
@@ -123,9 +122,9 @@ impl MavLinkHeader {
     /// Fields related to `MAVLink 2` headers.
     ///
     /// See:
-    ///  * [`MavLinkV2HeaderFields`].
+    ///  * [`HeaderV2Fields`].
     ///  * [MAVLink 2 packet format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
-    pub fn mavlink_v2_fields(&self) -> Option<&MavLinkV2HeaderFields> {
+    pub fn mavlink_v2_fields(&self) -> Option<&HeaderV2Fields> {
         self.mavlink_v2_fields.as_ref()
     }
 
@@ -170,36 +169,36 @@ impl MavLinkHeader {
     /// `ID` of message type in payload.
     ///
     /// Used to decode data back into message object.
-    pub fn message_id(&self) -> MavLinkMessageId {
+    pub fn message_id(&self) -> MessageId {
         self.message_id
     }
 
     /// Size of the header in bytes.
     ///
-    /// Depends on the `MAVLink` protocol version.
+    /// Depends on the MAVLink protocol version.
     pub fn size(&self) -> usize {
         match self.mavlink_version {
-            MavLinkVersion::V1 => MAVLINK_V1_HEADER_SIZE,
-            MavLinkVersion::V2 => MAVLINK_V2_HEADER_SIZE,
+            MavLinkVersion::V1 => HEADER_V1_SIZE,
+            MavLinkVersion::V2 => HEADER_V2_SIZE,
         }
     }
 
     /// Returns `true` if `MAVLink 2` frame body should contain signature.
     ///
-    /// See [MavLinkFrame::signature](crate::frame::MavLinkFrame::signature).
+    /// See [Frame::signature](crate::frame::Frame::signature).
     pub fn is_signature_required(&self) -> Result<bool> {
         Ok(match self.mavlink_version {
             MavLinkVersion::V1 => false,
             MavLinkVersion::V2 => match self.mavlink_v2_fields {
-                Some(MavLinkV2HeaderFields { incompat_flags, .. }) => {
-                    incompat_flags & MAVLINK_V2_IFLAG_SIGNED == MAVLINK_V2_IFLAG_SIGNED
+                Some(HeaderV2Fields { incompat_flags, .. }) => {
+                    incompat_flags & MAVLINK_IFLAG_SIGNED == MAVLINK_IFLAG_SIGNED
                 }
                 None => return Err(FrameError::InconsistentV2Header.into()),
             },
         })
     }
 
-    /// Expected `MAVLink` frame body length.
+    /// Expected MAVLink frame body length.
     ///
     /// # Errors
     ///
@@ -207,34 +206,32 @@ impl MavLinkHeader {
     /// `MAVLink 2` specific fields.
     pub fn expected_body_length(&self) -> Result<usize> {
         Ok(match self.mavlink_version {
-            MavLinkVersion::V1 => self.payload_length as usize + MAVLINK_CHECKSUM_SIZE,
+            MavLinkVersion::V1 => self.payload_length as usize + CHECKSUM_SIZE,
             MavLinkVersion::V2 => {
                 if self.is_signature_required()? {
-                    self.payload_length as usize
-                        + MAVLINK_CHECKSUM_SIZE
-                        + MAVLINK_V2_SIGNATURE_LENGTH
+                    self.payload_length as usize + CHECKSUM_SIZE + SIGNATURE_LENGTH
                 } else {
-                    self.payload_length as usize + MAVLINK_CHECKSUM_SIZE
+                    self.payload_length as usize + CHECKSUM_SIZE
                 }
             }
         })
     }
 
-    /// `MAVLink` packet header size for this protocol version.
+    /// MAVLink packet header size for this protocol version.
     ///
     /// See [`MavLinkVersion`].
     pub fn header_size(version: MavLinkVersion) -> usize {
         match version {
-            MavLinkVersion::V1 => MAVLINK_V1_HEADER_SIZE,
-            MavLinkVersion::V2 => MAVLINK_V1_HEADER_SIZE,
+            MavLinkVersion::V1 => HEADER_V1_SIZE,
+            MavLinkVersion::V2 => HEADER_V1_SIZE,
         }
     }
 
-    /// Read and decode [`MavLinkHeader`] from the instance of [`Read`].
+    /// Read and decode [`Header`] from the instance of [`Read`].
     pub fn recv<R: Read>(reader: &mut R) -> Result<Self> {
         loop {
             // Read minimum amount of bytes required for a valid MAVLink header
-            let mut buffer = [0u8; MAVLINK_MIN_HEADER_SIZE];
+            let mut buffer = [0u8; HEADER_MIN_SIZE];
             reader.read_exact(&mut buffer)?;
 
             // Look for the `magic` byte
@@ -264,21 +261,21 @@ impl MavLinkHeader {
                     // return header.
                     return match version {
                         MavLinkVersion::V1 => {
-                            let mut header_bytes = [0u8; MAVLINK_V1_HEADER_SIZE];
+                            let mut header_bytes = [0u8; HEADER_V1_SIZE];
                             header_bytes[0..num_read_bytes].copy_from_slice(header_start_bytes);
-                            if num_read_bytes < MAVLINK_V1_HEADER_SIZE {
+                            if num_read_bytes < HEADER_V1_SIZE {
                                 reader.read_exact(
-                                    &mut header_bytes[num_read_bytes..MAVLINK_V1_HEADER_SIZE],
+                                    &mut header_bytes[num_read_bytes..HEADER_V1_SIZE],
                                 )?;
                             }
                             Self::try_from_v1_bytes(header_bytes)
                         }
                         MavLinkVersion::V2 => {
-                            let mut header_bytes = [0u8; MAVLINK_V2_HEADER_SIZE];
+                            let mut header_bytes = [0u8; HEADER_V2_SIZE];
                             header_bytes[0..num_read_bytes].copy_from_slice(header_start_bytes);
-                            if num_read_bytes < MAVLINK_V2_HEADER_SIZE {
+                            if num_read_bytes < HEADER_V2_SIZE {
                                 reader.read_exact(
-                                    &mut header_bytes[num_read_bytes..MAVLINK_V2_HEADER_SIZE],
+                                    &mut header_bytes[num_read_bytes..HEADER_V2_SIZE],
                                 )?;
                             }
                             Self::try_from_v2_bytes(header_bytes)
@@ -289,46 +286,46 @@ impl MavLinkHeader {
         }
     }
 
-    /// Decodes [`MavLinkHeader`] from [`MavLinkV1Header`] bytes.
+    /// Decodes [`Header`] from [`HeaderV1Bytes`] bytes.
     ///
-    /// Used in [`TryFrom<MavLinkV1Header>`] trait implementation for [`MavLinkHeader`].
+    /// Used in [`TryFrom<HeaderV1Bytes>`] trait implementation for [`Header`].
     ///
     /// # Errors
     ///
     /// Returns [`FrameError::InvalidMavLinkVersion`] if `magic` byte is not equal to
-    /// [`STX_MAVLINK_1`].
-    pub fn try_from_v1_bytes(bytes: MavLinkV1Header) -> Result<Self> {
+    /// [`STX_V1`].
+    pub fn try_from_v1_bytes(bytes: HeaderV1Bytes) -> Result<Self> {
         let magic = bytes[0];
-        if magic != STX_MAVLINK_1 {
+        if magic != STX_V1 {
             return Err(FrameError::InvalidMavLinkVersion.into());
         }
         // Decode
         Self::try_from_slice(bytes.as_slice())
     }
 
-    /// Decodes [`MavLinkHeader`] from [`MavLinkV2Header`] bytes.
+    /// Decodes [`Header`] from [`HeaderV2Bytes`] bytes.
     ///
-    /// Used in [`TryFrom<MavLinkV2Header>`] trait implementation for [`MavLinkHeader`].
+    /// Used in [`TryFrom<HeaderV2Bytes>`] trait implementation for [`Header`].
     ///
     /// # Errors
     ///
     /// Returns [`FrameError::InvalidMavLinkVersion`] if `magic` byte is not equal to
-    /// [`STX_MAVLINK_2`].
-    pub fn try_from_v2_bytes(bytes: MavLinkV2Header) -> Result<Self> {
+    /// [`STX_V2`].
+    pub fn try_from_v2_bytes(bytes: HeaderV2Bytes) -> Result<Self> {
         let magic = bytes[0];
-        if magic != STX_MAVLINK_2 {
+        if magic != STX_V2 {
             return Err(FrameError::InvalidMavLinkVersion.into());
         }
         // Decode
         Self::try_from_slice(bytes.as_slice())
     }
 
-    /// Decodes a slice of bytes into [`MavLinkHeader`].
+    /// Decodes a slice of bytes into [`Header`].
     ///
-    /// Used in [`TryFrom<&[u8]>`](TryFrom) trait implementation for [`MavLinkHeader`].
+    /// Used in [`TryFrom<&[u8]>`](TryFrom) trait implementation for [`Header`].
     pub fn try_from_slice(bytes: &[u8]) -> Result<Self> {
         // Validate header
-        MavLinkHeader::validate_slice(bytes)?;
+        Header::validate_slice(bytes)?;
 
         let reader = TBytesReader::from(bytes);
 
@@ -336,7 +333,7 @@ impl MavLinkHeader {
         let mavlink_version: MavLinkVersion = MavLinkVersion::try_from(MavSTX::from(magic))?;
         let payload_length: u8 = reader.read()?;
         let mavlink_v2_fields = if let MavLinkVersion::V2 = mavlink_version {
-            Some(MavLinkV2HeaderFields {
+            Some(HeaderV2Fields {
                 incompat_flags: reader.read()?,
                 compat_flags: reader.read()?,
             })
@@ -347,18 +344,18 @@ impl MavLinkHeader {
         let sequence: u8 = reader.read()?;
         let system_id: u8 = reader.read()?;
         let component_id: u8 = reader.read()?;
-        let message_id: MavLinkMessageId = match mavlink_version {
+        let message_id: MessageId = match mavlink_version {
             MavLinkVersion::V1 => {
                 let version: u8 = reader.read()?;
-                version as MavLinkMessageId
+                version as MessageId
             }
             MavLinkVersion::V2 => {
                 let version_byte: [u8; 4] = [reader.read()?, reader.read()?, reader.read()?, 0];
-                MavLinkMessageId::from_le_bytes(version_byte)
+                MessageId::from_le_bytes(version_byte)
             }
         };
 
-        let mut header_bytes = [0u8; MAVLINK_MAX_HEADER_SIZE];
+        let mut header_bytes = [0u8; HEADER_MAX_SIZE];
         header_bytes[0..bytes.len()].copy_from_slice(bytes);
 
         Ok(Self {
@@ -373,10 +370,10 @@ impl MavLinkHeader {
         })
     }
 
-    /// Validates that provided header can be converted to [`MavLinkHeader`].
+    /// Validates that provided header can be converted to [`Header`].
     pub fn validate_slice(value: &[u8]) -> Result<()> {
         // Validate that header has minimum required size
-        if value.len() < MAVLINK_MIN_HEADER_SIZE {
+        if value.len() < HEADER_MIN_SIZE {
             return Err(FrameError::HeaderIsTooSmall.into());
         }
 
@@ -386,15 +383,15 @@ impl MavLinkHeader {
             return Err(FrameError::InvalidMavLinkVersion.into());
         }
 
-        // Validate that header contains enough data according to specific `MAVLink` protocol
+        // Validate that header contains enough data according to specific MAVLink protocol
         match magic {
-            _ if magic == STX_MAVLINK_1 => {
-                if value.len() < MAVLINK_V1_HEADER_SIZE {
+            _ if magic == STX_V1 => {
+                if value.len() < HEADER_V1_SIZE {
                     return Err(FrameError::V1HeaderIsTooSmall.into());
                 }
             }
-            _ if magic == STX_MAVLINK_2 => {
-                if value.len() < MAVLINK_V2_HEADER_SIZE {
+            _ if magic == STX_V2 => {
+                if value.len() < HEADER_V2_SIZE {
                     return Err(FrameError::V2HeaderIsTooSmall.into());
                 }
             }
@@ -404,37 +401,37 @@ impl MavLinkHeader {
         Ok(())
     }
 
-    /// [`MavLinkHeader`] CRC data.
+    /// [`Header`] CRC data.
     ///
     /// Returns all header data excluding `magic` byte.
     ///
     /// See:
-    ///  * [`MavLinkFrame::calculate_crc`](crate::frame::MavLinkFrame::calculate_crc).
-    ///  * [MAVLink checksum](https://mavlink.io/en/guide/serialization.html#checksum) in `MAVLink`
+    ///  * [`MavLinkFrame::calculate_crc`](crate::frame::Frame::calculate_crc).
+    ///  * [MAVLink checksum](https://mavlink.io/en/guide/serialization.html#checksum) in MAVLink
     ///    protocol documentation.
     pub fn crc_data(&self) -> &[u8] {
         &self.bytes[1..self.size()]
     }
 }
 
-/// Builder for [`MavLinkHeader`].
+/// Builder for [`Header`].
 ///
 /// Implements [builder](https://rust-unofficial.github.io/patterns/patterns/creational/builder.html)
-/// pattern for [`MavLinkHeader`].
+/// pattern for [`Header`].
 #[derive(Clone, Copy, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct MavLinkHeaderBuilder {
-    header: MavLinkHeader,
+pub struct HeaderBuilder {
+    header: Header,
 }
 
-impl MavLinkHeaderBuilder {
+impl HeaderBuilder {
     /// Default constructor.
-    pub fn new() -> MavLinkHeaderBuilder {
+    pub fn new() -> HeaderBuilder {
         Self::default()
     }
 
-    /// Builds [`MavLinkHeader`].
-    pub fn build(&self) -> Result<MavLinkHeader> {
+    /// Builds [`Header`].
+    pub fn build(&self) -> Result<Header> {
         self.validate()?;
         Ok(self.header)
     }
@@ -458,9 +455,9 @@ impl MavLinkHeaderBuilder {
         Ok(())
     }
 
-    /// Sets `MAVLink` protocol version.
+    /// Sets MAVLink protocol version.
     ///
-    /// See: [`MavLinkHeader::mavlink_version`].
+    /// See: [`Header::mavlink_version`].
     pub fn set_mavlink_version(&mut self, mavlink_version: MavLinkVersion) -> &mut Self {
         self.header.mavlink_version = mavlink_version;
         self
@@ -468,10 +465,10 @@ impl MavLinkHeaderBuilder {
 
     /// Sets fields related to `MAVLink 2` headers.
     ///
-    /// See: [`MavLinkHeader::mavlink_v2_fields`].
+    /// See: [`Header::mavlink_v2_fields`].
     pub fn set_mavlink_v2_fields(
         &mut self,
-        mavlink_v2_fields: Option<MavLinkV2HeaderFields>,
+        mavlink_v2_fields: Option<HeaderV2Fields>,
     ) -> &mut Self {
         self.header.mavlink_v2_fields = mavlink_v2_fields;
         self
@@ -479,7 +476,7 @@ impl MavLinkHeaderBuilder {
 
     /// Sets payload length.
     ///
-    /// See: [`MavLinkHeader::payload_length`].
+    /// See: [`Header::payload_length`].
     pub fn set_payload_length(&mut self, payload_length: u8) -> &mut Self {
         self.header.payload_length = payload_length;
         self
@@ -487,7 +484,7 @@ impl MavLinkHeaderBuilder {
 
     /// Sets packet sequence number.
     ///
-    /// See: [`MavLinkHeader::sequence`].
+    /// See: [`Header::sequence`].
     pub fn set_sequence(&mut self, sequence: u8) -> &mut Self {
         self.header.sequence = sequence;
         self
@@ -495,7 +492,7 @@ impl MavLinkHeaderBuilder {
 
     /// Sets system `ID`.
     ///
-    /// See: [`MavLinkHeader::system_id`].
+    /// See: [`Header::system_id`].
     pub fn system_id(&mut self, system_id: u8) -> &mut Self {
         self.header.system_id = system_id;
         self
@@ -503,7 +500,7 @@ impl MavLinkHeaderBuilder {
 
     /// Sets component `ID`.
     ///
-    /// See: [`MavLinkHeader::component_id`].
+    /// See: [`Header::component_id`].
     pub fn set_component_id(&mut self, component_id: u8) -> &mut Self {
         self.header.component_id = component_id;
         self
@@ -511,7 +508,7 @@ impl MavLinkHeaderBuilder {
 
     /// Sets message `ID`.
     ///
-    /// See: [`MavLinkHeader::message_id`].
+    /// See: [`Header::message_id`].
     pub fn set_message_id(&mut self, message_id: u32) -> &mut Self {
         self.header.message_id = message_id;
         self
@@ -522,24 +519,24 @@ impl MavLinkHeaderBuilder {
 #[cfg(feature = "std")]
 mod tests {
     use super::*;
-    use crate::consts::STX_MAVLINK_1;
+    use crate::consts::STX_V1;
     use std::io::Cursor;
 
     #[test]
     fn read_v1_header() {
         let mut buffer = Cursor::new(vec![
-            12,            // \
-            24,            //  | Junk bytes
-            240,           // /
-            STX_MAVLINK_1, // magic byte
-            8,             // payload_length
-            1,             // sequence
-            10,            // system ID
-            255,           // component ID
-            0,             // message ID
+            12,     // \
+            24,     //  | Junk bytes
+            240,    // /
+            STX_V1, // magic byte
+            8,      // payload_length
+            1,      // sequence
+            10,     // system ID
+            255,    // component ID
+            0,      // message ID
         ]);
 
-        let header = MavLinkHeader::recv(&mut buffer).unwrap();
+        let header = Header::recv(&mut buffer).unwrap();
 
         assert!(matches!(header.mavlink_version, MavLinkVersion::V1));
         assert_eq!(header.payload_length, 8u8);
@@ -553,22 +550,22 @@ mod tests {
     #[test]
     fn read_v2_header() {
         let mut reader = Cursor::new(vec![
-            12,            // \
-            24,            //  |Junk bytes
-            240,           // /
-            STX_MAVLINK_2, // magic byte
-            8,             // payload_length
-            1,             // incompatibility flags
-            0,             // compatibility flags
-            1,             // sequence
-            10,            // system ID
-            255,           // component ID
-            0,             // \
-            0,             //  | message ID
-            0,             // /
+            12,     // \
+            24,     //  |Junk bytes
+            240,    // /
+            STX_V2, // magic byte
+            8,      // payload_length
+            1,      // incompatibility flags
+            0,      // compatibility flags
+            1,      // sequence
+            10,     // system ID
+            255,    // component ID
+            0,      // \
+            0,      //  | message ID
+            0,      // /
         ]);
 
-        let header = MavLinkHeader::recv(&mut reader).unwrap();
+        let header = Header::recv(&mut reader).unwrap();
 
         assert!(matches!(header.mavlink_version, MavLinkVersion::V2));
         assert_eq!(header.payload_length, 8u8);

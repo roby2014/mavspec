@@ -17,13 +17,13 @@
 //   - via mpsc channels `events`
 
 pub mod endpoint {
-    //! `MAVLink` endpoints
+    //! MAVLink endpoints
 
     use mavlib_core::MavLinkFrame;
     use std::io::{BufReader, BufWriter};
     use std::net::{SocketAddr, TcpStream};
 
-    /// `MAVLink` endpoint
+    /// MAVLink endpoint
     pub trait Endpoint: Iterator {
         fn recv(&self) -> MavLinkFrame;
         fn send(&self, frame: MavLinkFrame);
@@ -95,7 +95,7 @@ pub mod endpoint {
 }
 
 pub mod node {
-    //! # `MAVLink` node
+    //! # MAVLink node
 
     use crate::api::endpoint::Endpoint;
     use alloc::boxed::Box;
