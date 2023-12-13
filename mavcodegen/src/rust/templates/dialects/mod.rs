@@ -1,6 +1,7 @@
-use crate::rust::RustGeneratorParams;
 use mavspec::protocol::Dialect;
 use serde::Serialize;
+
+use crate::rust::RustGeneratorParams;
 
 pub mod enums;
 pub mod messages;
@@ -36,9 +37,10 @@ pub struct DialectModuleSpec<'a> {
 pub const DIALECT_MODULE: &str = r#"//! # MAVLink dialect `{{dialect.name}}`
 
 use mavlib_spec::{
-    IntoMavLinkPayload, MavLinkDialectSpec, MavLinkMessagePayload, MavLinkMessageSpec,
+    IntoPayload, DialectSpec, Payload, MessageSpec,
     MavLinkVersion, MessageError,
 };
+use mavlib_spec::types::MessageId;
 
 // MAVLink messages.
 pub mod messages;
@@ -47,11 +49,11 @@ pub mod enums;
 
 /// Dialect name as it appears in XML definition.
 /// 
-/// See [`MavLinkDialectSpec::name`].
+/// See [`DialectSpec::name`].
 const NAME: &str = "{{dialect.name}}";
 /// [`Dialect`] specification.
 ///
-/// See: [`MavLinkDialectSpec`].
+/// See: [`DialectSpec`].
 const SPEC: Dialect = Dialect {};
 
 /// Dialect specification.
@@ -64,7 +66,7 @@ struct Dialect;
 impl Dialect {
     /// Dialect name as it appears in XML definition.
     /// 
-    /// See [`MavLinkDialectSpec::name`].
+    /// See [`DialectSpec::name`].
     #[inline]
     pub fn name() -> &'static str {
         NAME
@@ -72,17 +74,17 @@ impl Dialect {
 
     /// Message specification by `id`.
     /// 
-    /// See [`MavLinkDialectSpec::message_info`].
+    /// See [`DialectSpec::message_info`].
     #[inline]
-    pub fn message_info(id: u32) -> Result<&'static dyn MavLinkMessageSpec, MessageError> {
+    pub fn message_info(id: u32) -> Result<&'static dyn MessageSpec, MessageError> {
         message_info(id)
     }
 }
 
-impl MavLinkDialectSpec for Dialect {
+impl DialectSpec for Dialect {
     /// Message specification by `id`.
     ///
-    /// See [`MavLinkDialectSpec::name`].
+    /// See [`DialectSpec::name`].
     #[inline]
     fn name(&self) -> &str {
         Self::name()
@@ -90,9 +92,9 @@ impl MavLinkDialectSpec for Dialect {
 
     /// Message specification by `id`.
     /// 
-    /// See [`MavLinkDialectSpec::message_info`].
+    /// See [`DialectSpec::message_info`].
     #[inline]
-    fn message_info(&self, id: u32) -> Result<&dyn MavLinkMessageSpec, MessageError> {
+    fn message_info(&self, id: MessageId) -> Result<&dyn MessageSpec, MessageError> {
         Self::message_info(id)
     }
 }
@@ -107,21 +109,21 @@ pub enum Message {
 {{/each}}
 }
 
-impl TryFrom<&MavLinkMessagePayload> for Message {
+impl TryFrom<&Payload> for Message {
     type Error = MessageError;
 
     /// Decodes message from MAVLink payload.
-    fn try_from(value: &MavLinkMessagePayload) -> Result<Self, Self::Error> {
+    fn try_from(value: &Payload) -> Result<Self, Self::Error> {
         Self::decode(value)
     }
 }
 
-impl IntoMavLinkPayload for Message {
+impl IntoPayload for Message {
     /// Encodes message into MAVLink payload.
     fn encode(
         &self,
         version: MavLinkVersion,
-    ) -> Result<MavLinkMessagePayload, MessageError> {
+    ) -> Result<Payload, MessageError> {
         self.encode(version)
     }
 }
@@ -129,29 +131,29 @@ impl IntoMavLinkPayload for Message {
 impl Message {
     /// Decodes message from MAVLink payload.
     pub fn decode(
-        payload: &MavLinkMessagePayload,
+        payload: &Payload,
     ) -> Result<Self, MessageError> {
         decode(payload)
     }
 
     /// Encodes message to MAVLink payload.
-    pub fn encode(&self, version: MavLinkVersion) -> Result<MavLinkMessagePayload, MessageError> {
+    pub fn encode(&self, version: MavLinkVersion) -> Result<Payload, MessageError> {
         encode(self, version)
     }
 }
 
 /// Dialect specification.
 ///
-/// Returns the current dialect specification as [`MavLinkDialectSpec`] trait object.
+/// Returns the current dialect specification as [`DialectSpec`] trait object.
 #[inline]
-pub const fn spec() -> &'static dyn MavLinkDialectSpec {
+pub const fn spec() -> &'static dyn DialectSpec {
     &SPEC
 }
 
 /// Retrieve message specification by its `id`.
 /// 
-/// See [`MavLinkDialectSpec::message_info`].
-pub fn message_info(id: u32) -> Result<&'static dyn MavLinkMessageSpec, MessageError> {
+/// See [`DialectSpec::message_info`].
+pub fn message_info(id: MessageId) -> Result<&'static dyn MessageSpec, MessageError> {
     Ok(match id {
 {{#each dialect.messages}}
         {{id}} => &messages::{{to-message-mod-name name}}::MESSAGE_INFO,
@@ -160,8 +162,8 @@ pub fn message_info(id: u32) -> Result<&'static dyn MavLinkMessageSpec, MessageE
     })
 }
 
-/// Decodes message from [`MavLinkMessagePayload`].
-pub fn decode(payload: &MavLinkMessagePayload) -> Result<Message, MessageError> {
+/// Decodes message from [`Payload`].
+pub fn decode(payload: &Payload) -> Result<Message, MessageError> {
     Ok(match payload.id() {
 {{#each dialect.messages}}
             messages::{{to-message-mod-name name}}::MESSAGE_ID => Message::{{to-messages-enum-entry-name name}}(messages::{{to-message-struct-name name}}::try_from(payload)?),
@@ -170,8 +172,8 @@ pub fn decode(payload: &MavLinkMessagePayload) -> Result<Message, MessageError> 
     })
 }
 
-/// Encodes message to [`MavLinkMessagePayload`].
-pub fn encode(msg: &Message, version: MavLinkVersion) -> Result<MavLinkMessagePayload, MessageError> {
+/// Encodes message to [`Payload`].
+pub fn encode(msg: &Message, version: MavLinkVersion) -> Result<Payload, MessageError> {
     Ok(match msg {
 {{#each dialect.messages}}
         Message::{{to-messages-enum-entry-name name}}(message) => {message.encode(version)?}

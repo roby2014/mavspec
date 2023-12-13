@@ -4,12 +4,17 @@
 //!
 //! The top-level error is [`CoreError`]. Library API returns versions of this error possibly wrapping other types of
 //! errors.
+//!
+//! We also re-export errors from [`mavlib_spec`] crate to provide a full specification of MAVLink-related errors.
 
 use tbytes::errors::TBytesError;
 
-use mavlib_spec::MessageError;
 #[cfg(feature = "std")]
 use thiserror::Error;
+
+// Re-export `mavlib_spec` errors.
+#[doc(no_inline)]
+pub use mavlib_spec::MessageError;
 
 /// Common result type returned by `mavlib_core` functions and methods.
 pub type Result<T> = core::result::Result<T, CoreError>;
@@ -42,7 +47,7 @@ pub enum CoreError {
 }
 
 /// Errors related to MAVLink frame encoding/decoding.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 #[cfg_attr(feature = "std", derive(Error))]
 pub enum FrameError {
     /// MAVLink header is too small.
@@ -50,13 +55,19 @@ pub enum FrameError {
     HeaderIsTooSmall,
     /// `MAVLink 1` header is too small.
     #[cfg_attr(feature = "std", error("MAVLink 1 header is too small"))]
-    V1HeaderIsTooSmall,
+    HeaderV1IsTooSmall,
     /// `MAVLink 2` header is too small.
     #[cfg_attr(feature = "std", error("MAVLink 2 header is too small"))]
-    V2HeaderIsTooSmall,
+    HeaderV2IsTooSmall,
     /// Incorrect MAVLink version.
     #[cfg_attr(feature = "std", error("invalid MAVLink version"))]
     InvalidMavLinkVersion,
+    /// `MAVLink 1` version is out of bounds.
+    #[cfg_attr(feature = "std", error("`MAVLink 1` version is out of bounds"))]
+    MavLinkVersionV1OutOfBounds,
+    /// `MAVLink 2` version is out of bounds.
+    #[cfg_attr(feature = "std", error("`MAVLink 2` version is out of bounds"))]
+    MavLinkVersionV2OutOfBounds,
     /// Inconsistent `MAVLink 1` header: `MAVLink 2` fields are defined.
     #[cfg_attr(feature = "std", error("inconsistent MAVLink 1 header"))]
     InconsistentV1Header,
@@ -65,19 +76,32 @@ pub enum FrameError {
     InconsistentV2Header,
     /// `MAVLink 1` packet body is too small.
     #[cfg_attr(feature = "std", error("MAVLink 1 packet body is too small"))]
-    V1PacketBodyIsTooSmall,
+    PacketV1BodyIsTooSmall,
     /// `MAVLink 2` packet body is too small.
     #[cfg_attr(feature = "std", error("MAVLink 2 packet body is too small"))]
-    V2PacketBodyIsTooSmall,
+    PacketV2BodyIsTooSmall,
     /// `MAVLink 2` signature is too small.
     #[cfg_attr(feature = "std", error("MAVLink 2 signature is too small"))]
-    V2SignatureIsTooSmall,
+    SignatureIsTooSmall,
+    /// `MAVLink 2` signature is missing but [`MAVLINK_IFLAG_SIGNED`](crate::consts::MAVLINK_IFLAG_SIGNED) is set..
+    #[cfg_attr(
+        feature = "std",
+        error("MAVLink 2 signature is missing but `MAVLINK_IFLAG_SIGNED` is set")
+    )]
+    SignatureIsMissing,
     /// Buffer error.
     #[cfg_attr(feature = "std", error("MAVLink 2 signature is too small"))]
     Buffer(TBytesError),
     /// Upon calculation CRC does not match received [MavLinkFrame::checksum](crate::Frame::checksum).
     #[cfg_attr(feature = "std", error("checksum validation failed"))]
     InvalidChecksum,
+
+    /// Missing MAVLink version.
+    #[cfg_attr(
+        feature = "std",
+        error("can't build header since field `{0}` is missing")
+    )]
+    HeaderFieldIsNone(String),
 }
 
 impl From<TBytesError> for FrameError {

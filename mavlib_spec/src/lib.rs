@@ -5,19 +5,28 @@
 
 // MAVLink message trait
 pub mod message;
-pub use message::{MavLinkMessageInfo, MavLinkMessageSpec};
+#[doc(inline)]
+pub use message::{MessageImpl, MessageInfo, MessageSpec};
 
 // MAVLink message payload
 pub mod payload;
-pub use payload::{IntoMavLinkPayload, MavLinkMessagePayload};
-
-// MAVLink version
-mod version;
-pub use version::MavLinkVersion;
+#[doc(inline)]
+pub use payload::{IntoPayload, Payload};
 
 // Errors
 mod errors;
+#[doc(inline)]
 pub use errors::MessageError;
 
+// Types
+pub mod types;
+#[doc(inline)]
+pub use types::MavLinkVersion;
+
+// Consts
+pub mod consts;
+
+// Dialect
 mod dialect;
-pub use dialect::MavLinkDialectSpec;
+#[doc(inline)]
+pub use dialect::DialectSpec;

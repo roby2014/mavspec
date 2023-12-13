@@ -1,15 +1,13 @@
 //! # MAVLink frame
 
 use crc_any::CRCu16;
-use mavlib_spec::{MavLinkDialectSpec, MavLinkMessagePayload, MavLinkVersion};
 
 use crate::consts::{CHECKSUM_SIZE, SIGNATURE_LENGTH};
 use crate::errors::{FrameError, Result};
-use crate::header::Header;
 use crate::io::Read;
-use crate::signature::Signature;
-use crate::types::{Checksum, ExtraCrc, MessageId};
-use crate::HeaderV2Fields;
+use crate::protocol::header::{Header, HeaderV2Fields};
+use crate::protocol::signature::Signature;
+use crate::protocol::{Checksum, DialectSpec, ExtraCrc, MavLinkVersion, MessageId, Payload};
 
 /// MAVLink frame.
 #[derive(Clone, Debug)]
@@ -18,7 +16,7 @@ pub struct Frame {
     /// Generic MAVLink header.
     header: Header,
     /// Payload data.
-    payload: MavLinkMessagePayload,
+    payload: Payload,
     /// MAVLink packet checksum.
     checksum: Checksum,
     /// Signature.
@@ -37,8 +35,8 @@ impl Frame {
     ///
     /// Message data. Content depends on message type (i.e. `message_id`).
     ///
-    /// See [`MavLinkMessagePayload`].
-    pub fn payload(&self) -> &MavLinkMessagePayload {
+    /// See [`Payload`].
+    pub fn payload(&self) -> &Payload {
         &self.payload
     }
 
@@ -81,7 +79,7 @@ impl Frame {
     ///  * [`HeaderV2Fields`].
     ///  * [MAVLink 2 packet format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
     pub fn mavlink_v2_fields(&self) -> Option<&HeaderV2Fields> {
-        self.header.mavlink_v2_fields()
+        self.header.v2_fields()
     }
 
     /// Payload length.
@@ -130,7 +128,7 @@ impl Frame {
     }
 
     /// Read and decode [`Frame`] frame from the instance of [`Read`].
-    pub fn recv<R: Read>(reader: &mut R) -> Result<Self> {
+    pub(crate) fn recv<R: Read>(reader: &mut R) -> Result<Self> {
         // Retrieve header
         let header = Header::recv(reader)?;
 
@@ -141,8 +139,8 @@ impl Frame {
         let mut body_buf = vec![0u8; body_length];
         #[cfg(not(feature = "std"))]
         let mut body_buf = {
-            use mavlib_spec::payload::MAX_PAYLOAD_SIZE;
-            [0u8; MAX_PAYLOAD_SIZE + SIGNATURE_LENGTH]
+            use crate::consts::PAYLOAD_MAX_SIZE;
+            [0u8; PAYLOAD_MAX_SIZE + SIGNATURE_LENGTH]
         };
         let body_bytes = &mut body_buf[0..body_length];
 
@@ -196,15 +194,20 @@ impl Frame {
     ///
     /// * Returns [`CoreError::Message`](crate::errors::CoreError::Message) if message discovery failed.  
     /// * Returns [`FrameError::InvalidChecksum`] (wrapped by [`CoreError`](crate::errors::CoreError)) if checksum
-    ///   validation failed.  
+    ///   validation failed.
     ///
     /// # Links
     ///
-    /// * [`MavLinkDialectSpec`] for dialect specification.
+    /// * [`DialectSpec`] for dialect specification.
     /// * [`Frame::calculate_crc`] for CRC implementation details.
-    pub fn validate(&self, dialect_spec: &dyn MavLinkDialectSpec) -> Result<()> {
+    pub fn validate(&self, dialect_spec: &dyn DialectSpec) -> Result<()> {
         let message_info = dialect_spec.message_info(self.header().message_id())?;
         self.validate_checksum(message_info.extra_crc())?;
+
+        // Check that signature is present if `MAVLINK_IFLAG_SIGNED` flag is set
+        if self.signature.is_none() && self.header.is_signed()? {
+            return Err(FrameError::SignatureIsMissing.into());
+        }
 
         Ok(())
     }
@@ -216,29 +219,25 @@ impl Frame {
         match header.mavlink_version() {
             MavLinkVersion::V1 => {
                 if body_bytes.len() < body_length {
-                    return Err(FrameError::V1PacketBodyIsTooSmall.into());
+                    return Err(FrameError::PacketV1BodyIsTooSmall.into());
                 }
             }
             MavLinkVersion::V2 => {
                 if body_bytes.len() < body_length {
-                    return Err(FrameError::V2PacketBodyIsTooSmall.into());
+                    return Err(FrameError::PacketV2BodyIsTooSmall.into());
                 }
             }
         }
 
         let payload_bytes = &body_bytes[0..header.payload_length() as usize];
-        let payload = MavLinkMessagePayload::new(
-            header.message_id(),
-            payload_bytes,
-            header.mavlink_version(),
-        );
+        let payload = Payload::new(header.message_id(), payload_bytes, header.mavlink_version());
 
         // Decode checksum
         let checksum_start = header.payload_length() as usize;
         let checksum_bytes = [body_bytes[checksum_start], body_bytes[checksum_start + 1]];
         let checksum: Checksum = Checksum::from_le_bytes(checksum_bytes);
 
-        let signature: Option<Signature> = if header.is_signature_required()? {
+        let signature: Option<Signature> = if header.is_signed()? {
             let signature_start = checksum_start + CHECKSUM_SIZE;
             let signature_bytes = &body_bytes[signature_start..signature_start + SIGNATURE_LENGTH];
             Some(Signature::try_from(signature_bytes)?)

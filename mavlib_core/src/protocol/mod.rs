@@ -1,58 +1,80 @@
-//! # Tiny types and type aliases
+//! # MAVLink protocol
 //!
-//! Type aliases and tiny types (that require a few lines of code) used across the `mavlib_core` library.
+//! MAVLink protocol abstractions.
+//!
+//! We also re-export from [`mavlib_spec`] crate to provide a full specification of MAVLink-related types.
 
 use crate::consts::{
     HEADER_V1_SIZE, HEADER_V2_SIZE, SIGNATURE_LENGTH, SIGNATURE_TIMESTAMP_LENGTH,
     SIGNATURE_VALUE_LENGTH,
 };
 
-/// MAVLink message ID regardless of protocol.
-pub type MessageId = u32;
+// Re-export from `mavlib_spec`
+#[doc(no_inline)]
+pub use mavlib_spec::types::{ExtraCrc, MessageId};
+#[doc(no_inline)]
+pub use mavlib_spec::{
+    DialectSpec, IntoPayload, MavLinkVersion, MessageImpl, MessageSpec, Payload,
+};
+
+// Signature
+pub(crate) mod signature;
+pub use signature::Signature;
+// Magic byte (STX)
+pub(crate) mod stx;
+pub use stx::MavSTX;
+// Header
+pub(crate) mod header;
+pub use header::{Header, HeaderBuilder, HeaderV2Fields};
+// MAVLink frame
+pub(crate) mod frame;
+pub use frame::Frame;
 
 /// MAVLink packet checksum.
 ///
 /// MAVLink checksum is encoded with little endian (low byte, high byte).
 ///
-/// See:
-///  * [`MavLinkFrame::checksum`](crate::frame::Frame::checksum).
-///  * [`MavLinkFrame::calculate_crc`](crate::frame::Frame::calculate_crc).
-pub type Checksum = u16;
-
-/// MAVLink extra CRC.
+/// # Links
 ///
-/// See:
-///  * [`MavLinkFrame::checksum`](crate::frame::Frame::checksum).
-///  * [`MavLinkFrame::calculate_crc`](crate::frame::Frame::calculate_crc).
-///  * [CRC_EXTRA calculation](https://mavlink.io/en/guide/serialization.html#crc_extra) in MAVLink docs.
-pub type ExtraCrc = u8;
+///  * [`Frame::checksum`].
+///  * [`Frame::calculate_crc`].
+pub type Checksum = u16;
 
 /// `MAVLink 1` header as array of bytes.
 pub type HeaderV1Bytes = [u8; HEADER_V1_SIZE];
 /// `MAVLink 2` header as array of bytes.
 pub type HeaderV2Bytes = [u8; HEADER_V2_SIZE];
 
+/// `MAVLink 2` incompatibility flags.
+pub type IncompatFlags = u8;
+/// `MAVLink 2` compatibility flags.
+pub type CompatFlags = u8;
+
 /// `MAVLink 2` signature as array of bytes.
 ///
-/// See:
-///  * [`MavLinkFrameV2Signature`](crate::signature::Signature).
+/// # Links
+///
+///  * [`Signature`].
 ///  * [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html).
 pub type SignatureBytes = [u8; SIGNATURE_LENGTH];
 /// `MAVLink 2` signature link ID.
 ///
-/// See:
-///  * [`MavLinkFrameV2Signature`](crate::signature::Signature).
+/// # Links
+///
+///  * [`Signature`].
 ///  * `link id` field in [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html).
 pub type SignatureLinkId = u8;
 /// `MAVLink 2` signature timestamp.
 ///
-/// See:
-///  * [`MavLinkFrameV2Signature`](crate::signature::Signature).
+/// # Links
+///
+///  * [`Signature`].
 ///  * `tm.timestamp` field in [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html).
 pub type SignatureTimestampBytes = [u8; SIGNATURE_TIMESTAMP_LENGTH];
 /// `MAVLink 2` signature value.
 ///
-/// See:
-///  * [`MavLinkFrameV2Signature`](crate::signature::Signature).
+/// # Links
+///
+///  * [`Signature`].
 ///  * `signature` field in [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html).
 pub type SignatureValueBytes = [u8; SIGNATURE_VALUE_LENGTH];

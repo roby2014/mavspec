@@ -97,16 +97,22 @@ impl MessageSpec {
 pub const MESSAGE: &str = r#"//! # MAVLink message `{{name}}` implementation
 
 use mavlib_spec::{
-    IntoMavLinkPayload, MavLinkMessageInfo, MavLinkMessagePayload, MavLinkMessageSpec,
-    MavLinkVersion, MessageError,
+    IntoPayload, MavLinkVersion, MessageError, MessageImpl, MessageInfo, MessageSpec, Payload,
 };
+use mavlib_spec::types::{MessageId, ExtraCrc};
 
-/// MAVLink message ID.
-pub const MESSAGE_ID: u32 = {{id}};
-/// Message `EXTRA_CRC` calculated from message XML definition.
-pub const EXTRA_CRC: u8 = {{extra_crc}};
-/// Generic message info.
-pub static MESSAGE_INFO: MavLinkMessageInfo = MavLinkMessageInfo::new(MESSAGE_ID, EXTRA_CRC);
+/// `{{name}}` message ID.
+pub(crate) const MESSAGE_ID: MessageId = {{id}};
+/// `{{name}}` `EXTRA_CRC` calculated from message XML definition.
+pub(crate) const EXTRA_CRC: ExtraCrc = {{extra_crc}};
+/// `{{name}}` generic message info that contains all message metadata.
+pub(crate) const MESSAGE_INFO: MessageInfo = MessageInfo::new(MESSAGE_ID, EXTRA_CRC);
+
+/// MAVLink message `{{name}}` specification
+#[inline]
+pub const fn spec() -> &'static dyn MessageSpec {
+    &MESSAGE_INFO
+}
 
 /// MAVLink message `{{name}}`.
 ///
@@ -114,8 +120,8 @@ pub static MESSAGE_INFO: MavLinkMessageInfo = MavLinkMessageInfo::new(MESSAGE_ID
 ///
 /// # Encoding/Decoding
 /// 
-/// Message encoding/decoding are provided by implementing [`TryFrom<MavLinkMessagePayload>`] for
-/// [`{{to-message-struct-name name}}`] (encoding) and [`IntoMavLinkPayload`] (decoding) traits.
+/// Message encoding/decoding are provided by implementing [`TryFrom<Payload>`] for
+/// [`{{to-message-struct-name name}}`] (encoding) and [`IntoPayload`] (decoding) traits.
 #[derive(Clone, Debug)]
 // {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
 pub struct {{to-message-struct-name name}} {
@@ -125,18 +131,18 @@ pub struct {{to-message-struct-name name}} {
 {{/each}}
 }
 
-impl MavLinkMessageSpec for {{to-message-struct-name name}} {
+impl MessageSpec for {{to-message-struct-name name}} {
     /// MAVLink message ID.
     ///
-    /// See [`MavLinkMessageSpec::id`].
+    /// See [`MessageSpec::id`].
     #[inline]
-    fn id(&self) -> u32 {
+    fn id(&self) -> MessageId {
         MESSAGE_ID
     }
 
     /// Minimum supported MAVLink version.
     ///
-    /// See [`MavLinkMessageSpec::min_supported_mavlink_version`].
+    /// See [`MessageSpec::min_supported_mavlink_version`].
     #[inline]
     fn min_supported_mavlink_version(&self) -> MavLinkVersion {
         MESSAGE_INFO.min_supported_mavlink_version()
@@ -144,12 +150,15 @@ impl MavLinkMessageSpec for {{to-message-struct-name name}} {
     
     /// Message `EXTRA_CRC` calculated from message XML definition.
     ///
-    /// See: [`MavLinkMessageSpec::extra_crc`].
+    /// See: [`MessageSpec::extra_crc`].
     #[inline]
-    fn extra_crc(&self) -> u8 {
+    fn extra_crc(&self) -> ExtraCrc {
         EXTRA_CRC
     }
 }
+
+// Implement `MessageImpl` that combines `MessageSpec` with `IntoPayload`
+impl MessageImpl for {{to-message-struct-name name}} {}
 
 #[allow(clippy::derivable_impls)]
 impl Default for {{to-message-struct-name name}} {
@@ -163,11 +172,11 @@ impl Default for {{to-message-struct-name name}} {
     }
 }
 
-impl TryFrom<&MavLinkMessagePayload> for {{to-message-struct-name name}} {
+impl TryFrom<&Payload> for {{to-message-struct-name name}} {
     type Error = MessageError;
 
-    /// Decodes [`MavLinkMessagePayload`] into [`{{to-message-struct-name name}}`] according to [`MavLinkVersion`].
-    fn try_from(value: &MavLinkMessagePayload) -> Result<Self, Self::Error> {
+    /// Decodes [`Payload`] into [`{{to-message-struct-name name}}`] according to [`MavLinkVersion`].
+    fn try_from(value: &Payload) -> Result<Self, Self::Error> {
         match value.version() {
             MavLinkVersion::V2 => v2::decode(value.payload()),
 {{#if is_v1_compatible}}
@@ -184,12 +193,12 @@ impl TryFrom<&MavLinkMessagePayload> for {{to-message-struct-name name}} {
     }
 }
 
-impl IntoMavLinkPayload for {{to-message-struct-name name}} {
-    /// Encodes [`{{to-message-struct-name name}}`] into [`MavLinkMessagePayload`] according to [`MavLinkVersion`].
+impl IntoPayload for {{to-message-struct-name name}} {
+    /// Encodes [`{{to-message-struct-name name}}`] into [`Payload`] according to [`MavLinkVersion`].
     fn encode(
         &self,
         version: MavLinkVersion,
-    ) -> Result<MavLinkMessagePayload, MessageError> {
+    ) -> Result<Payload, MessageError> {
         Ok(match version {
             MavLinkVersion::V2 => v2::encode(self)?,
 {{#if is_v1_compatible}}
@@ -210,7 +219,7 @@ impl IntoMavLinkPayload for {{to-message-struct-name name}} {
 ///
 /// See [MAVLink 2](https://mavlink.io/en/guide/mavlink_2.html).
 pub mod v2 {
-    use mavlib_spec::{MavLinkMessagePayload, MavLinkVersion, MessageError};
+    use mavlib_spec::{Payload, MavLinkVersion, MessageError};
     use tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
     
     use super::{ {{to-message-struct-name name}}, MESSAGE_ID };
@@ -252,7 +261,7 @@ pub mod v2 {
     /// reserved for future implementations where such errors may happen.
     pub fn encode(
         message: &{{to-message-struct-name name}}
-    ) -> Result<MavLinkMessagePayload, MessageError> {
+    ) -> Result<Payload, MessageError> {
         let mut buf = [0u8; PAYLOAD_SIZE];
         let mut writer = TBytesWriter::from(buf.as_mut_slice());
 
@@ -261,17 +270,17 @@ pub mod v2 {
         writer.{{to-writer-fn type}}(message.{{to-rust-var name}})?;
 {{/each}}
 
-        let payload = MavLinkMessagePayload::new(MESSAGE_ID, buf.as_slice(), MavLinkVersion::V2);
+        let payload = Payload::new(MESSAGE_ID, buf.as_slice(), MavLinkVersion::V2);
         Ok(payload)
     }
 }
 
 {{#if is_v1_compatible}}
-/// Encoding/decoding for [`{{to-message-struct-name name}}`] within `MAVLink 2` protocol.
+/// Encoding/decoding for [`{{to-message-struct-name name}}`] within `MAVLink 1` protocol.
 ///
 /// See [MAVLink versions](https://mavlink.io/en/guide/mavlink_version.html).
 pub mod v1 {
-    use mavlib_spec::{MavLinkMessagePayload, MavLinkVersion, MessageError};
+    use mavlib_spec::{Payload, MavLinkVersion, MessageError};
     use tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
     
     use super::{ {{to-message-struct-name name}}, MESSAGE_ID };
@@ -321,7 +330,7 @@ pub mod v1 {
     /// reserved for future implementations where such errors may happen.
     pub fn encode(
         message: &{{to-message-struct-name name}}
-    ) -> Result<MavLinkMessagePayload, MessageError> {
+    ) -> Result<Payload, MessageError> {
         let mut buf = [0u8; PAYLOAD_SIZE];
         let mut writer = TBytesWriter::from(buf.as_mut_slice());
 
@@ -336,7 +345,7 @@ pub mod v1 {
 {{/each}}
 {{/if}}
 
-        let payload = MavLinkMessagePayload::new(MESSAGE_ID, buf.as_slice(), MavLinkVersion::V1);
+        let payload = Payload::new(MESSAGE_ID, buf.as_slice(), MavLinkVersion::V1);
         Ok(payload)
     }
 }
@@ -409,14 +418,14 @@ impl InheritedMessageSpec {
 pub const INHERITED_MESSAGE: &str = "\
 //! MAVLink message `{{message_name}}` inherited from [`super::super::super::{{to-dialect-name dialect_name}}`] dialect.
 
-use mavlib_spec::MavLinkMessageInfo;
+use mavlib_spec::MessageInfo;
 
 use super::super::super::{{to-dialect-name dialect_name}} as dialect;
 
 /// MAVLink message ID originally defined in [`dialect::messages::{{to-message-mod-name message_name}}::MESSAGE_ID`].
 pub const MESSAGE_ID: u32 = dialect::messages::{{to-message-mod-name message_name}}::MESSAGE_ID;
 /// Message info originally defined in [`dialect::messages::{{to-message-mod-name message_name}}::MESSAGE_INFO`].
-pub static MESSAGE_INFO: MavLinkMessageInfo =
+pub static MESSAGE_INFO: MessageInfo =
     dialect::messages::{{to-message-mod-name message_name}}::MESSAGE_INFO;
 
 /// MAVLink message `{{message_name}}` originally defined in [`dialect::messages::{{to-message-struct-name message_name}}`].

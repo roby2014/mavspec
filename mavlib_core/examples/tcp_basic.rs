@@ -4,18 +4,18 @@
 //     main().unwrap();
 // }
 
-#[cfg(feature = "std")]
+// #[cfg(feature = "std")]
 fn main() -> mavlib_core::errors::Result<()> {
     use dialect::Message;
     use mavlib_core::dialects::minimal as dialect;
-    use mavlib_core::Frame;
+    use mavlib_core::Receiver;
     use std::net::TcpStream;
-
-    let mut stream = TcpStream::connect("0.0.0.0:5600")?;
+    
+    let mut conn = Receiver::new(TcpStream::connect("0.0.0.0:5600")?);
 
     loop {
         // Decode the entire frame
-        let frame = Frame::recv(&mut stream)?;
+        let frame = conn.recv()?;
         println!(
             "FRAME #{}: system_id={}, component_id={}",
             frame.sequence(),

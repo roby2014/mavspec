@@ -11,10 +11,9 @@
 
 use core::convert::TryFrom;
 
-use mavlib_spec::MavLinkVersion;
-
 use crate::consts::{STX_V1, STX_V2};
 use crate::errors::{CoreError, FrameError, Result};
+use crate::protocol::MavLinkVersion;
 
 /// Packet start marker.
 ///

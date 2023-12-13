@@ -2,7 +2,7 @@
 
 use tbytes::errors::TBytesError;
 
-use super::version::MavLinkVersion;
+use crate::types::MavLinkVersion;
 
 /// Errors related to MAVLink message encoding/decoding.
 #[derive(Debug, Clone, Copy)]

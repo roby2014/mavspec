@@ -9,7 +9,9 @@ use crate::consts::{
 };
 use crate::errors::Result;
 use crate::errors::{CoreError, FrameError};
-use crate::types::{SignatureBytes, SignatureLinkId, SignatureTimestampBytes, SignatureValueBytes};
+use crate::protocol::{
+    SignatureBytes, SignatureLinkId, SignatureTimestampBytes, SignatureValueBytes,
+};
 
 /// `MAVLink 2` packet signature.
 ///
@@ -73,11 +75,11 @@ impl Signature {
     ///
     /// # Errors
     ///
-    /// Returns [`FrameError::V2SignatureIsTooSmall`] if slice is too small to
+    /// Returns [`FrameError::SignatureIsTooSmall`] if slice is too small to
     /// contain a valid signature.
     pub fn try_from_slice(bytes: &[u8]) -> Result<Self> {
         if bytes.len() < SIGNATURE_LENGTH {
-            return Err(FrameError::V2SignatureIsTooSmall.into());
+            return Err(FrameError::SignatureIsTooSmall.into());
         }
 
         let link_id = bytes[0];

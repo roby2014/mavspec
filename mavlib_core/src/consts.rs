@@ -1,16 +1,26 @@
 //! # Constants
+//!
+//! We re-export from [`mavlib_spec::consts`] to to provide a full specification of MAVLink-related types.
+
+// Re-export from `mavlib_spec::consts`
+#[doc(no_inline)]
+pub use mavlib_spec::consts::MESSAGE_ID_V1_MAX;
+#[doc(no_inline)]
+pub use mavlib_spec::consts::MESSAGE_ID_V2_MAX;
+#[doc(no_inline)]
+pub use mavlib_spec::consts::PAYLOAD_MAX_SIZE;
 
 /// `MAVLink 1` packet start marker value.
 ///
 /// # Links
 ///
-/// * [`MavSTX::V1`](crate::stx::MavSTX::V1).
+/// * [`MavSTX::V1`](crate::protocol::MavSTX::V1).
 pub const STX_V1: u8 = 0xFE;
 /// `MAVLink 2` packet start marker value.
 ///
 /// # Links
 ///
-/// * [`MavSTX::V2`](crate::stx::MavSTX::V2).
+/// * [`MavSTX::V2`](crate::protocol::MavSTX::V2).
 pub const STX_V2: u8 = 0xFD;
 
 /// Minimum size of a MAVLink header (regardless of protocol).
@@ -68,21 +78,21 @@ pub const MAVLINK_IFLAG_SIGNED: u8 = 0x01;
 ///
 /// # Links
 ///
-/// * [`Signature`](crate::signature::Signature)
+/// * [`Signature`](crate::protocol::Signature)
 /// * `link id` field in [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html)
 pub const SIGNATURE_LINK_ID_LENGTH: usize = 1;
 /// `MAVLink 2` signature timestamp length in bytes.
 ///
 /// # Links
 ///
-///  * [`Signature`](crate::signature::Signature)
+///  * [`Signature`](crate::protocol::Signature)
 ///  * `tm.timestamp` field in [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html)
 pub const SIGNATURE_TIMESTAMP_LENGTH: usize = 6;
 /// `MAVLink 2` signature value length in bytes.
 ///
 /// # Links
 ///
-///  * [`Signature`](crate::signature::Signature)
+///  * [`Signature`](crate::protocol::Signature)
 ///  * `signature` field in [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html)
 pub const SIGNATURE_VALUE_LENGTH: usize = 6;
 
@@ -90,7 +100,7 @@ pub const SIGNATURE_VALUE_LENGTH: usize = 6;
 ///
 /// # Links
 ///
-///  * [`Signature`](crate::signature::Signature)
+///  * [`Signature`](crate::protocol::Signature)
 ///  * [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html)
 pub const SIGNATURE_LENGTH: usize =
     SIGNATURE_LINK_ID_LENGTH + SIGNATURE_TIMESTAMP_LENGTH + SIGNATURE_VALUE_LENGTH;

@@ -3,7 +3,7 @@
 //! This module contains implementation for MAVLink packet header both for `MAVLink 1` and
 //! `MAVLink 2`.
 
-use mavlib_spec::MavLinkVersion;
+use mavlib_spec::consts::{MESSAGE_ID_V1_MAX, MESSAGE_ID_V2_MAX};
 use tbytes::{TBytesReader, TBytesReaderFor};
 
 use crate::consts::{
@@ -12,8 +12,8 @@ use crate::consts::{
 };
 use crate::errors::{CoreError, FrameError, Result};
 use crate::io::Read;
-use crate::stx::MavSTX;
-use crate::types::{HeaderV1Bytes, HeaderV2Bytes, MessageId};
+use crate::protocol::{CompatFlags, IncompatFlags, MavSTX};
+use crate::protocol::{HeaderV1Bytes, HeaderV2Bytes, MavLinkVersion, MessageId};
 
 /// MAVLink frame header.
 ///
@@ -30,7 +30,7 @@ pub struct Header {
     /// Payload length.
     payload_length: u8,
     /// Fields related to `MAVLink 2` headers.
-    mavlink_v2_fields: Option<HeaderV2Fields>,
+    v2_fields: Option<HeaderV2Fields>,
     /// Packet sequence number.
     sequence: u8,
     /// System `ID`.
@@ -46,7 +46,7 @@ pub struct Header {
 /// Fields related to `MAVLink 2` packet header.
 ///
 /// See: [MAVLink 2 packet format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct HeaderV2Fields {
     /// Incompatibility Flags.
@@ -55,14 +55,39 @@ pub struct HeaderV2Fields {
     /// it does not understand flag).
     ///
     /// See: [MAVLink 2 incompatibility flags](https://mavlink.io/en/guide/serialization.html#incompat_flags).
-    pub incompat_flags: u8,
+    pub incompat_flags: IncompatFlags,
     /// Compatibility Flags.
     ///
     /// Flags that can be ignored if not understood (implementation can still handle packet even if
     /// it does not understand flag).
     ///
     /// See: [MAVLink 2 compatibility flags](https://mavlink.io/en/guide/serialization.html#compat_flags).
-    pub compat_flags: u8,
+    pub compat_flags: CompatFlags,
+}
+
+/// Builder for [`Header`].
+///
+/// Implements [builder](https://rust-unofficial.github.io/patterns/patterns/creational/builder.html)
+/// pattern for [`Header`].
+#[derive(Clone, Copy, Debug, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct HeaderBuilder {
+    /// MAVLink protocol version.
+    mavlink_version: Option<MavLinkVersion>,
+    /// Payload length.
+    payload_length: Option<u8>,
+    /// Packet sequence number.
+    sequence: Option<u8>,
+    /// System `ID`.
+    system_id: Option<u8>,
+    /// Component `ID`.
+    component_id: Option<u8>,
+    /// Message `ID`.
+    message_id: Option<MessageId>,
+    /// Incompatibility Flags.
+    pub incompat_flags: Option<u8>,
+    /// Compatibility Flags.
+    pub compat_flags: Option<u8>,
 }
 
 impl TryFrom<HeaderV1Bytes> for Header {
@@ -98,6 +123,31 @@ impl TryFrom<&[u8]> for Header {
     }
 }
 
+impl HeaderV2Fields {
+    /// Returns `true` if `MAVLink 2` frame body should contain signature.
+    ///
+    /// Checks that [`MAVLINK_IFLAG_SIGNED`] flag is set for `incompat_flags`.
+    ///
+    /// #Links
+    ///
+    /// * [Frame::signature](crate::protocol::Frame::signature).
+    pub fn is_signed(&self) -> bool {
+        self.incompat_flags & MAVLINK_IFLAG_SIGNED == MAVLINK_IFLAG_SIGNED
+    }
+
+    /// Sets whether `MAVLink 2` frame body should contain signature.
+    ///
+    /// Sets [`MAVLINK_IFLAG_SIGNED`] flag for `incompat_flags`.
+    ///
+    /// #Links
+    ///
+    /// * [Frame::signature](crate::protocol::Frame::signature).
+    pub fn set_is_signed(&mut self, flag: bool) {
+        self.incompat_flags =
+            self.incompat_flags & !MAVLINK_IFLAG_SIGNED | (MAVLINK_IFLAG_SIGNED & flag as u8);
+    }
+}
+
 impl Header {
     /// Initiates builder for [`Header`].
     ///
@@ -124,8 +174,8 @@ impl Header {
     /// See:
     ///  * [`HeaderV2Fields`].
     ///  * [MAVLink 2 packet format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
-    pub fn mavlink_v2_fields(&self) -> Option<&HeaderV2Fields> {
-        self.mavlink_v2_fields.as_ref()
+    pub fn v2_fields(&self) -> Option<&HeaderV2Fields> {
+        self.v2_fields.as_ref()
     }
 
     /// Payload length.
@@ -185,14 +235,14 @@ impl Header {
 
     /// Returns `true` if `MAVLink 2` frame body should contain signature.
     ///
-    /// See [Frame::signature](crate::frame::Frame::signature).
-    pub fn is_signature_required(&self) -> Result<bool> {
+    /// #Links
+    ///
+    /// * [Frame::signature](crate::protocol::Frame::signature).
+    pub fn is_signed(&self) -> Result<bool> {
         Ok(match self.mavlink_version {
             MavLinkVersion::V1 => false,
-            MavLinkVersion::V2 => match self.mavlink_v2_fields {
-                Some(HeaderV2Fields { incompat_flags, .. }) => {
-                    incompat_flags & MAVLINK_IFLAG_SIGNED == MAVLINK_IFLAG_SIGNED
-                }
+            MavLinkVersion::V2 => match self.v2_fields {
+                Some(v2_fields) => v2_fields.is_signed(),
                 None => return Err(FrameError::InconsistentV2Header.into()),
             },
         })
@@ -208,7 +258,7 @@ impl Header {
         Ok(match self.mavlink_version {
             MavLinkVersion::V1 => self.payload_length as usize + CHECKSUM_SIZE,
             MavLinkVersion::V2 => {
-                if self.is_signature_required()? {
+                if self.is_signed()? {
                     self.payload_length as usize + CHECKSUM_SIZE + SIGNATURE_LENGTH
                 } else {
                     self.payload_length as usize + CHECKSUM_SIZE
@@ -228,7 +278,7 @@ impl Header {
     }
 
     /// Read and decode [`Header`] from the instance of [`Read`].
-    pub fn recv<R: Read>(reader: &mut R) -> Result<Self> {
+    pub(crate) fn recv<R: Read>(reader: &mut R) -> Result<Self> {
         loop {
             // Read minimum amount of bytes required for a valid MAVLink header
             let mut buffer = [0u8; HEADER_MIN_SIZE];
@@ -361,7 +411,7 @@ impl Header {
         Ok(Self {
             mavlink_version,
             payload_length,
-            mavlink_v2_fields,
+            v2_fields: mavlink_v2_fields,
             sequence,
             system_id,
             component_id,
@@ -387,12 +437,12 @@ impl Header {
         match magic {
             _ if magic == STX_V1 => {
                 if value.len() < HEADER_V1_SIZE {
-                    return Err(FrameError::V1HeaderIsTooSmall.into());
+                    return Err(FrameError::HeaderV1IsTooSmall.into());
                 }
             }
             _ if magic == STX_V2 => {
                 if value.len() < HEADER_V2_SIZE {
-                    return Err(FrameError::V2HeaderIsTooSmall.into());
+                    return Err(FrameError::HeaderV2IsTooSmall.into());
                 }
             }
             _ => return Err(FrameError::InvalidMavLinkVersion.into()),
@@ -406,22 +456,12 @@ impl Header {
     /// Returns all header data excluding `magic` byte.
     ///
     /// See:
-    ///  * [`MavLinkFrame::calculate_crc`](crate::frame::Frame::calculate_crc).
+    ///  * [`MavLinkFrame::calculate_crc`](crate::protocol::Frame::calculate_crc).
     ///  * [MAVLink checksum](https://mavlink.io/en/guide/serialization.html#checksum) in MAVLink
     ///    protocol documentation.
     pub fn crc_data(&self) -> &[u8] {
         &self.bytes[1..self.size()]
     }
-}
-
-/// Builder for [`Header`].
-///
-/// Implements [builder](https://rust-unofficial.github.io/patterns/patterns/creational/builder.html)
-/// pattern for [`Header`].
-#[derive(Clone, Copy, Debug, Default)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct HeaderBuilder {
-    header: Header,
 }
 
 impl HeaderBuilder {
@@ -433,25 +473,94 @@ impl HeaderBuilder {
     /// Builds [`Header`].
     pub fn build(&self) -> Result<Header> {
         self.validate()?;
-        Ok(self.header)
+
+        let mut header = Header::default();
+
+        // Set required fields
+        macro_rules! set_required_field {
+            ($field: ident) => {
+                match self.$field {
+                    Some($field) => header.$field = $field,
+                    None => {
+                        return Err(FrameError::HeaderFieldIsNone(stringify!($field).into()).into())
+                    }
+                }
+            };
+        }
+        set_required_field!(mavlink_version);
+        set_required_field!(payload_length);
+        set_required_field!(sequence);
+        set_required_field!(system_id);
+        set_required_field!(component_id);
+        set_required_field!(message_id);
+
+        // `MAVLink 2` fields
+        if let Some(MavLinkVersion::V2) = self.mavlink_version {
+            let mut v2_fields = HeaderV2Fields::default();
+
+            if let Some(incompat_flags) = self.incompat_flags {
+                v2_fields.incompat_flags = incompat_flags;
+            }
+            if let Some(compat_flags) = self.compat_flags {
+                v2_fields.compat_flags = compat_flags;
+            }
+
+            header.v2_fields = Some(v2_fields);
+        }
+
+        Ok(header)
     }
 
-    /// Validates header for consistency.
+    /// Validates header builder data for consistency.
+    ///
+    /// # Errors
+    ///
+    /// * Returns [`FrameError::InconsistentV1Header`] if MAVLink version is set to [`MavLinkVersion::V1`] but either
+    /// [Self::set_incompat_flags] or [`Self::set_compat_flags`] were set. These fields are not allowed for `MAVLink 1`
+    /// headers.
+    /// * Returns [`FrameError::HeaderFieldIsNone`] if required fields are missing.
     pub fn validate(&self) -> Result<()> {
-        match self.header.mavlink_version {
-            // `MAVLink 1` header should not have `MAVLink 2` fields
-            MavLinkVersion::V1 => {
-                if self.header.mavlink_v2_fields.is_some() {
-                    return Err(FrameError::InconsistentV1Header.into());
+        // Validate required fields
+        macro_rules! required_field {
+            ($field: ident) => {
+                if self.$field.is_none() {
+                    return Err(FrameError::HeaderFieldIsNone(stringify!($field).into()).into());
                 }
+            };
+        }
+        required_field!(mavlink_version);
+        required_field!(payload_length);
+        required_field!(sequence);
+        required_field!(system_id);
+        required_field!(component_id);
+        required_field!(message_id);
+
+        // Validate `MAVLink 1` configuration
+        if let Some(MavLinkVersion::V1) = self.mavlink_version {
+            // Incompatibility and compatibility flags should not be set
+            if self.incompat_flags.is_some() || self.compat_flags.is_some() {
+                return Err(FrameError::InconsistentV1Header.into());
             }
-            // `MAVLink 2` header should have `MAVLink 2` fields
-            MavLinkVersion::V2 => {
-                if self.header.mavlink_v2_fields.is_none() {
-                    return Err(FrameError::InconsistentV2Header.into());
+            // Message ID should by a 8-bit value
+            match self.message_id {
+                Some(message_id) if message_id > MESSAGE_ID_V1_MAX => {
+                    return Err(FrameError::InvalidMavLinkVersion.into())
                 }
+                _ => {}
             }
         }
+
+        // Validate `MAVLink 2` configuration
+        if let Some(MavLinkVersion::V2) = self.mavlink_version {
+            // Message ID should by a 24-bit value
+            match self.message_id {
+                Some(message_id) if message_id > MESSAGE_ID_V2_MAX => {
+                    return Err(FrameError::InvalidMavLinkVersion.into())
+                }
+                _ => {}
+            }
+        }
+
         Ok(())
     }
 
@@ -459,18 +568,37 @@ impl HeaderBuilder {
     ///
     /// See: [`Header::mavlink_version`].
     pub fn set_mavlink_version(&mut self, mavlink_version: MavLinkVersion) -> &mut Self {
-        self.header.mavlink_version = mavlink_version;
+        self.mavlink_version = Some(mavlink_version);
         self
     }
 
-    /// Sets fields related to `MAVLink 2` headers.
+    /// Sets incompatibility flags for `MAVLink 2` header.
     ///
-    /// See: [`Header::mavlink_v2_fields`].
-    pub fn set_mavlink_v2_fields(
-        &mut self,
-        mavlink_v2_fields: Option<HeaderV2Fields>,
-    ) -> &mut Self {
-        self.header.mavlink_v2_fields = mavlink_v2_fields;
+    /// # Errors
+    ///
+    /// Does not returns error directly but if both MAVLink version is set to [`MavLinkVersion::V1`] and incompatibility
+    /// flags are present, then [`FrameError::InconsistentV1Header`] error will be returned by [`Self::build`].
+    ///
+    /// #Links
+    ///
+    /// * [`HeaderV2Fields`].
+    pub fn set_incompat_flags(&mut self, incompat_flags: IncompatFlags) -> &mut Self {
+        self.incompat_flags = Some(incompat_flags);
+        self
+    }
+
+    /// Sets compatibility flags for `MAVLink 2` header.
+    ///
+    /// # Errors
+    ///
+    /// Does not returns error directly but if both MAVLink version is set to [`MavLinkVersion::V1`] and compatibility
+    /// flags are present, then [`FrameError::InconsistentV1Header`] error will be returned by [`Self::build`].
+    ///
+    /// #Links
+    ///
+    /// * [`HeaderV2Fields`].
+    pub fn set_compat_flags(&mut self, compat_flags: CompatFlags) -> &mut Self {
+        self.compat_flags = Some(compat_flags);
         self
     }
 
@@ -478,7 +606,7 @@ impl HeaderBuilder {
     ///
     /// See: [`Header::payload_length`].
     pub fn set_payload_length(&mut self, payload_length: u8) -> &mut Self {
-        self.header.payload_length = payload_length;
+        self.payload_length = Some(payload_length);
         self
     }
 
@@ -486,15 +614,15 @@ impl HeaderBuilder {
     ///
     /// See: [`Header::sequence`].
     pub fn set_sequence(&mut self, sequence: u8) -> &mut Self {
-        self.header.sequence = sequence;
+        self.sequence = Some(sequence);
         self
     }
 
     /// Sets system `ID`.
     ///
     /// See: [`Header::system_id`].
-    pub fn system_id(&mut self, system_id: u8) -> &mut Self {
-        self.header.system_id = system_id;
+    pub fn set_system_id(&mut self, system_id: u8) -> &mut Self {
+        self.system_id = Some(system_id);
         self
     }
 
@@ -502,7 +630,7 @@ impl HeaderBuilder {
     ///
     /// See: [`Header::component_id`].
     pub fn set_component_id(&mut self, component_id: u8) -> &mut Self {
-        self.header.component_id = component_id;
+        self.component_id = Some(component_id);
         self
     }
 
@@ -510,7 +638,30 @@ impl HeaderBuilder {
     ///
     /// See: [`Header::message_id`].
     pub fn set_message_id(&mut self, message_id: u32) -> &mut Self {
-        self.header.message_id = message_id;
+        self.message_id = Some(message_id);
+        self
+    }
+
+    /// Sets whether `MAVLink 2` frame body should contain signature.
+    ///
+    /// Sets [`MAVLINK_IFLAG_SIGNED`] flag for `incompat_flags`.
+    ///
+    /// #Links
+    ///
+    /// * [Frame::signature](crate::protocol::Frame::signature).
+    pub fn set_is_signed(&mut self, flag: bool) -> &mut Self {
+        match self.incompat_flags {
+            // Add incompatibility flags if absent
+            None => {
+                self.incompat_flags = Some(MAVLINK_IFLAG_SIGNED & flag as u8);
+            }
+            // Set `MAVLINK_IFLAG_SIGNED` for existing flags
+            Some(incompat_flags) => {
+                self.incompat_flags = Some(
+                    incompat_flags & !MAVLINK_IFLAG_SIGNED | (MAVLINK_IFLAG_SIGNED & flag as u8),
+                );
+            }
+        }
         self
     }
 }
@@ -521,6 +672,25 @@ mod tests {
     use super::*;
     use crate::consts::STX_V1;
     use std::io::Cursor;
+
+    #[test]
+    fn set_get_is_signature_required() {
+        let mut fields = HeaderV2Fields::default();
+        assert!(!fields.is_signed());
+
+        fields.set_is_signed(true);
+        assert!(fields.is_signed());
+
+        fields.incompat_flags = 0b01010100;
+        assert!(!fields.is_signed());
+
+        fields.set_is_signed(true);
+        assert!(fields.is_signed());
+        assert_eq!(fields.incompat_flags, 0b01010101);
+
+        fields.set_is_signed(false);
+        assert_eq!(fields.incompat_flags, 0b01010100);
+    }
 
     #[test]
     fn read_v1_header() {
@@ -538,13 +708,13 @@ mod tests {
 
         let header = Header::recv(&mut buffer).unwrap();
 
-        assert!(matches!(header.mavlink_version, MavLinkVersion::V1));
-        assert_eq!(header.payload_length, 8u8);
-        assert_eq!(header.sequence, 1u8);
-        assert_eq!(header.system_id, 10u8);
-        assert_eq!(header.component_id, 255u8);
-        assert_eq!(header.message_id, 0u32);
-        assert!(header.mavlink_v2_fields.is_none());
+        assert!(matches!(header.mavlink_version(), MavLinkVersion::V1));
+        assert_eq!(header.payload_length(), 8u8);
+        assert_eq!(header.sequence(), 1u8);
+        assert_eq!(header.system_id(), 10u8);
+        assert_eq!(header.component_id(), 255u8);
+        assert_eq!(header.message_id(), 0u32);
+        assert!(header.v2_fields().is_none());
     }
 
     #[test]
@@ -567,13 +737,81 @@ mod tests {
 
         let header = Header::recv(&mut reader).unwrap();
 
-        assert!(matches!(header.mavlink_version, MavLinkVersion::V2));
-        assert_eq!(header.payload_length, 8u8);
-        assert_eq!(header.mavlink_v2_fields.unwrap().incompat_flags, 1u8);
-        assert_eq!(header.mavlink_v2_fields.unwrap().compat_flags, 0u8);
-        assert_eq!(header.sequence, 1u8);
-        assert_eq!(header.system_id, 10u8);
-        assert_eq!(header.component_id, 255u8);
-        assert_eq!(header.message_id, 0u32);
+        assert!(matches!(header.mavlink_version(), MavLinkVersion::V2));
+        assert_eq!(header.payload_length(), 8u8);
+        assert_eq!(header.v2_fields().unwrap().incompat_flags, 1u8);
+        assert_eq!(header.v2_fields().unwrap().compat_flags, 0u8);
+        assert_eq!(header.sequence(), 1u8);
+        assert_eq!(header.system_id(), 10u8);
+        assert_eq!(header.component_id(), 255u8);
+        assert_eq!(header.message_id(), 0u32);
+    }
+
+    #[test]
+    fn build_v1_header() {
+        let header = Header::builder()
+            .set_mavlink_version(MavLinkVersion::V1)
+            .set_payload_length(10)
+            .set_sequence(5)
+            .set_system_id(10)
+            .set_component_id(240)
+            .set_message_id(42)
+            .build();
+
+        assert!(header.is_ok());
+        let header = header.unwrap();
+
+        assert!(matches!(header.mavlink_version(), MavLinkVersion::V1));
+        assert!(header.v2_fields().is_none());
+        assert_eq!(header.payload_length(), 10);
+        assert_eq!(header.sequence(), 5);
+        assert_eq!(header.system_id(), 10);
+        assert_eq!(header.component_id(), 240);
+        assert_eq!(header.message_id(), 42);
+    }
+
+    #[test]
+    fn build_v2_header() {
+        let header = Header::builder()
+            .set_mavlink_version(MavLinkVersion::V2)
+            .set_incompat_flags(1)
+            .set_compat_flags(8)
+            .set_payload_length(10)
+            .set_sequence(5)
+            .set_system_id(10)
+            .set_component_id(240)
+            .set_message_id(42)
+            .set_is_signed(true)
+            .build();
+
+        assert!(header.is_ok());
+        let header = header.unwrap();
+
+        assert!(matches!(header.mavlink_version(), MavLinkVersion::V2));
+        assert!(header.v2_fields().is_some());
+        assert_eq!(header.v2_fields().unwrap().incompat_flags, 1);
+        assert_eq!(header.v2_fields().unwrap().compat_flags, 8);
+        assert_eq!(header.payload_length(), 10);
+        assert_eq!(header.sequence(), 5);
+        assert_eq!(header.system_id(), 10);
+        assert_eq!(header.component_id(), 240);
+        assert_eq!(header.message_id(), 42);
+        assert_eq!(
+            header.v2_fields.unwrap().incompat_flags,
+            MAVLINK_IFLAG_SIGNED
+        );
+    }
+
+    #[test]
+    fn builder_validates_required_fields() {
+        let header = Header::builder()
+            .set_mavlink_version(MavLinkVersion::V2)
+            .build();
+
+        assert!(header.is_err());
+        assert!(matches!(
+            header,
+            Err(CoreError::Frame(FrameError::HeaderFieldIsNone(_)))
+        ));
     }
 }

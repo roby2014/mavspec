@@ -68,31 +68,19 @@
 pub mod consts;
 
 // Common types
-pub mod types;
-
-// MAVlink magic byte
-pub(crate) mod stx;
-pub use stx::MavSTX;
+pub mod protocol;
+#[doc(inline)]
+pub use protocol::Frame;
 
 // Errors
 pub mod errors;
 #[doc(inline)]
 pub use errors::Result;
 
-// Header
-pub(crate) mod header;
-pub use header::{Header, HeaderBuilder, HeaderV2Fields};
-
-// MAVLink frame
-pub(crate) mod frame;
-pub use frame::Frame;
-
 // MAVLink I/O interface
 pub mod io;
-
-// MAVLink 2 signature
-pub(crate) mod signature;
-pub use signature::Signature;
+#[doc(inline)]
+pub use crate::io::{Receiver, Sender};
 
 // Utils
 pub mod utils;
