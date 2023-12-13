@@ -18,9 +18,9 @@ fn main() -> mavlib_core::errors::Result<()> {
         let frame = Frame::recv(&mut stream)?;
         println!(
             "FRAME #{}: system_id={}, component_id={}",
-            frame.header().sequence(),
-            frame.header().system_id(),
-            frame.header().component_id(),
+            frame.sequence(),
+            frame.system_id(),
+            frame.component_id(),
         );
 
         // Validate frame in the context of dialect specification (including checksum)
@@ -28,13 +28,13 @@ fn main() -> mavlib_core::errors::Result<()> {
 
         // Decode message
         if let Ok(msg) = dialect::decode(frame.payload()) {
-            println!("MESSAGE #{}: {msg:#?}", frame.header().sequence());
+            println!("MESSAGE #{}: {msg:#?}", frame.sequence());
 
             // Access message fields
             if let Message::Heartbeat(msg) = msg {
                 println!(
                     "HEARTBEAT #{}: mavlink_version={:#?}",
-                    frame.header().sequence(),
+                    frame.sequence(),
                     msg.mavlink_version,
                 );
             }

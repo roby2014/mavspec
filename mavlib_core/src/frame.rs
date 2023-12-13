@@ -8,7 +8,8 @@ use crate::errors::{FrameError, Result};
 use crate::header::Header;
 use crate::io::Read;
 use crate::signature::Signature;
-use crate::types::{Checksum, ExtraCrc};
+use crate::types::{Checksum, ExtraCrc, MessageId};
+use crate::HeaderV2Fields;
 
 /// MAVLink frame.
 #[derive(Clone, Debug)]
@@ -72,6 +73,60 @@ impl Frame {
     ///  * [Header::mavlink_version]
     pub fn mavlink_version(&self) -> MavLinkVersion {
         self.header.mavlink_version()
+    }
+
+    /// Fields related to `MAVLink 2` headers.
+    ///
+    /// See:
+    ///  * [`HeaderV2Fields`].
+    ///  * [MAVLink 2 packet format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
+    pub fn mavlink_v2_fields(&self) -> Option<&HeaderV2Fields> {
+        self.header.mavlink_v2_fields()
+    }
+
+    /// Payload length.
+    ///
+    /// Indicates length of the following `payload` section. This may be affected by payload truncation.
+    pub fn payload_length(&self) -> u8 {
+        self.header.payload_length()
+    }
+
+    /// Packet sequence number.
+    ///
+    /// Used to detect packet loss. Components increment value for each message sent.
+    pub fn sequence(&self) -> u8 {
+        self.header.sequence()
+    }
+
+    /// System `ID`.
+    ///
+    /// `ID` of system (vehicle) sending the message. Used to differentiate systems on network.
+    ///
+    /// > Note that the broadcast address 0 may not be used in this field as it is an invalid source
+    /// > address.
+    pub fn system_id(&self) -> u8 {
+        self.header.system_id()
+    }
+
+    /// Component `ID`.
+    ///
+    /// `ID` of component sending the message. Used to differentiate components in a system (e.g.
+    /// autopilot and a camera). Use appropriate values in
+    /// [MAV_COMPONENT](https://mavlink.io/en/messages/common.html#MAV_COMPONENT).
+    ///
+    /// > Note that the broadcast address `MAV_COMP_ID_ALL` may not be used in this field as it is
+    /// > an invalid source address.
+    pub fn component_id(&self) -> u8 {
+        self.header.component_id()
+    }
+
+    /// Message `ID`.
+    ///
+    /// `ID` of message type in payload.
+    ///
+    /// Used to decode data back into message object.
+    pub fn message_id(&self) -> MessageId {
+        self.header.message_id()
     }
 
     /// Read and decode [`Frame`] frame from the instance of [`Read`].
