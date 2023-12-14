@@ -110,6 +110,10 @@ pub enum FrameError {
     error("can't build frame since field `{0}` is missing")
     )]
     MissingFrameField(String),
+
+    /// Actual payload ahd header have inconsistent size.
+    #[cfg_attr(feature = "std", error("actual payload ahd header have inconsistent size"))]
+    InconsistentPayloadSize,
 }
 
 impl From<TBytesError> for FrameError {

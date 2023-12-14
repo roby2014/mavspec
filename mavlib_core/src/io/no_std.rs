@@ -53,6 +53,16 @@ impl From<IoError> for CoreError {
 /// Since [`mavlib_core`](crate) required only [`read_exact`](Read::read_exact), only this
 /// method is defined here.
 pub trait Read {
+    /// Pull some bytes from this source into the specified buffer, returning how many bytes were read.
+    ///
+    /// Mimics the corresponding method from
+    /// [`std::io::Read`](https://doc.rust-lang.org/std/io/trait.Read.html).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CoreError::Io`] / [`CoreError::NoStdIo`] in case of an error.
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize>;
+
     /// Read the exact number of bytes required to fill buf.
     ///
     /// Mimics the corresponding method from
@@ -80,6 +90,16 @@ pub trait Write {
     ///
     /// Returns [`CoreError::Io`] / [`CoreError::NoStdIo`] in case of an error.
     fn write(&mut self, buf: &[u8]) -> Result<usize>;
+
+    /// Attempts to write an entire buffer into this writer.
+    ///
+    /// Mimics the corresponding method from
+    /// [`std::io::Write`](https://doc.rust-lang.org/std/io/trait.Write.html).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CoreError::Io`] / [`CoreError::NoStdIo`] in case of an error.
+    fn write_all(&mut self, buf: &[u8]) -> Result<()>;
 }
 
 #[cfg(test)]

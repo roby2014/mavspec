@@ -22,6 +22,6 @@ impl<W: Write> Sender<W> {
     ///
     /// Blocks until all bytes written and returns the number of bytes sent.
     pub fn send(&mut self, frame: &Frame) -> Result<usize> {
-        todo!()
+        frame.send(&mut self.writer)
     }
 }

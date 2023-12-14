@@ -216,12 +216,6 @@ mod no_alloc_payload_container {
             &self.content[index]
         }
     }
-
-    impl PayloadContainer {
-        pub fn len(&self) -> usize {
-            self.content.len()
-        }
-    }
 }
 
 #[cfg(test)]

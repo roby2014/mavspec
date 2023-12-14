@@ -11,7 +11,7 @@ use crate::consts::{
     MAVLINK_IFLAG_SIGNED, SIGNATURE_LENGTH, STX_V1, STX_V2,
 };
 use crate::errors::{CoreError, FrameError, Result};
-use crate::io::Read;
+use crate::io::{Read, Write};
 use crate::protocol::{CompatFlags, IncompatFlags, MavSTX};
 use crate::protocol::{HeaderV1Bytes, HeaderV2Bytes, MavLinkVersion, MessageId};
 
@@ -235,40 +235,40 @@ impl Header {
     ///
     /// For `MAVLink 1` headers always returns false.
     ///
-    /// # Errors
-    ///
-    /// * Returns [FrameError::InconsistentV2Header] if [`Header::v2_fields`] are missing.
+    /// For `MAVLink 2` it checks for [`MAVLINK_IFLAG_SIGNED`]. If [`Header::v2_fields`] are not set, then `false`
+    /// returned.
     ///
     /// # Links
     ///
     /// * [Frame::signature](crate::protocol::Frame::signature).
-    pub fn is_signed(&self) -> Result<bool> {
-        Ok(match self.mavlink_version {
+    pub fn is_signed(&self) -> bool {
+        match self.mavlink_version {
             MavLinkVersion::V1 => false,
             MavLinkVersion::V2 => match self.v2_fields {
                 Some(v2_fields) => v2_fields.is_signed(),
-                None => return Err(FrameError::InconsistentV2Header.into()),
+                None => false,
             },
-        })
+        }
     }
 
     /// Expected MAVLink frame body length.
     ///
-    /// # Errors
+    /// Calculates expected size in bytes for frame body. Depends on MAVLink protocol version and presence of
+    /// signature (when [`MAVLINK_IFLAG_SIGNED`] incompatibility flag is set).
     ///
-    /// Returns [`FrameError::InconsistentV2Header`] if header does not have
-    /// `MAVLink 2` specific fields.
-    pub fn expected_body_length(&self) -> Result<usize> {
-        Ok(match self.mavlink_version {
+    /// # Links
+    /// * [`Frame::signature`](crate::protocol::Frame::signature).
+    pub fn expected_body_length(&self) -> usize {
+        match self.mavlink_version {
             MavLinkVersion::V1 => self.payload_length as usize + CHECKSUM_SIZE,
             MavLinkVersion::V2 => {
-                if self.is_signed()? {
+                if self.is_signed() {
                     self.payload_length as usize + CHECKSUM_SIZE + SIGNATURE_LENGTH
                 } else {
                     self.payload_length as usize + CHECKSUM_SIZE
                 }
             }
-        })
+        }
     }
 
     /// [`Header`] as a slice of bytes.
@@ -347,6 +347,12 @@ impl Header {
                 }
             }
         }
+    }
+
+    /// Encodes and sends [`Header`] into an instance of [`Read`].
+    pub(crate) fn send<W: Write>(&self, writer: &mut W) -> Result<usize> {
+        writer.write_all(self.bytes())?;
+        Ok(self.size())
     }
 
     /// Decodes [`Header`] from [`HeaderV1Bytes`] bytes.

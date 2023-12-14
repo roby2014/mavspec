@@ -4,13 +4,13 @@ use crc_any::CRCu16;
 
 use crate::consts::{CHECKSUM_SIZE, SIGNATURE_LENGTH};
 use crate::errors::{FrameError, Result};
-use crate::io::Read;
+use crate::io::{Read, Write};
 use crate::protocol::header::{Header, HeaderConf, HeaderV2Fields};
 use crate::protocol::signature::Signature;
-use crate::protocol::MessageImpl;
 use crate::protocol::{
     Checksum, CompatFlags, CrcExtra, DialectSpec, IncompatFlags, MavLinkVersion, MessageId, Payload,
 };
+use crate::protocol::{MessageImpl, SignatureBytes};
 
 /// MAVLink frame.
 #[derive(Clone, Debug)]
@@ -193,8 +193,18 @@ impl Frame {
     ///
     /// * [`Frame::signature`].
     #[inline]
-    pub fn is_signature_required(&self) -> Result<bool> {
+    pub fn is_signature_required(&self) -> bool {
         self.header.is_signed()
+    }
+
+    /// Body length.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`FrameError::InconsistentV2Header`] if frame is `MAVLink 2` but doesn't have `MAVLink 2` specific
+    /// fields.
+    pub fn body_length(&self) -> usize {
+        self.header().expected_body_length()
     }
 
     /// Read and decode [`Frame`] frame from the instance of [`Read`].
@@ -202,16 +212,13 @@ impl Frame {
         // Retrieve header
         let header = Header::recv(reader)?;
 
-        let body_length = header.expected_body_length()?;
+        let body_length = header.expected_body_length();
 
         // Prepare buffer that will contain the entire message body (with signature if expected)
         #[cfg(feature = "std")]
         let mut body_buf = vec![0u8; body_length];
         #[cfg(not(feature = "std"))]
-        let mut body_buf = {
-            use crate::consts::PAYLOAD_MAX_SIZE;
-            [0u8; PAYLOAD_MAX_SIZE + SIGNATURE_LENGTH]
-        };
+        let mut body_buf = [0u8; PAYLOAD_MAX_SIZE + SIGNATURE_LENGTH];
         let body_bytes = &mut body_buf[0..body_length];
 
         // Read and decode
@@ -219,6 +226,42 @@ impl Frame {
         let frame = Self::try_from_raw_body(&header, body_bytes)?;
 
         Ok(frame)
+    }
+
+    /// Encodes and sends [`Frame`] into an instance of [`Write`].
+    pub(crate) fn send<W: Write>(&self, writer: &mut W) -> Result<usize> {
+        // Validate payload length consistency
+        if self.payload_length() != self.payload.length() {
+            return Err(FrameError::InconsistentPayloadSize.into());
+        }
+        let payload_length = self.payload_length() as usize;
+
+        // Send header
+        let header_bytes_sent = self.header.send(writer)?;
+
+        // Prepare a buffer
+        #[cfg(not(feature = "alloc"))]
+        let mut buf = [0u8; PAYLOAD_MAX_SIZE + SIGNATURE_LENGTH];
+        #[cfg(feature = "alloc")]
+        let mut buf = vec![0u8; self.body_length()];
+
+        // Put payload into buffer
+        buf[0..payload_length].copy_from_slice(self.payload.payload());
+
+        // Put checksum into buffer
+        let checksum_bytes: [u8; 2] = self.checksum.to_le_bytes();
+        buf[payload_length..payload_length + 2].copy_from_slice(&checksum_bytes);
+
+        // Put signature if required
+        if let Some(signature) = self.signature {
+            let signature_bytes: SignatureBytes = signature.to_byte_array();
+            let sig_start_idx = payload_length + 2;
+            buf[sig_start_idx..self.body_length()].copy_from_slice(&signature_bytes);
+        }
+
+        writer.write_all(buf.as_slice())?;
+
+        Ok(header_bytes_sent + self.body_length())
     }
 
     /// Calculates CRC for [`Frame`] within `crc_extra`.
@@ -278,7 +321,7 @@ impl Frame {
         self.validate_checksum(message_info.crc_extra())?;
 
         // Check that signature is present if `MAVLINK_IFLAG_SIGNED` flag is set
-        if self.signature.is_none() && self.header.is_signed()? {
+        if self.signature.is_none() && self.header.is_signed() {
             return Err(FrameError::SignatureIsMissing.into());
         }
 
@@ -288,7 +331,7 @@ impl Frame {
     /// Converts slice of body bytes into [`Frame`].
     fn try_from_raw_body(header: &Header, body_bytes: &[u8]) -> Result<Self> {
         // Validate body size
-        let body_length = header.expected_body_length()?;
+        let body_length = header.expected_body_length();
         match header.mavlink_version() {
             MavLinkVersion::V1 => {
                 if body_bytes.len() < body_length {
@@ -310,7 +353,7 @@ impl Frame {
         let checksum_bytes = [body_bytes[checksum_start], body_bytes[checksum_start + 1]];
         let checksum: Checksum = Checksum::from_le_bytes(checksum_bytes);
 
-        let signature: Option<Signature> = if header.is_signed()? {
+        let signature: Option<Signature> = if header.is_signed() {
             let signature_start = checksum_start + CHECKSUM_SIZE;
             let signature_bytes = &body_bytes[signature_start..signature_start + SIGNATURE_LENGTH];
             Some(Signature::try_from(signature_bytes)?)
