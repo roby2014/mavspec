@@ -11,7 +11,7 @@ use crate::consts::{
 
 // Re-export from `mavlib_spec`
 #[doc(no_inline)]
-pub use mavlib_spec::types::{ExtraCrc, MessageId};
+pub use mavlib_spec::types::{CrcExtra, MessageId};
 #[doc(no_inline)]
 pub use mavlib_spec::{
     DialectSpec, IntoPayload, MavLinkVersion, MessageImpl, MessageSpec, Payload,
@@ -25,10 +25,10 @@ pub(crate) mod stx;
 pub use stx::MavSTX;
 // Header
 pub(crate) mod header;
-pub use header::{Header, HeaderBuilder, HeaderV2Fields};
+pub use header::{Header, HeaderConf, HeaderV2Fields};
 // MAVLink frame
 pub(crate) mod frame;
-pub use frame::Frame;
+pub use frame::{Frame, FrameConf};
 
 /// MAVLink packet checksum.
 ///

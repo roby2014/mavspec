@@ -96,12 +96,20 @@ pub enum FrameError {
     #[cfg_attr(feature = "std", error("checksum validation failed"))]
     InvalidChecksum,
 
-    /// Missing MAVLink version.
+    /// Missing [`HeaderBuilder`](crate::protocol::header::HeaderConf) field when building a
+    /// [`Header`](crate::protocol::header::Header).
     #[cfg_attr(
         feature = "std",
         error("can't build header since field `{0}` is missing")
     )]
-    HeaderFieldIsNone(String),
+    MissingHeaderField(String),
+    /// Missing [`FrameBuilder`](crate::protocol::frame::FrameConf) field when building a
+    /// [`Frame`](crate::protocol::frame::Frame).
+    #[cfg_attr(
+    feature = "std",
+    error("can't build frame since field `{0}` is missing")
+    )]
+    MissingFrameField(String),
 }
 
 impl From<TBytesError> for FrameError {

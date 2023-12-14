@@ -62,7 +62,7 @@ pub struct MessageSpec {
     ///
     /// See: [`Message::has_extension_fields`].
     pub has_extension_fields: bool,
-    pub extra_crc: u8,
+    pub crc_extra: u8,
     /// Generator params.
     pub params: RustGeneratorParams,
 }
@@ -84,7 +84,7 @@ impl MessageSpec {
             extension_fields: message.extension_fields(),
             has_extension_fields: message.has_extension_fields(),
             // CRC
-            extra_crc: message.extra_crc(),
+            crc_extra: message.crc_extra(),
             // Params
             params: params.clone(),
         }
@@ -99,12 +99,12 @@ pub const MESSAGE: &str = r#"//! # MAVLink message `{{name}}` implementation
 use mavlib_spec::{
     IntoPayload, MavLinkVersion, MessageError, MessageImpl, MessageInfo, MessageSpec, Payload,
 };
-use mavlib_spec::types::{MessageId, ExtraCrc};
+use mavlib_spec::types::{MessageId, CrcExtra};
 
 /// `{{name}}` message ID.
 pub(crate) const MESSAGE_ID: MessageId = {{id}};
 /// `{{name}}` `EXTRA_CRC` calculated from message XML definition.
-pub(crate) const EXTRA_CRC: ExtraCrc = {{extra_crc}};
+pub(crate) const EXTRA_CRC: CrcExtra = {{crc_extra}};
 /// `{{name}}` generic message info that contains all message metadata.
 pub(crate) const MESSAGE_INFO: MessageInfo = MessageInfo::new(MESSAGE_ID, EXTRA_CRC);
 
@@ -150,9 +150,9 @@ impl MessageSpec for {{to-message-struct-name name}} {
     
     /// Message `EXTRA_CRC` calculated from message XML definition.
     ///
-    /// See: [`MessageSpec::extra_crc`].
+    /// See: [`MessageSpec::crc_extra`].
     #[inline]
-    fn extra_crc(&self) -> ExtraCrc {
+    fn crc_extra(&self) -> CrcExtra {
         EXTRA_CRC
     }
 }

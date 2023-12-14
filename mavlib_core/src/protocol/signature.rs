@@ -2,7 +2,9 @@
 //!
 //! Implements [`Signature`].
 //!
-//! See [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html).
+//! # Links
+//!
+//! * [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html).
 
 use crate::consts::{
     SIGNATURE_LENGTH, SIGNATURE_LINK_ID_LENGTH, SIGNATURE_TIMESTAMP_LENGTH, SIGNATURE_VALUE_LENGTH,
@@ -15,7 +17,9 @@ use crate::protocol::{
 
 /// `MAVLink 2` packet signature.
 ///
-/// See [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html).
+/// # Links
+///
+/// * [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html).
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Signature {
@@ -47,7 +51,9 @@ impl TryFrom<&[u8]> for Signature {
 impl From<Signature> for SignatureBytes {
     /// Encodes [`Signature`] into [`SignatureBytes`] byte array.
     ///
-    /// See [`Signature::to_byte_array`].
+    /// #Links
+    ///
+    /// * [`Signature::to_byte_array`].
     fn from(value: Signature) -> Self {
         value.to_byte_array()
     }

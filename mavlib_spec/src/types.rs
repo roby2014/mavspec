@@ -13,7 +13,7 @@ pub type MessageId = u32;
 /// # Links
 ///
 ///  * [CRC_EXTRA calculation](https://mavlink.io/en/guide/serialization.html#crc_extra) in MAVLink docs.
-pub type ExtraCrc = u8;
+pub type CrcExtra = u8;
 
 /// MAVLink protocol version.
 #[derive(Clone, Copy, Debug, Default)]

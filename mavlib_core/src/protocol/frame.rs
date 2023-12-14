@@ -5,9 +5,12 @@ use crc_any::CRCu16;
 use crate::consts::{CHECKSUM_SIZE, SIGNATURE_LENGTH};
 use crate::errors::{FrameError, Result};
 use crate::io::Read;
-use crate::protocol::header::{Header, HeaderV2Fields};
+use crate::protocol::header::{Header, HeaderConf, HeaderV2Fields};
 use crate::protocol::signature::Signature;
-use crate::protocol::{Checksum, DialectSpec, ExtraCrc, MavLinkVersion, MessageId, Payload};
+use crate::protocol::MessageImpl;
+use crate::protocol::{
+    Checksum, CompatFlags, CrcExtra, DialectSpec, IncompatFlags, MavLinkVersion, MessageId, Payload,
+};
 
 /// MAVLink frame.
 #[derive(Clone, Debug)]
@@ -23,10 +26,35 @@ pub struct Frame {
     signature: Option<Signature>,
 }
 
+/// Configuration builder for [`Frame`].
+///
+/// Implements [builder](https://rust-unofficial.github.io/patterns/patterns/creational/builder.html)
+/// pattern for [`Frame`].
+#[derive(Debug, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct FrameConf {
+    header_conf: HeaderConf,
+    payload: Option<Payload>,
+    crc_extra: Option<CrcExtra>,
+}
+
 impl Frame {
+    /// Initiates builder for [`Frame`].
+    ///
+    /// Instead of constructor we use
+    /// [builder](https://rust-unofficial.github.io/patterns/patterns/creational/builder.html)
+    /// pattern. An instance of [`FrameConf`] returned by this function is initialized
+    /// with default values. Once desired values are set, you can call [`FrameConf::build`]
+    /// to obtain [`Frame`].
+    pub fn conf() -> FrameConf {
+        FrameConf::new()
+    }
+
     /// Generic MAVLink header.
     ///
-    /// See [`Header`].
+    /// # Links
+    ///
+    /// * Header implementation: [`Header`].
     pub fn header(&self) -> &Header {
         &self.header
     }
@@ -35,7 +63,9 @@ impl Frame {
     ///
     /// Message data. Content depends on message type (i.e. `message_id`).
     ///
-    /// See [`Payload`].
+    /// # Links
+    ///
+    /// * Payload implementation: [`Payload`].
     pub fn payload(&self) -> &Payload {
         &self.payload
     }
@@ -49,35 +79,43 @@ impl Frame {
     ///
     /// Checksum is encoded with little endian (low byte, high byte).
     ///
-    /// See:
-    ///  * [`Frame::calculate_crc`] for implementation.
-    ///  * [MAVLink checksum definition](https://mavlink.io/en/guide/serialization.html#checksum).
-    ///  * [CRC-16/MCRF4XX](https://ww1.microchip.com/downloads/en/AppNotes/00752a.pdf) (PDF).
+    /// # Links
+    ///
+    /// * [`Frame::calculate_crc`] for implementation.
+    /// * [MAVLink checksum definition](https://mavlink.io/en/guide/serialization.html#checksum).
+    /// * [CRC-16/MCRF4XX](https://ww1.microchip.com/downloads/en/AppNotes/00752a.pdf) (PDF).
     pub fn checksum(&self) -> Checksum {
         self.checksum
     }
 
     /// Signature.
     ///
-    /// Signature to ensure the link is tamper-proof.
+    /// Signature to ensure the link is tamper-proof. Applicable only for `MAVLink 2` frames.
+    ///
+    /// # Links
+    ///
+    /// * [`Frame::is_signature_required`].
+    /// * [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html).
     pub fn signature(&self) -> Option<&Signature> {
         self.signature.as_ref()
     }
 
     /// MAVLink protocol version defined by [`Header`].
     ///
-    /// See:
-    ///  * [MavLinkVersion]
-    ///  * [Header::mavlink_version]
+    /// # Links
+    ///
+    /// * [MavLinkVersion]
+    /// * [Header::mavlink_version]
     pub fn mavlink_version(&self) -> MavLinkVersion {
         self.header.mavlink_version()
     }
 
     /// Fields related to `MAVLink 2` headers.
     ///
-    /// See:
-    ///  * [`HeaderV2Fields`].
-    ///  * [MAVLink 2 packet format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
+    /// # Links
+    ///
+    /// * [Header::v2_fields] and [`HeaderV2Fields`].
+    /// * [MAVLink 2 packet format](https://mavlink.io/en/guide/serialization.html#mavlink2_packet_format).
     pub fn mavlink_v2_fields(&self) -> Option<&HeaderV2Fields> {
         self.header.v2_fields()
     }
@@ -85,6 +123,10 @@ impl Frame {
     /// Payload length.
     ///
     /// Indicates length of the following `payload` section. This may be affected by payload truncation.
+    ///
+    /// # Links
+    ///
+    /// * [Header::payload_length].
     pub fn payload_length(&self) -> u8 {
         self.header.payload_length()
     }
@@ -92,6 +134,10 @@ impl Frame {
     /// Packet sequence number.
     ///
     /// Used to detect packet loss. Components increment value for each message sent.
+    ///
+    /// # Links
+    ///
+    /// * [Header::sequence].
     pub fn sequence(&self) -> u8 {
         self.header.sequence()
     }
@@ -102,6 +148,10 @@ impl Frame {
     ///
     /// > Note that the broadcast address 0 may not be used in this field as it is an invalid source
     /// > address.
+    ///
+    /// # Links
+    ///
+    /// * [Header::system_id].
     pub fn system_id(&self) -> u8 {
         self.header.system_id()
     }
@@ -114,17 +164,37 @@ impl Frame {
     ///
     /// > Note that the broadcast address `MAV_COMP_ID_ALL` may not be used in this field as it is
     /// > an invalid source address.
+    ///
+    /// # Links
+    ///
+    /// * [Header::component_id].
     pub fn component_id(&self) -> u8 {
         self.header.component_id()
     }
 
     /// Message `ID`.
     ///
-    /// `ID` of message type in payload.
+    /// `ID` of MAVLink message. Defines how payload will be encoded and decoded.
     ///
-    /// Used to decode data back into message object.
+    /// # Links
+    ///
+    /// * [Header::message_id].
     pub fn message_id(&self) -> MessageId {
         self.header.message_id()
+    }
+
+    /// Whether a frame body should contain signature.
+    ///
+    /// # Errors
+    ///
+    /// * Returns [FrameError::InconsistentV2Header] if [`Header::v2_fields`] are missing.
+    ///
+    /// # Links
+    ///
+    /// * [`Frame::signature`].
+    #[inline]
+    pub fn is_signature_required(&self) -> Result<bool> {
+        self.header.is_signed()
     }
 
     /// Read and decode [`Frame`] frame from the instance of [`Read`].
@@ -151,15 +221,16 @@ impl Frame {
         Ok(frame)
     }
 
-    /// Calculates CRC for [`Frame`] within `extra_crc`.
+    /// Calculates CRC for [`Frame`] within `crc_extra`.
     ///
-    /// Provided `extra_crc` depends on a dialect and contains a digest of message XML definition.
+    /// Provided `crc_extra` depends on a dialect and contains a digest of message XML definition.
     ///
-    /// See:
-    ///  * [`Frame::checksum`].
-    ///  * [MAVLink checksum definition](https://mavlink.io/en/guide/serialization.html#checksum).
-    ///  * [CRC-16/MCRF4XX](https://ww1.microchip.com/downloads/en/AppNotes/00752a.pdf) (PDF).
-    pub fn calculate_crc(&self, extra_crc: ExtraCrc) -> Checksum {
+    /// # Links
+    ///
+    /// * [`Frame::checksum`].
+    /// * [MAVLink checksum definition](https://mavlink.io/en/guide/serialization.html#checksum).
+    /// * [CRC-16/MCRF4XX](https://ww1.microchip.com/downloads/en/AppNotes/00752a.pdf) (PDF).
+    pub fn calculate_crc(&self, crc_extra: CrcExtra) -> Checksum {
         let mut crc_calculator = CRCu16::crc16mcrf4cc();
 
         crc_calculator.digest(self.header.crc_data());
@@ -169,16 +240,18 @@ impl Frame {
             crc_calculator.digest(&signature.to_byte_array());
         }
 
-        crc_calculator.digest(&[extra_crc]);
+        crc_calculator.digest(&[crc_extra]);
 
         crc_calculator.get_crc()
     }
 
-    /// Validates [`Frame::checksum`] using provided `extra_crc`.
+    /// Validates [`Frame::checksum`] using provided `crc_extra`.
     ///
-    /// See: [`Frame::calculate_crc`] for CRC implementation details.
-    pub fn validate_checksum(&self, extra_crc: ExtraCrc) -> Result<()> {
-        if self.calculate_crc(extra_crc) != self.checksum {
+    /// # Links
+    ///
+    /// * [`Frame::calculate_crc`] for CRC implementation details.
+    pub fn validate_checksum(&self, crc_extra: CrcExtra) -> Result<()> {
+        if self.calculate_crc(crc_extra) != self.checksum {
             return Err(FrameError::InvalidChecksum.into());
         }
 
@@ -202,7 +275,7 @@ impl Frame {
     /// * [`Frame::calculate_crc`] for CRC implementation details.
     pub fn validate(&self, dialect_spec: &dyn DialectSpec) -> Result<()> {
         let message_info = dialect_spec.message_info(self.header().message_id())?;
-        self.validate_checksum(message_info.extra_crc())?;
+        self.validate_checksum(message_info.crc_extra())?;
 
         // Check that signature is present if `MAVLINK_IFLAG_SIGNED` flag is set
         if self.signature.is_none() && self.header.is_signed()? {
@@ -254,8 +327,177 @@ impl Frame {
     }
 }
 
+impl FrameConf {
+    /// Default constructor
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Builds [`Frame`].
+    ///
+    /// Validates frame configuration and creates an instance of [`Frame`].
+    ///
+    /// # Errors
+    ///
+    /// * Returns various variants of [`FrameError`] (wrapped by [`CoreError`](crate::errors::CoreError)) if validation
+    /// fails.
+    pub fn build(&mut self) -> Result<Frame> {
+        // Create payload
+        let payload = match &self.payload {
+            Some(payload) => payload.clone(),
+            None => return Err(FrameError::MissingFrameField("payload".into()).into()),
+        };
+
+        // Build header
+        let header = self
+            .header_conf
+            .set_payload_length(payload.length())
+            .build()?;
+
+        // Prepare frame
+        let mut frame = Frame {
+            header,
+            payload,
+            checksum: 0,
+            signature: None,
+        };
+
+        // Calculate checksum
+        match self.crc_extra {
+            Some(crc_extra) => frame.checksum = frame.calculate_crc(crc_extra),
+            None => return Err(FrameError::MissingFrameField("crc_extra".into()).into()),
+        }
+
+        Ok(frame)
+    }
+
+    /// Sets MAVLink protocol version.
+    ///
+    /// See: [`Header::mavlink_version`].
+    pub fn set_mavlink_version(&mut self, mavlink_version: MavLinkVersion) -> &mut Self {
+        self.header_conf.set_mavlink_version(mavlink_version);
+        self
+    }
+
+    /// Sets incompatibility flags for `MAVLink 2` header.
+    ///
+    /// # Errors
+    ///
+    /// Does not returns error directly but if both MAVLink version is set to [`MavLinkVersion::V1`] and incompatibility
+    /// flags are present, then [`FrameError::InconsistentV1Header`] error will be returned by [`Self::build`].
+    ///
+    /// # Links
+    ///
+    /// * [`HeaderV2Fields`].
+    pub fn set_incompat_flags(&mut self, incompat_flags: IncompatFlags) -> &mut Self {
+        self.header_conf.set_incompat_flags(incompat_flags);
+        self
+    }
+
+    /// Sets compatibility flags for `MAVLink 2` header.
+    ///
+    /// # Errors
+    ///
+    /// Does not returns error directly but if both MAVLink version is set to [`MavLinkVersion::V1`] and compatibility
+    /// flags are present, then [`FrameError::InconsistentV1Header`] error will be returned by [`Self::build`].
+    ///
+    /// # Links
+    ///
+    /// * [`HeaderV2Fields`].
+    pub fn set_compat_flags(&mut self, compat_flags: CompatFlags) -> &mut Self {
+        self.header_conf.set_compat_flags(compat_flags);
+        self
+    }
+
+    /// Sets packet sequence number.
+    ///
+    /// # Links
+    ///
+    /// * [`Frame::sequence`].
+    pub fn set_sequence(&mut self, sequence: u8) -> &mut Self {
+        self.header_conf.set_sequence(sequence);
+        self
+    }
+
+    /// Sets system `ID`.
+    ///
+    /// # Links
+    ///
+    /// * [`Frame::system_id`].
+    pub fn set_system_id(&mut self, system_id: u8) -> &mut Self {
+        self.header_conf.set_system_id(system_id);
+        self
+    }
+
+    /// Sets component `ID`.
+    ///
+    /// # Links
+    ///
+    /// * [`Frame::component_id`].
+    pub fn set_component_id(&mut self, component_id: u8) -> &mut Self {
+        self.header_conf.set_component_id(component_id);
+        self
+    }
+
+    /// Sets message `ID`.
+    ///
+    /// # Links
+    ///
+    /// * [`Frame::message_id`].
+    pub fn set_message_id(&mut self, message_id: MessageId) -> &mut Self {
+        self.header_conf.set_message_id(message_id);
+        self
+    }
+
+    /// Sets `CRC_EXTRA`.
+    ///
+    /// # Links
+    ///
+    /// * [`Frame::checksum`] is calculated using [`CrcExtra`].
+    pub fn set_crc_extra(&mut self, crc_extra: CrcExtra) -> &mut Self {
+        self.crc_extra = Some(crc_extra);
+        self
+    }
+
+    /// Sets payload data.
+    ///
+    /// # Links
+    ///
+    /// * [`Frame::payload`]
+    pub fn set_payload(&mut self, payload: Payload) -> &mut Self {
+        self.payload = Some(payload);
+        self
+    }
+
+    /// Imports MAVLink message.
+    ///
+    /// Imports and encodes MAVLink message. Uses [`MessageImpl::crc_extra`] to create a checksum.
+    ///
+    /// Uses [`MessageImpl`] to define:
+    ///
+    /// * [`Frame::message_id`]
+    /// * [`Frame::payload_length`]
+    /// * [`Frame::payload`]
+    /// * [`Frame::checksum`]
+    pub fn with_message(
+        &mut self,
+        message: &dyn MessageImpl,
+        mavlink_version: MavLinkVersion,
+    ) -> Result<&mut Self> {
+        let payload = message.encode(mavlink_version)?;
+
+        self.set_message_id(message.id());
+        self.set_mavlink_version(mavlink_version);
+        self.set_payload(payload);
+        self.set_crc_extra(message.crc_extra());
+
+        Ok(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crc_any::CRCu16;
 
     #[test]
@@ -276,5 +518,23 @@ mod tests {
         crc_calculator_seq.digest(&data[split_at..data.len()]);
 
         assert_eq!(crc_calculator_bulk.get_crc(), crc_calculator_seq.get_crc());
+    }
+
+    #[test]
+    #[cfg(feature = "minimal")]
+    fn test_builder() -> Result<()> {
+        use crate::dialects::minimal::messages::MsgHeartbeat;
+
+        let message = MsgHeartbeat::default();
+        let frame = Frame::conf()
+            .with_message(&message, MavLinkVersion::V2)?
+            .set_sequence(17)
+            .set_system_id(22)
+            .set_component_id(17)
+            .build();
+
+        frame.unwrap();
+
+        Ok(())
     }
 }

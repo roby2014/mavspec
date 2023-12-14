@@ -2,7 +2,7 @@
 
 use crate::consts::MESSAGE_ID_V1_MAX;
 use crate::payload::IntoPayload;
-use crate::types::{ExtraCrc, MavLinkVersion, MessageId};
+use crate::types::{CrcExtra, MavLinkVersion, MessageId};
 
 /// Generic MAVLink message specification.
 ///
@@ -36,7 +36,7 @@ pub trait MessageSpec {
     ///
     /// See: [CRC_EXTRA calculation](https://mavlink.io/en/guide/serialization.html#crc_extra) in
     /// MAVLink docs.
-    fn extra_crc(&self) -> ExtraCrc;
+    fn crc_extra(&self) -> CrcExtra;
 }
 
 /// MAVLink message implementation.
@@ -52,7 +52,7 @@ pub trait MessageImpl: MessageSpec + IntoPayload {}
 pub struct MessageInfo {
     id: MessageId,
     min_supported_mavlink_version: MavLinkVersion,
-    extra_crc: ExtraCrc,
+    crc_extra: CrcExtra,
 }
 
 impl MessageSpec for MessageInfo {
@@ -74,10 +74,10 @@ impl MessageSpec for MessageInfo {
 
     /// Message `EXTRA_CRC` calculated from message XML definition.
     ///
-    /// See: [`MessageSpec::extra_crc`].
+    /// See: [`MessageSpec::crc_extra`].
     #[inline]
-    fn extra_crc(&self) -> ExtraCrc {
-        self.extra_crc
+    fn crc_extra(&self) -> CrcExtra {
+        self.crc_extra
     }
 }
 
@@ -87,7 +87,7 @@ impl MessageInfo {
     /// Sets `min_supported_mavlink_version` to [`MavLinkVersion::V2`] if message `id` greater
     /// than [`u8::MAX`]. The latter means it can't be fitted into `MAVLink 1` packet. Otherwise
     /// sets to [`MavLinkVersion::V1`].
-    pub const fn new(id: MessageId, extra_crc: ExtraCrc) -> Self {
+    pub const fn new(id: MessageId, crc_extra: CrcExtra) -> Self {
         // Force `MAVLink 2` as minimum protocol version if `id` can't be represented as `u8`
         let min_supported_mavlink_version = if id > MESSAGE_ID_V1_MAX {
             MavLinkVersion::V2
@@ -98,7 +98,7 @@ impl MessageInfo {
         Self {
             id,
             min_supported_mavlink_version,
-            extra_crc,
+            crc_extra,
         }
     }
 }

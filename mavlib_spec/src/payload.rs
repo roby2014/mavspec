@@ -30,8 +30,8 @@ pub struct Payload {
     /// Message payload as a sequence of bytes.
     #[cfg_attr(feature = "serde", serde(skip))]
     payload: PayloadContainer,
-    /// Payload size.
-    max_size: usize,
+    /// Payload length.
+    length: usize,
     /// MAVLink protocol version.
     version: MavLinkVersion,
 }
@@ -41,10 +41,10 @@ impl Default for Payload {
     /// Creates [`Payload`] populated with default values.
     fn default() -> Self {
         Self {
-            id: u32::default(),
+            id: MessageId::default(),
             payload: Payload::container_default(),
             version: MavLinkVersion::default(),
-            max_size: PAYLOAD_MAX_SIZE,
+            length: PAYLOAD_MAX_SIZE,
         }
     }
 }
@@ -56,11 +56,11 @@ impl Debug for Payload {
     /// This is important for `no_std` implementations where `payload` has fixed size of
     /// [`PAYLOAD_MAX_SIZE`] bytes.
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let payload = &self.payload[0..min(self.payload.len(), self.max_size)];
+        let payload = &self.payload[0..min(self.payload.len(), self.length)];
         write!(
             f,
             "Payload{{ id: {}, payload: {:?}, max_size: {}, version: {:?} }}",
-            self.id, payload, self.max_size, self.version
+            self.id, payload, self.length, self.version
         )
     }
 }
@@ -69,32 +69,25 @@ impl Payload {
     /// Default constructor.
     ///
     /// Upon creation, the length of the provided payload will define
-    /// [`Payload::max_size`] the maximum length of the
+    /// [`Payload::length`] the maximum length of the
     /// [`Payload::payload`].
     ///
     /// If `payload` is longer than [`PAYLOAD_MAX_SIZE`], all trailing elements will be ignored.
-    pub fn new(id: u32, payload: &[u8], version: MavLinkVersion) -> Self {
+    pub fn new(id: MessageId, payload: &[u8], version: MavLinkVersion) -> Self {
         let max_size = min(PAYLOAD_MAX_SIZE, payload.len());
-        let payload = Self::container_from_slice(payload, max_size);
-        Self {
-            id,
-            payload,
-            max_size,
-            version,
-        }
-    }
 
-    /// Constructs [`Payload`] with specified payload size.
-    ///
-    /// If `max_size` is greater than [`PAYLOAD_MAX_SIZE`], then it will be ignored and
-    /// [`PAYLOAD_MAX_SIZE`] will be used instead.
-    pub fn new_sized(id: u32, payload: &[u8], version: MavLinkVersion, max_size: usize) -> Self {
-        let max_size = min(PAYLOAD_MAX_SIZE, max_size);
-        let payload = Self::container_from_slice(payload, max_size);
+        // Define length based on MAVLink protocol version since `MAVLink 2` requires payload truncation.
+        let length = match version {
+            MavLinkVersion::V1 => max_size,
+            MavLinkVersion::V2 => Self::truncated_length(&payload[0..max_size]),
+        };
+
+        let payload = Self::container_from_slice(payload, length);
+
         Self {
             id,
             payload,
-            max_size,
+            length,
             version,
         }
     }
@@ -109,17 +102,7 @@ impl Payload {
     /// For `MAVLink 2` zero trailing bytes will be truncated.
     /// See [MAVLink 2 payload truncation](https://mavlink.io/en/guide/serialization.html#payload_truncation).
     pub fn payload(&self) -> &[u8] {
-        if let MavLinkVersion::V2 = self.version {
-            self.truncated()
-        } else if self.payload.len() < self.max_size {
-            #[cfg(not(feature = "alloc"))]
-            let res = &self.payload.content;
-            #[cfg(feature = "alloc")]
-            let res = &self.payload;
-            res
-        } else {
-            &self.payload[0..self.max_size]
-        }
+        &self.payload[0..self.length]
     }
 
     /// MAVLink protocol version.
@@ -132,25 +115,25 @@ impl Payload {
     /// Maximum length in bytes of the available payload.
     ///
     /// See [`Payload::payload`].
-    pub fn max_size(&self) -> usize {
-        self.max_size
+    pub fn length(&self) -> u8 {
+        self.length as u8
     }
 
-    /// Payload with trailing zeros truncated.
-    pub fn truncated(&self) -> &[u8] {
-        let n: usize = self.max_size;
+    /// Calculate size of a slice without trailing zeros.
+    fn truncated_length(slice: &[u8]) -> usize {
+        let n: usize = slice.len();
         // Assume that all elements are zeros
         let mut num_non_zero = 0usize;
         // Seek from the end to start
         for i in 1..=n {
             // Stop when non-zero element is found
-            if self.payload[n - i] != 0u8 {
+            if slice[n - i] != 0u8 {
                 num_non_zero = n - i + 1;
                 break;
             }
         }
 
-        &self.payload[0..num_non_zero]
+        num_non_zero
     }
 
     /// Creates [`PayloadContainer`] populated with values from slice.
@@ -249,49 +232,29 @@ mod tests {
     fn new() {
         // Small initial payload
         let payload = Payload::new(0, &[1, 2, 3, 4, 5, 6u8], MavLinkVersion::V1);
-        assert_eq!(payload.max_size(), 6);
+        assert_eq!(payload.length(), 6);
         assert_eq!(payload.payload().len(), 6);
         assert_eq!(payload.payload(), &[1, 2, 3, 4, 5, 6u8]);
 
-        // Payload with trailing zeros
+        // Payload with trailing zeros V1
         let payload = Payload::new(0, &[1, 2, 3, 4, 0, 0u8], MavLinkVersion::V1);
-        assert_eq!(payload.max_size(), 6);
+        assert_eq!(payload.length(), 6);
         assert_eq!(payload.payload().len(), 6);
+
+        // Payload with trailing zeros V2
+        let payload = Payload::new(0, &[1, 2, 3, 4, 0, 0u8], MavLinkVersion::V2);
+        assert_eq!(payload.length(), 4);
+        assert_eq!(payload.payload().len(), 4);
 
         // Large initial payload
         let payload = Payload::new(0, &[1u8; PAYLOAD_MAX_SIZE * 2], MavLinkVersion::V1);
-        assert_eq!(payload.max_size(), PAYLOAD_MAX_SIZE);
+        assert_eq!(payload.length() as usize, PAYLOAD_MAX_SIZE);
         assert_eq!(payload.payload().len(), PAYLOAD_MAX_SIZE);
     }
 
     #[test]
-    fn new_sized() {
-        // Small initial payload
-        let payload = Payload::new_sized(0, &[1, 2, 3, 4, 5, 6u8], MavLinkVersion::V1, 4);
-        assert_eq!(payload.max_size(), 4);
-        assert_eq!(payload.payload().len(), 4);
-        assert_eq!(payload.payload(), &[1, 2, 3, 4u8]);
-
-        // Small initial payload, excess size
-        let payload = Payload::new_sized(0, &[1, 2, 3, 4u8], MavLinkVersion::V1, 6);
-        assert_eq!(payload.max_size(), 6);
-        assert_eq!(payload.payload().len(), 6);
-        assert_eq!(payload.payload(), &[1, 2, 3, 4, 0, 0u8]);
-
-        // Large initial payload
-        let payload = Payload::new_sized(
-            0,
-            &[1u8; PAYLOAD_MAX_SIZE * 2],
-            MavLinkVersion::V1,
-            PAYLOAD_MAX_SIZE * 2,
-        );
-        assert_eq!(payload.max_size(), PAYLOAD_MAX_SIZE);
-        assert_eq!(payload.payload().len(), PAYLOAD_MAX_SIZE);
-    }
-
-    #[test]
-    fn truncated() {
-        let payload = Payload::new(0, &[1, 2, 3, 4, 0, 0u8], MavLinkVersion::V1);
-        assert_eq!(payload.truncated(), [1, 2, 3, 4u8]);
+    fn truncated_length() {
+        assert_eq!(Payload::truncated_length(&[1, 2, 3, 4, 5, 6u8]), 6);
+        assert_eq!(Payload::truncated_length(&[1, 2, 3, 4, 0, 0u8]), 4);
     }
 }
