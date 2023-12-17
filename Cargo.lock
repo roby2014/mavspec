@@ -306,10 +306,13 @@ name = "mavlib_core"
 version = "0.1.0-alpha1"
 dependencies = [
  "crc-any",
+ "env_logger",
+ "log",
  "mavcodegen",
  "mavlib_spec",
  "mavspec",
  "serde",
+ "sha2",
  "tbytes",
  "thiserror",
 ]

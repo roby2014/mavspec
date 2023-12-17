@@ -1,6 +1,4 @@
-//! # Utils
-//!
-//! Utility functions, structs and traits which does not fall into any category.
+//! Implementation for [`Read`] and [`Write`] that work with slices.
 
 use crate::io::{Read, Write};
 
@@ -158,7 +156,7 @@ impl<'a> SliceWriter<'a> {
         let num_bytes_requested = buf.len();
         let num_bytes = core::cmp::min(self.content.len() - self.pos, num_bytes_requested);
 
-        self.content[self.pos..self.pos + num_bytes].copy_from_slice(&buf);
+        self.content[self.pos..self.pos + num_bytes].copy_from_slice(buf);
         self.pos += num_bytes;
 
         num_bytes

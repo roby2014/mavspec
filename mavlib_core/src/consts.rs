@@ -85,8 +85,10 @@ pub const SIGNATURE_LINK_ID_LENGTH: usize = 1;
 ///
 /// # Links
 ///
-///  * [`Signature`](crate::protocol::Signature)
-///  * `tm.timestamp` field in [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html)
+/// * [`Signature`](crate::protocol::Signature)
+/// * `tm.timestamp` field in [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html)
+/// * [Timestamp handling](https://mavlink.io/en/guide/message_signing.html#timestamp) in MAVLink documentation.
+/// * [`SIGNATURE_TIMESTAMP_OFFSET`] for switching between Unix and MAVLink epochs.
 pub const SIGNATURE_TIMESTAMP_LENGTH: usize = 6;
 /// `MAVLink 2` signature value length in bytes.
 ///
@@ -104,3 +106,19 @@ pub const SIGNATURE_VALUE_LENGTH: usize = 6;
 ///  * [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html)
 pub const SIGNATURE_LENGTH: usize =
     SIGNATURE_LINK_ID_LENGTH + SIGNATURE_TIMESTAMP_LENGTH + SIGNATURE_VALUE_LENGTH;
+
+/// Timestamp offset in seconds from MAVLink to Unix epoch
+///
+/// Number of seconds between MAVLink epoch (1st January 2015 GMT) and Unix epoch (1st January 1970 GMT)
+///
+/// # Links
+///
+/// * [Timestamp handling](https://mavlink.io/en/guide/message_signing.html#timestamp) in MAVLink documentation.
+pub const SIGNATURE_TIMESTAMP_OFFSET: u64 = 1420070400;
+
+/// Length of a `MAVLink 2` secret key in bytes.
+///
+/// # Links
+///
+/// * [Signature](https://mavlink.io/en/guide/message_signing.html#signature) in MAVLink message signing documentation.
+pub const SIGNATURE_SECRET_KEY_LENGTH: usize = 32;

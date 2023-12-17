@@ -1,6 +1,6 @@
 [package]
 name = "mavlib_core"
-description = "MAVLib core features"
+description = "Minimalistic MAVLink client"
 version = "0.1.0-alpha1"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
@@ -23,7 +23,12 @@ crc-any = { version = "2.4.3", default-features = false }
 mavlib_spec = { path = "../mavlib_spec", default-features = false }
 tbytes = { version = "0.1.0-alpha1", default-features = false }
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
+sha2 = { version = "0.10.8", default-features = false, optional = true }
 thiserror = { version = "1.0.50", optional = true }
+
+[dev-dependencies]
+log = "0.4.20"
+env_logger = "0.10.1"
 
 [build-dependencies]
 mavcodegen = { path = "../mavcodegen", features = ["rust"], default-features = false }
@@ -32,25 +37,27 @@ mavspec = { git = "https://gitlab.com/mavka/libs/mavspec.git" }
 
 [features]
 ## Default features
-default = ["std", "minimal"]
+default = ["std", "minimal", "sha2"]
 ## Enables memory allocation support.
 alloc = [
     "mavlib_spec/alloc",
     "serde/alloc",
     "tbytes/alloc",
 ]
+sha2 = ["dep:sha2"]
 ## Enables Rust std library.
 std = [
     "alloc",
     "mavlib_spec/std",
     "serde/std",
+    "sha2/std",
     "tbytes/std",
     "thiserror",
 ]
 ## Enables serde support.
 serde = [
     "dep:serde",
-    "mavlib_spec/serde"
+    "mavlib_spec/serde",
 ]
 ## Include `minimal` dialect
 minimal = []
@@ -68,7 +75,7 @@ path = "src/lib.rs"
 [[example]]
 name = "tcp_basic"
 test = true
-required-features = ["minimal"]
+required-features = ["std", "minimal", "sha2"]
 
 [package.metadata.docs.rs]
 # Features to include into `docs.rs` documentation

@@ -19,16 +19,16 @@ pub use mavlib_spec::{
 
 // Signature
 pub(crate) mod signature;
-pub use signature::Signature;
+pub use signature::{MavTimestamp, SecretKey, Sign, Signature, SignatureConf};
 // Magic byte (STX)
 pub(crate) mod stx;
 pub use stx::MavSTX;
 // Header
 pub(crate) mod header;
-pub use header::{Header, HeaderConf, HeaderV2Fields};
+pub use header::{Header, HeaderBuilder};
 // MAVLink frame
 pub(crate) mod frame;
-pub use frame::{Frame, FrameConf};
+pub use frame::{Frame, FrameBuilder};
 
 /// MAVLink packet checksum.
 ///
@@ -77,4 +77,4 @@ pub type SignatureTimestampBytes = [u8; SIGNATURE_TIMESTAMP_LENGTH];
 ///
 ///  * [`Signature`].
 ///  * `signature` field in [MAVLink 2 message signing](https://mavlink.io/en/guide/message_signing.html).
-pub type SignatureValueBytes = [u8; SIGNATURE_VALUE_LENGTH];
+pub type SignatureValue = [u8; SIGNATURE_VALUE_LENGTH];

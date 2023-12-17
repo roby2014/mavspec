@@ -178,9 +178,9 @@ impl TryFrom<&Payload> for {{to-message-struct-name name}} {
     /// Decodes [`Payload`] into [`{{to-message-struct-name name}}`] according to [`MavLinkVersion`].
     fn try_from(value: &Payload) -> Result<Self, Self::Error> {
         match value.version() {
-            MavLinkVersion::V2 => v2::decode(value.payload()),
+            MavLinkVersion::V2 => v2::decode(value.bytes()),
 {{#if is_v1_compatible}}
-            MavLinkVersion::V1 => v1::decode(value.payload()),
+            MavLinkVersion::V1 => v1::decode(value.bytes()),
 {{else}}
             version => {
                 Err(MessageError::UnsupportedMavLinkVersion {
@@ -363,10 +363,10 @@ mod tests {
         assert!(matches!(message, {{to-message-struct-name name}} { .. }));
 
         let encoded_payload = v2::encode(&message).unwrap();
-        assert_eq!(encoded_payload.payload(), payload.as_slice());
+        assert_eq!(encoded_payload.bytes(), payload.as_slice());
 
         let encoded_mavlink_payload = message.encode(MavLinkVersion::V2).unwrap();
-        assert_eq!(encoded_mavlink_payload.payload(), payload);
+        assert_eq!(encoded_mavlink_payload.bytes(), payload);
         assert_eq!(encoded_mavlink_payload.id(), message.id());
         assert!(matches!(encoded_mavlink_payload.version(), MavLinkVersion::V2));
     }
@@ -380,10 +380,10 @@ mod tests {
         assert!(matches!(message, {{to-message-struct-name name}} { .. }));
 
         let encoded_payload = v1::encode(&message).unwrap();
-        assert_eq!(encoded_payload.payload(), payload.as_slice());
+        assert_eq!(encoded_payload.bytes(), payload.as_slice());
 
         let encoded_mavlink_payload = message.encode(MavLinkVersion::V1).unwrap();
-        assert_eq!(encoded_mavlink_payload.payload(), payload);
+        assert_eq!(encoded_mavlink_payload.bytes(), payload);
         assert_eq!(encoded_mavlink_payload.id(), message.id());
         assert!(matches!(encoded_mavlink_payload.version(), MavLinkVersion::V1));
     }

@@ -70,7 +70,7 @@ impl Payload {
     ///
     /// Upon creation, the length of the provided payload will define
     /// [`Payload::length`] the maximum length of the
-    /// [`Payload::payload`].
+    /// [`Payload::bytes`].
     ///
     /// If `payload` is longer than [`PAYLOAD_MAX_SIZE`], all trailing elements will be ignored.
     pub fn new(id: MessageId, payload: &[u8], version: MavLinkVersion) -> Self {
@@ -97,11 +97,11 @@ impl Payload {
         self.id
     }
 
-    /// Message payload.
+    /// Message payload as bytes.
     ///
     /// For `MAVLink 2` zero trailing bytes will be truncated.
     /// See [MAVLink 2 payload truncation](https://mavlink.io/en/guide/serialization.html#payload_truncation).
-    pub fn payload(&self) -> &[u8] {
+    pub fn bytes(&self) -> &[u8] {
         &self.payload[0..self.length]
     }
 
@@ -114,7 +114,7 @@ impl Payload {
 
     /// Maximum length in bytes of the available payload.
     ///
-    /// See [`Payload::payload`].
+    /// See [`Payload::bytes`].
     pub fn length(&self) -> u8 {
         self.length as u8
     }
@@ -227,23 +227,23 @@ mod tests {
         // Small initial payload
         let payload = Payload::new(0, &[1, 2, 3, 4, 5, 6u8], MavLinkVersion::V1);
         assert_eq!(payload.length(), 6);
-        assert_eq!(payload.payload().len(), 6);
-        assert_eq!(payload.payload(), &[1, 2, 3, 4, 5, 6u8]);
+        assert_eq!(payload.bytes().len(), 6);
+        assert_eq!(payload.bytes(), &[1, 2, 3, 4, 5, 6u8]);
 
         // Payload with trailing zeros V1
         let payload = Payload::new(0, &[1, 2, 3, 4, 0, 0u8], MavLinkVersion::V1);
         assert_eq!(payload.length(), 6);
-        assert_eq!(payload.payload().len(), 6);
+        assert_eq!(payload.bytes().len(), 6);
 
         // Payload with trailing zeros V2
         let payload = Payload::new(0, &[1, 2, 3, 4, 0, 0u8], MavLinkVersion::V2);
         assert_eq!(payload.length(), 4);
-        assert_eq!(payload.payload().len(), 4);
+        assert_eq!(payload.bytes().len(), 4);
 
         // Large initial payload
         let payload = Payload::new(0, &[1u8; PAYLOAD_MAX_SIZE * 2], MavLinkVersion::V1);
         assert_eq!(payload.length() as usize, PAYLOAD_MAX_SIZE);
-        assert_eq!(payload.payload().len(), PAYLOAD_MAX_SIZE);
+        assert_eq!(payload.bytes().len(), PAYLOAD_MAX_SIZE);
     }
 
     #[test]
