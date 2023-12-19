@@ -20,6 +20,8 @@ fn main() {
     let included_dialects = {
         let mut included_dialects: Vec<String> = Default::default();
 
+        included_dialects.push("MAVSpec_test".to_string());
+
         if has_minimal_feature {
             included_dialects.push("minimal".to_string())
         }
@@ -63,7 +65,10 @@ fn main() {
     }
 
     // Load dialects
-    let sources = vec!["../message_definitions/standard".to_string()];
+    let sources = vec![
+        "../message_definitions/standard".to_string(),
+        "../message_definitions/extra".to_string(),
+    ];
     let protocol = XMLInspector::builder()
         .set_sources(sources)
         .set_include(included_dialects)

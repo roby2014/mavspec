@@ -1,9 +1,5 @@
 use mavspec::protocol::MavType;
 
-const MESSAGE_STRUCT_PREFIX: &str = "Msg";
-const MESSAGE_STRUCT_SUFFIX: &str = "";
-const MESSAGE_PROCESSOR_STRUCT_PREFIX: &str = "Msg";
-const MESSAGE_PROCESSOR_STRUCT_SUFFIX: &str = "Processor";
 // See: https://doc.rust-lang.org/reference/keywords.html
 const RUST_RESERVED_KEYWORDS: [&str; 50] = [
     "abstract", "as", "async", "await", "become", "box", "break", "const", "continue", "crate",
@@ -21,6 +17,18 @@ pub fn enum_rust_name(enum_name: String) -> String {
     heck::AsUpperCamelCase(enum_name).to_string()
 }
 
+pub fn enum_mod_name(message_name: String) -> String {
+    heck::AsSnakeCase(message_name).to_string()
+}
+
+pub fn enum_file_name(message_name: String) -> String {
+    format!("{}.rs", enum_mod_name(message_name))
+}
+
+pub fn enum_entry_name(entry_name: String) -> String {
+    heck::AsUpperCamelCase(entry_name).to_string()
+}
+
 pub fn message_mod_name(message_name: String) -> String {
     heck::AsSnakeCase(message_name).to_string()
 }
@@ -30,25 +38,15 @@ pub fn message_file_name(message_name: String) -> String {
 }
 
 pub fn messages_enum_entry_name(message_name: String) -> String {
-    heck::AsUpperCamelCase(message_name).to_string()
+    message_struct_name(message_name)
 }
 
 pub fn message_struct_name(message_name: String) -> String {
-    format!(
-        "{}{}{}",
-        MESSAGE_STRUCT_PREFIX,
-        heck::AsUpperCamelCase(message_name),
-        MESSAGE_STRUCT_SUFFIX
-    )
+    heck::AsUpperCamelCase(message_name).to_string()
 }
 
-pub fn message_processor_struct_name(message_name: String) -> String {
-    format!(
-        "{}{}{}",
-        MESSAGE_PROCESSOR_STRUCT_PREFIX,
-        heck::AsUpperCamelCase(message_name),
-        MESSAGE_PROCESSOR_STRUCT_SUFFIX
-    )
+pub fn message_raw_struct_name(message_name: String) -> String {
+    format!("{}Raw", message_struct_name(message_name))
 }
 
 pub fn rust_var_name(var_name: String) -> String {

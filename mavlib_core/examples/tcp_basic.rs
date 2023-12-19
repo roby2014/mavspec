@@ -4,12 +4,13 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use dialect::Message;
 use mavlib_core::dialects::minimal as dialect;
+use mavlib_core::dialects::minimal::enums::{MavAutopilot, MavModeFlag, MavState, MavType};
 use mavlib_core::io::{Read, Write};
-use mavlib_core::{Frame, Receiver, Sender};
 
 use mavlib_core::consts::{SIGNATURE_SECRET_KEY_LENGTH, SIGNATURE_TIMESTAMP_OFFSET};
 use mavlib_core::protocol::{MavTimestamp, SecretKey, SignatureConf};
 use mavlib_core::utils::MavSha256;
+use mavlib_core::{Frame, Receiver, Sender};
 use mavlib_spec::MavLinkVersion;
 
 /// Listen to incoming frames and decode `HEARTBEAT` message.
@@ -42,7 +43,8 @@ fn listen<R: Read>(reader: R) -> mavlib_core::errors::Result<()> {
         }
 
         // Decode message
-        if let Ok(msg) = dialect::decode(frame.payload()) {
+        let decoded = dialect::decode(frame.payload());
+        if let Ok(msg) = decoded {
             log::info!("MESSAGE #{}: {msg:?}", frame.sequence());
 
             // If heartbeat is sent, print fields
@@ -53,6 +55,8 @@ fn listen<R: Read>(reader: R) -> mavlib_core::errors::Result<()> {
                     msg.mavlink_version
                 );
             }
+        } else {
+            log::warn!("DECODE ERROR #{}: {decoded:?}", frame.sequence());
         }
     }
 }
@@ -70,12 +74,13 @@ fn send_heartbeats<W: Write>(writer: W) -> mavlib_core::errors::Result<()> {
 
     // Send several heartbeats
     for sequence in 0..10 {
-        let message = dialect::messages::MsgHeartbeat {
-            r#type: 6,
-            autopilot: 0,
-            base_mode: 0,
+        let message = dialect::messages::Heartbeat {
+            r#type: MavType::MavTypeFixedWing,
+            autopilot: MavAutopilot::MavAutopilotGeneric,
+            base_mode: MavModeFlag::MAV_MODE_FLAG_TEST_ENABLED
+                & MavModeFlag::MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
             custom_mode: 0,
-            system_status: 4,
+            system_status: MavState::MavStateActive,
             mavlink_version: 3,
         };
 
@@ -91,14 +96,16 @@ fn send_heartbeats<W: Write>(writer: W) -> mavlib_core::errors::Result<()> {
             .set_component_id(component_id)
             .build_for(&message, mavlink_version)?;
 
-        frame.add_signature(
-            &mut MavSha256::default(),
-            SignatureConf {
-                link_id: 0,
-                timestamp: MavTimestamp::from_raw_u64(mav_timestamp),
-                secret: secret_key,
-            },
-        )?;
+        frame
+            .add_signature(
+                &mut MavSha256::default(),
+                SignatureConf {
+                    link_id: 0,
+                    timestamp: MavTimestamp::from_raw_u64(mav_timestamp),
+                    secret: secret_key,
+                },
+            )?
+            .remove_signature();
 
         sender.send(&frame)?;
 

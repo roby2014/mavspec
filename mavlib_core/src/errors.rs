@@ -75,7 +75,10 @@ pub enum FrameError {
     #[cfg_attr(feature = "std", error("inconsistent MAVLink 2 header"))]
     InconsistentV2Header,
     /// MAVLink packet body is inconsistent with header.
-    #[cfg_attr(feature = "std", error("packet body length is inconsistent with header"))]
+    #[cfg_attr(
+        feature = "std",
+        error("packet body length is inconsistent with header")
+    )]
     InconsistentBodySize,
     /// `MAVLink 2` signature is too small.
     #[cfg_attr(feature = "std", error("MAVLink 2 signature is too small"))]
@@ -102,14 +105,14 @@ pub enum FrameError {
         feature = "std",
         error("can't build header since field `{0}` is missing")
     )]
-    MissingHeaderField(String),
+    MissingHeaderField(&'static str),
     /// Missing [`FrameBuilder`](crate::protocol::frame::FrameBuilder) field when building a
     /// [`Frame`](crate::protocol::frame::Frame).
     #[cfg_attr(
         feature = "std",
         error("can't build frame since field `{0}` is missing")
     )]
-    MissingFrameField(String),
+    MissingFrameField(&'static str),
 
     /// Actual payload ahd header have inconsistent size.
     #[cfg_attr(

@@ -35,7 +35,7 @@ pub enum IoError {
     /// In most cases this means that smaller amount of bytes are available.
     UnexpectedEof,
     /// Other error.
-    Other(String),
+    Other(&'static str),
 }
 
 impl From<IoError> for CoreError {

@@ -25,7 +25,7 @@ pub(crate) mod stx;
 pub use stx::MavSTX;
 // Header
 pub(crate) mod header;
-pub use header::{Header, HeaderBuilder};
+pub use header::{Header, HeaderBuilder, HeaderBytes};
 // MAVLink frame
 pub(crate) mod frame;
 pub use frame::{Frame, FrameBuilder};

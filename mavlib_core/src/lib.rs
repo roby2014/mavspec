@@ -61,31 +61,29 @@
 //! * [`all`](https://mavlink.io/en/messages/all.html) — meta-dialect which includes all other standard dialects
 //!   including these which were created for testing purposes. It is guaranteed that namespaces in the `all` family of
 //!   dialects do not collide.
+
 #![warn(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
+#![cfg_attr(not(feature = "std"), no_std)]
+#[cfg(feature = "alloc")]
+extern crate alloc;
 
-// Common constants
 pub mod consts;
 
-// Common types
 pub mod protocol;
 #[doc(inline)]
 pub use protocol::Frame;
 
-// Errors
 pub mod errors;
 #[doc(inline)]
 pub use errors::Result;
 
-// MAVLink I/O interface
 pub mod io;
 #[doc(inline)]
 pub use crate::io::{Receiver, Sender};
 
-// Utils
 pub mod utils;
 
-// MAVLink
 mod mavlink {
     include!("mavlink/mod.rs");
     // include!(concat!(env!("OUT_DIR"), "/mavlink/mod.rs"));

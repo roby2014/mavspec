@@ -37,6 +37,7 @@ pub struct Header {
 
 /// Represents [`Header`] encoded as a sequence of bytes.
 #[derive(Clone, Copy, Debug, Default)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct HeaderBytes {
     buffer: [u8; HEADER_MAX_SIZE],
     size: usize,

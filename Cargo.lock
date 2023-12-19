@@ -70,6 +70,9 @@ name = "bitflags"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "327762f6e5a765692301e5bb513e0d9fef63be86bbc14528052b1cd3e6f03e07"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "block-buffer"
@@ -298,6 +301,7 @@ dependencies = [
  "mavlib_spec",
  "mavspec",
  "serde",
+ "serde_arrays",
  "tbytes",
 ]
 
@@ -312,6 +316,7 @@ dependencies = [
  "mavlib_spec",
  "mavspec",
  "serde",
+ "serde_arrays",
  "sha2",
  "tbytes",
  "thiserror",
@@ -321,14 +326,16 @@ dependencies = [
 name = "mavlib_spec"
 version = "0.1.0-alpha1"
 dependencies = [
+ "bitflags",
  "serde",
+ "serde_arrays",
  "tbytes",
 ]
 
 [[package]]
 name = "mavspec"
 version = "0.1.0-alpha4"
-source = "git+https://gitlab.com/mavka/libs/mavspec.git#59a6b600cb8af7086d0fa86435ac160f856e6956"
+source = "git+https://gitlab.com/mavka/libs/mavspec.git#2d27fa7b05a2c5d8a27ca515e98309353fe29ff8"
 dependencies = [
  "crc-any",
  "heck 0.5.0-rc.1",
@@ -481,6 +488,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_arrays"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "38636132857f68ec3d5f3eb121166d2af33cb55174c4d5ff645db6165cbef0fd"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "serde_derive"
 version = "1.0.193"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -547,18 +563,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.50"
+version = "1.0.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9a7210f5c9a7156bb50aa36aed4c95afb51df0df00713949448cf9e97d382d2"
+checksum = "f11c217e1416d6f036b870f14e0413d480dbf28edbee1f877abaf0206af43bb7"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.50"
+version = "1.0.51"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "266b2e40bc00e5a6c09c3584011e08b06f123c00362c92b975ba9843aaaa14b8"
+checksum = "01742297787513b79cf8e29d1056ede1313e2420b7b3b15d0a768b4921f549df"
 dependencies = [
  "proc-macro2",
  "quote",

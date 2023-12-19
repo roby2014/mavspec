@@ -19,16 +19,30 @@ categories = [
 resolver = "2"
 
 [dependencies]
-tbytes = { version = "0.1.0-alpha1", default-features = false }
+bitflags = { version = "2.4.1", default-features = false }
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
+serde_arrays = { version = "0.1.0", default-features = false, optional = true }
+tbytes = { version = "0.1.0-alpha1", default-features = false }
 
 [features]
 ## Enables memory allocation support.
-alloc = ["tbytes/alloc", "serde/alloc", "serde/std"]
+alloc = [
+    "tbytes/alloc",
+    "serde/alloc",
+    "serde/std",
+]
 ## Enables Rust std library.
-std = ["alloc", "tbytes/std"]
+std = [
+    "alloc",
+    "tbytes/std",
+    "bitflags/std",
+]
 ## Enables serde support.
-serde = ["dep:serde"]
+serde = [
+    "dep:serde",
+    "dep:serde_arrays",
+    "bitflags/serde",
+]
 
 [lib]
 name = "mavlib_spec"

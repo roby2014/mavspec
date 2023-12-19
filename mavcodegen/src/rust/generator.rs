@@ -89,10 +89,8 @@ impl<'a> RustGenerator<'a> {
     }
 
     fn generate_dialect(&self, dialect: &Dialect) -> anyhow::Result<()> {
-        // Ensure that dialect directory exists
         create_dir_all(self.dialect_dir(dialect.name()))?;
 
-        // Generate root module
         let file = File::create(self.dialect_mod_rs(dialect.name()))?;
         self.handlebars.render_to_write(
             "dialects/{dialect}/mod.rs",
@@ -104,17 +102,13 @@ impl<'a> RustGenerator<'a> {
         )?;
         log::debug!("Generated: 'dialects::{}' root module.", dialect.name());
 
-        // Generate enums
         self.generate_enums(dialect)?;
-
-        // Generate enums
         self.generate_messages(dialect)?;
 
         Ok(())
     }
 
     fn generate_enums(&self, dialect: &Dialect) -> anyhow::Result<()> {
-        // Ensure that dialect directory exists
         create_dir_all(self.enums_dir(dialect.name()))?;
 
         let file = File::create(self.enums_mod_rs(dialect.name()))?;
@@ -125,11 +119,26 @@ impl<'a> RustGenerator<'a> {
             dialect.name()
         );
 
+        for mav_enum in dialect.enums().values() {
+            let file = File::create(self.enum_file(dialect.name(), mav_enum.name()))?;
+
+            self.handlebars.render_to_write(
+                "dialects/{dialect}/enums/{enum}.rs",
+                &templates::dialects::enums::EnumSpec::new(mav_enum, &self.params),
+                file,
+            )?;
+
+            log::trace!(
+                "Generated: message '{}' for dialect '{}'.",
+                mav_enum.name(),
+                dialect.name(),
+            );
+        }
+
         Ok(())
     }
 
     fn generate_messages(&self, dialect: &Dialect) -> anyhow::Result<()> {
-        // Ensure that dialect directory exists
         create_dir_all(self.messages_dir(dialect.name()))?;
 
         let file = File::create(self.messages_mod_rs(dialect.name()))?;
@@ -144,14 +153,7 @@ impl<'a> RustGenerator<'a> {
             let file = File::create(self.message_file(dialect.name(), message.name()))?;
 
             match message.defined_in() {
-                // Message is inherited from another dialect
                 Some(dialect_name) if dialect_name != dialect.name() => {
-                    log::trace!(
-                        "Message '{}' in dialect '{}' is inherited from dialect '{}'.",
-                        message.name(),
-                        dialect.name(),
-                        dialect_name
-                    );
                     self.handlebars.render_to_write(
                         "dialects/{dialect}/messages/{message:inherited}.rs",
                         &templates::dialects::messages::InheritedMessageSpec::new(
@@ -160,12 +162,21 @@ impl<'a> RustGenerator<'a> {
                         ),
                         file,
                     )?;
+                    log::trace!(
+                        "Message '{}' in dialect '{}' is inherited from dialect '{}'.",
+                        message.name(),
+                        dialect.name(),
+                        dialect_name
+                    );
                 }
-                // Message is defined in this dialect
                 _ => {
                     self.handlebars.render_to_write(
                         "dialects/{dialect}/messages/{message}.rs",
-                        &templates::dialects::messages::MessageSpec::new(message, &self.params),
+                        &templates::dialects::messages::MessageSpec::new(
+                            message,
+                            dialect,
+                            &self.params,
+                        ),
                         file,
                     )?;
                     log::trace!(
@@ -209,6 +220,10 @@ impl<'a> RustGenerator<'a> {
             "dialects/{dialect}/enums/mod.rs",
             templates::dialects::enums::ENUMS_MODULE_ROOT,
         )?;
+        reg.register_template_string(
+            "dialects/{dialect}/enums/{enum}.rs",
+            templates::dialects::enums::ENUM,
+        )?;
 
         Ok(reg)
     }
@@ -240,6 +255,11 @@ impl<'a> RustGenerator<'a> {
 
     fn enums_mod_rs(&self, dialect_name: &str) -> PathBuf {
         self.enums_dir(dialect_name).join("mod.rs")
+    }
+
+    fn enum_file(&self, dialect_name: &str, enum_name: &str) -> PathBuf {
+        self.enums_dir(dialect_name)
+            .join(conventions::enum_file_name(enum_name.to_string()))
     }
 
     fn messages_dir(&self, dialect_name: &str) -> PathBuf {

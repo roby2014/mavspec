@@ -76,7 +76,7 @@ impl Dialect {
     /// 
     /// See [`DialectSpec::message_info`].
     #[inline]
-    pub fn message_info(id: u32) -> Result<&'static dyn MessageSpec, MessageError> {
+    pub fn message_info(id: MessageId) -> Result<&'static dyn MessageSpec, MessageError> {
         message_info(id)
     }
 }
@@ -109,7 +109,26 @@ pub enum Message {
 {{/each}}
 }
 
+/// Enum containing all raw messages within `{{dialect.name}}` dialect.
+#[derive(Clone, Debug)]
+// {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
+pub enum MessageRaw {
+{{#each dialect.messages}}
+    /// Raw MAVLink message `{{name}}`.
+    {{to-messages-enum-entry-name name}}(messages::{{to-message-mod-name name}}::{{to-message-raw-struct-name name}}),
+{{/each}}
+}
+
 impl TryFrom<&Payload> for Message {
+    type Error = MessageError;
+
+    /// Decodes message from MAVLink payload.
+    fn try_from(value: &Payload) -> Result<Self, Self::Error> {
+        Self::decode(value)
+    }
+}
+
+impl TryFrom<&Payload> for MessageRaw {
     type Error = MessageError;
 
     /// Decodes message from MAVLink payload.
@@ -120,6 +139,16 @@ impl TryFrom<&Payload> for Message {
 
 impl IntoPayload for Message {
     /// Encodes message into MAVLink payload.
+    fn encode(
+        &self,
+        version: MavLinkVersion,
+    ) -> Result<Payload, MessageError> {
+        self.encode(version)
+    }
+}
+
+impl IntoPayload for MessageRaw {
+    /// Encodes raw message into MAVLink payload.
     fn encode(
         &self,
         version: MavLinkVersion,
@@ -139,6 +168,20 @@ impl Message {
     /// Encodes message to MAVLink payload.
     pub fn encode(&self, version: MavLinkVersion) -> Result<Payload, MessageError> {
         encode(self, version)
+    }
+}
+
+impl MessageRaw {
+    /// Decodes raw message from MAVLink payload.
+    pub fn decode(
+        payload: &Payload,
+    ) -> Result<Self, MessageError> {
+        decode_raw(payload)
+    }
+
+    /// Encodes raw message to MAVLink payload.
+    pub fn encode(&self, version: MavLinkVersion) -> Result<Payload, MessageError> {
+        encode_raw(self, version)
     }
 }
 
@@ -162,7 +205,7 @@ pub fn message_info(id: MessageId) -> Result<&'static dyn MessageSpec, MessageEr
     })
 }
 
-/// Decodes message from [`Payload`].
+/// Decodes [`Message`] from [`Payload`].
 pub fn decode(payload: &Payload) -> Result<Message, MessageError> {
     Ok(match payload.id() {
 {{#each dialect.messages}}
@@ -172,11 +215,30 @@ pub fn decode(payload: &Payload) -> Result<Message, MessageError> {
     })
 }
 
-/// Encodes message to [`Payload`].
+/// Decodes [`MessageRaw`] from [`Payload`].
+pub fn decode_raw(payload: &Payload) -> Result<MessageRaw, MessageError> {
+    Ok(match payload.id() {
+{{#each dialect.messages}}
+            messages::{{to-message-mod-name name}}::MESSAGE_ID => MessageRaw::{{to-messages-enum-entry-name name}}(messages::{{to-message-mod-name name}}::{{to-message-raw-struct-name name}}::try_from(payload)?),
+{{/each}}
+        id => return Err(MessageError::UnsupportedMessageId(id)),
+    })
+}
+
+/// Encodes [`Message`] into [`Payload`].
 pub fn encode(msg: &Message, version: MavLinkVersion) -> Result<Payload, MessageError> {
     Ok(match msg {
 {{#each dialect.messages}}
         Message::{{to-messages-enum-entry-name name}}(message) => {message.encode(version)?}
+{{/each}}
+    })
+}
+
+/// Encodes [`MessageRaw`] into [`Payload`].
+pub fn encode_raw(msg: &MessageRaw, version: MavLinkVersion) -> Result<Payload, MessageError> {
+    Ok(match msg {
+{{#each dialect.messages}}
+        MessageRaw::{{to-messages-enum-entry-name name}}(raw_message) => {raw_message.encode(version)?}
 {{/each}}
     })
 }

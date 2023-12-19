@@ -23,6 +23,7 @@ crc-any = { version = "2.4.3", default-features = false }
 mavlib_spec = { path = "../mavlib_spec", default-features = false }
 tbytes = { version = "0.1.0-alpha1", default-features = false }
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
+serde_arrays = { version = "0.1.0", default-features = false, optional = true }
 sha2 = { version = "0.10.8", default-features = false, optional = true }
 thiserror = { version = "1.0.50", optional = true }
 
@@ -58,12 +59,13 @@ std = [
 serde = [
     "dep:serde",
     "mavlib_spec/serde",
+    "dep:serde_arrays",
 ]
 ## Include `minimal` dialect
 minimal = []
 ## Include `common` dialect
 common = ["minimal"]
-## Include `common` dialect
+## Include `ardupilotmega` dialect
 ardupilotmega = ["minimal", "common"]
 ## Include `all` meta-dialect
 all = ["common", "ardupilotmega"]

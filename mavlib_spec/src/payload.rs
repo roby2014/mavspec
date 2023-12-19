@@ -28,7 +28,6 @@ pub struct Payload {
     /// MAVLink message ID.
     id: MessageId,
     /// Message payload as a sequence of bytes.
-    #[cfg_attr(feature = "serde", serde(skip))]
     payload: PayloadContainer,
     /// Payload length.
     length: usize,
@@ -194,7 +193,9 @@ mod no_alloc_payload_container {
     use crate::payload::PAYLOAD_MAX_SIZE;
 
     #[derive(Clone, Debug)]
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
     pub struct PayloadContainer {
+        #[cfg_attr(feature = "serde", serde(with = "serde_arrays"))]
         pub(super) content: [u8; PAYLOAD_MAX_SIZE],
     }
 

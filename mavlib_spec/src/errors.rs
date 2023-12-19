@@ -5,7 +5,7 @@ use tbytes::errors::TBytesError;
 use crate::types::MavLinkVersion;
 
 /// Errors related to MAVLink message encoding/decoding.
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Debug)]
 pub enum MessageError {
     /// MAVLink version is not supported.
     UnsupportedMavLinkVersion {
@@ -25,6 +25,13 @@ pub enum MessageError {
     },
     /// Error during decoding payload buffer.
     BufferError(TBytesError),
+    /// Error during conversion to MAVLink enum.
+    InvalidEnumValue {
+        /// Enum name.
+        enum_name: &'static str,
+        /// Invalid value.
+        value: i128,
+    },
 }
 
 impl From<TBytesError> for MessageError {

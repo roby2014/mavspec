@@ -394,6 +394,15 @@ impl Frame {
         Ok(self)
     }
 
+    /// Removes `MAVLink 2` signature from [`Frame`].
+    ///
+    /// Applicable only for `MAVLink 2` frames.
+    pub fn remove_signature(&mut self) -> &mut Self {
+        self.signature = None;
+        self.header.set_is_signed(false);
+        self
+    }
+
     /// Calculates `MAVLink 2` signature.
     ///
     /// Calculates `MAVLink 2` frame signature with provided instance of `signer` that implements [`Sign`] trait and signature
@@ -711,11 +720,11 @@ mod tests {
     #[test]
     #[cfg(feature = "minimal")]
     fn test_builder() {
-        use crate::dialects::minimal::messages::MsgHeartbeat;
+        use crate::dialects::minimal::messages::Heartbeat;
         use crate::protocol::MavLinkVersion;
         use crate::Frame;
 
-        let message = MsgHeartbeat::default();
+        let message = Heartbeat::default();
         let frame = Frame::builder()
             .set_sequence(17)
             .set_system_id(22)
@@ -735,12 +744,12 @@ mod tests {
     #[cfg(feature = "std")]
     fn test_signing() {
         use crate::consts::SIGNATURE_SECRET_KEY_LENGTH;
-        use crate::dialects::minimal::messages::MsgHeartbeat;
+        use crate::dialects::minimal::messages::Heartbeat;
         use crate::protocol::{MavLinkVersion, SignatureConf};
         use crate::utils::MavSha256;
         use crate::Frame;
 
-        let message = MsgHeartbeat::default();
+        let message = Heartbeat::default();
         let mut frame = Frame::builder()
             .set_sequence(17)
             .set_system_id(22)

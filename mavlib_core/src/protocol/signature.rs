@@ -128,7 +128,7 @@ impl Debug for SignatureConf {
     ///
     /// Replaces secret value with bytes with `[0xff; SIGNATURE_SECRET_KEY_LENGTH]` as recommended by
     /// [MAVLink documentation](https://mavlink.io/en/guide/message_signing.html#logging).
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         write!(
             f,
             "SignatureConf {{ link_id: {}, timestamp: {:?}, secret: [0xff; {}] }}",
@@ -291,7 +291,7 @@ impl MavTimestamp {
             raw: u64::from_le_bytes(bytes_u64),
         }
     }
-    
+
     /// Raw MAVLink timestamp value.
     ///
     /// Returns number of milliseconds * 10 since the start of MAVLink epoch (1st January 2015 GMT).
