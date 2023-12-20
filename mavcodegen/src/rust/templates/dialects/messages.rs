@@ -1,13 +1,31 @@
-use mavspec::protocol::{Dialect, MavType, Message, MessageField};
+use mavspec::protocol::{MavType, Message, MessageField, MessageId};
 use serde::Serialize;
+use std::collections::HashMap;
 
-use crate::rust::RustGeneratorParams;
+use crate::rust::generator::DialectSpec;
+use crate::rust::GeneratorParams;
+
+/// Input for [`MESSAGES_MODULE_ROOT`] template.
+#[derive(Clone, Debug, Serialize)]
+pub struct MessagesSpec<'a> {
+    dialect_name: String,
+    messages: &'a HashMap<MessageId, Message>,
+}
+
+impl<'a> MessagesSpec<'a> {
+    pub fn new(dialect_spec: &'a DialectSpec) -> Self {
+        Self {
+            dialect_name: dialect_spec.name().to_string(),
+            messages: dialect_spec.messages(),
+        }
+    }
+}
 
 /// Messages module root template.
 ///
-/// Input: [`Dialect::messages`].
+/// Input: [`DialectSpec`].
 pub const MESSAGES_MODULE_ROOT: &str = "\
-//! MAVLink messages of `{{name}}` dialect.
+//! MAVLink messages of `{{dialect_name}}` dialect.
 
 {{#each messages}}
 // MAVLink message `{{name}}`.
@@ -20,8 +38,8 @@ pub use {{to-message-mod-name name}}::{{to-message-struct-name name}};
 /// Input for [`MESSAGE`] template.
 ///
 /// Basically, this is a utility wrapper around `MAVSpec` [`Message`].
-#[derive(Debug, Clone, Serialize)]
-pub struct MessageSpec {
+#[derive(Clone, Debug, Serialize)]
+pub struct MessageSpec<'a> {
     id: u32,
     name: String,
     fields: Vec<FieldSpec>,
@@ -33,7 +51,7 @@ pub struct MessageSpec {
     extension_fields: Vec<FieldSpec>,
     has_extension_fields: bool,
     crc_extra: u8,
-    params: RustGeneratorParams,
+    params: &'a GeneratorParams,
 }
 
 #[derive(Clone, Debug, Default, Serialize)]
@@ -47,15 +65,11 @@ pub struct FieldSpec {
     is_array: bool,
     array_length: usize,
     cast_enum: bool,
-    serder_arrays: bool,
+    serde_arrays: bool,
 }
 
 impl FieldSpec {
-    fn from_mavspec_field(
-        value: &MessageField,
-        dialect: &Dialect,
-        params: &RustGeneratorParams,
-    ) -> FieldSpec {
+    fn from_mavspec_field(value: &MessageField, dialect_spec: &DialectSpec) -> FieldSpec {
         let mut spec = FieldSpec {
             name: value.name().into(),
             r#type: value.r#type().clone(),
@@ -66,13 +80,13 @@ impl FieldSpec {
         if let MavType::Array(_, len) = value.r#type() {
             spec.array_length = *len;
 
-            if *len > 32 && params.serde {
-                spec.serder_arrays = true;
+            if *len > 32 && dialect_spec.params().serde {
+                spec.serde_arrays = true;
             }
         }
 
         if let Some(enum_name) = value.r#enum() {
-            if let Some(field_enum) = dialect.enums().get(enum_name) {
+            if let Some(field_enum) = dialect_spec.enums().get(enum_name) {
                 spec.is_enum = true;
                 spec.enum_name = field_enum.name().into();
                 spec.enum_type = field_enum.inferred_type();
@@ -85,50 +99,37 @@ impl FieldSpec {
         spec
     }
 
-    fn from_mavspec_fields(
-        fields: &[MessageField],
-        dialect: &Dialect,
-        params: &RustGeneratorParams,
-    ) -> Vec<FieldSpec> {
+    fn from_mavspec_fields(fields: &[MessageField], dialect_spec: &DialectSpec) -> Vec<FieldSpec> {
         fields
             .iter()
-            .map(|fld| FieldSpec::from_mavspec_field(fld, dialect, params))
+            .map(|fld| FieldSpec::from_mavspec_field(fld, dialect_spec))
             .collect()
     }
 }
 
-impl MessageSpec {
+impl<'a> MessageSpec<'a> {
     /// Constructs from [`Message`] and [`Dialect`].
-    pub fn new(message: &Message, dialect: &Dialect, params: &RustGeneratorParams) -> Self {
+    pub fn new(message: &Message, dialect_spec: &'a DialectSpec) -> Self {
         Self {
             id: message.id(),
             name: message.name().to_string(),
-            fields: FieldSpec::from_mavspec_fields(message.fields(), dialect, params),
+            fields: FieldSpec::from_mavspec_fields(message.fields(), dialect_spec),
             // `MAVLink 1`
             is_v1_compatible: message.is_v1_compatible(),
-            fields_v1: FieldSpec::from_mavspec_fields(
-                message.fields_v1().as_slice(),
-                dialect,
-                params,
-            ),
+            fields_v1: FieldSpec::from_mavspec_fields(message.fields_v1().as_slice(), dialect_spec),
             payload_v1_size: message.size_v1(),
             // `MAVLink 2`
-            fields_v2: FieldSpec::from_mavspec_fields(
-                message.fields_v2().as_slice(),
-                dialect,
-                params,
-            ),
+            fields_v2: FieldSpec::from_mavspec_fields(message.fields_v2().as_slice(), dialect_spec),
             payload_v2_size: message.size_v2(),
             extension_fields: FieldSpec::from_mavspec_fields(
                 message.extension_fields().as_slice(),
-                dialect,
-                params,
+                dialect_spec,
             ),
             has_extension_fields: message.has_extension_fields(),
             // CRC
             crc_extra: message.crc_extra(),
             // Generator params
-            params: params.clone(),
+            params: dialect_spec.params(),
         }
     }
 }
@@ -171,7 +172,7 @@ pub const fn spec() -> &'static dyn MessageSpec {
 pub struct {{to-message-struct-name name}} {
 {{#each fields}}
     /// MAVLink field `{{name}}`.
-{{#if serder_arrays}}
+{{#if serde_arrays}}
     #[cfg_attr(feature = "serde", serde(with = "serde_arrays"))]
 {{/if}}
 {{#if is_enum}}
@@ -194,7 +195,7 @@ pub struct {{to-message-struct-name name}} {
 pub struct {{to-message-raw-struct-name name}} {
 {{#each fields}}
     /// MAVLink field `{{name}}`.
-{{#if serder_arrays}}
+{{#if serde_arrays}}
     #[cfg_attr(feature = "serde", serde(with = "serde_arrays"))]
 {{/if}}
     pub {{to-rust-var name}}: {{to-rust-type type}},
@@ -738,7 +739,7 @@ mod tests {
 "#;
 
 /// Input for [`INHERITED_MESSAGE`] template.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct InheritedMessageSpec {
     /// MAVLink dialect name.
     pub dialect_name: String,

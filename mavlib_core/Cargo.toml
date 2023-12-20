@@ -32,13 +32,16 @@ log = "0.4.20"
 env_logger = "0.10.1"
 
 [build-dependencies]
-mavcodegen = { path = "../mavcodegen", features = ["rust"], default-features = false }
+cargo-manifest = "0.12.1"
+mavcodegen = { path = "../mavcodegen", default-features = false, features = ["rust", "build_utils"] }
 #mavspec = { version = "0.1.0-alpha4", default-features = false, features = ["serde"] }
 mavspec = { git = "https://gitlab.com/mavka/libs/mavspec.git" }
+serde = "1.0.193"
+toml = "0.8.8"
 
 [features]
 ## Default features
-default = ["std", "minimal", "sha2"]
+default = ["std", "common", "sha2"]
 ## Enables memory allocation support.
 alloc = [
     "mavlib_spec/alloc",
@@ -61,12 +64,36 @@ serde = [
     "mavlib_spec/serde",
     "dep:serde_arrays",
 ]
-## Include `minimal` dialect
-minimal = []
+
+## Include `ardupilotmega` dialect
+ardupilotmega = ["common"]
+## Include `ASLUAV` dialect
+asluav = ["common"]
+## Include `AVSSUAS` dialect
+avssuas = ["common"]
 ## Include `common` dialect
 common = ["minimal"]
-## Include `ardupilotmega` dialect
-ardupilotmega = ["minimal", "common"]
+## Include `csAirLink` dialect
+csairlink = []
+## Include `cubepilot` dialect
+cubepilot = ["common"]
+## Include `development` dialect
+development = ["common"]
+## Include `icarous` dialect
+icarous = []
+## Include `matrixpilot` dialect
+matrixpilot = ["common"]
+## Include `minimal` dialect
+minimal = []
+## Include `paparazzi` dialect
+paparazzi = ["common"]
+## Include `standard` dialect
+standard = ["minimal"]
+## Include `ualberta` dialect
+ualberta = ["common"]
+## Include `uAvionix` dialect
+uavionix = ["common"]
+
 ## Include `all` meta-dialect
 all = ["common", "ardupilotmega"]
 
@@ -82,3 +109,7 @@ required-features = ["std", "minimal", "sha2"]
 [package.metadata.docs.rs]
 # Features to include into `docs.rs` documentation
 features = ["default", "serde", "all"]
+
+[package.metadata.mavcodegen]
+messages = ["HEARTBEAT", "PROTOCOL_VERSION", "COMMAND_INT", "COMMAND_LONG"]
+all_enums = false

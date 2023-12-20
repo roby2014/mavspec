@@ -2,16 +2,16 @@ use std::net::TcpStream;
 use std::thread;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use dialect::enums::{MavAutopilot, MavModeFlag, MavState, MavType};
 use dialect::Message;
 use mavlib_core::dialects::minimal as dialect;
-use mavlib_core::dialects::minimal::enums::{MavAutopilot, MavModeFlag, MavState, MavType};
 use mavlib_core::io::{Read, Write};
 
 use mavlib_core::consts::{SIGNATURE_SECRET_KEY_LENGTH, SIGNATURE_TIMESTAMP_OFFSET};
+use mavlib_core::protocol::MavLinkVersion;
 use mavlib_core::protocol::{MavTimestamp, SecretKey, SignatureConf};
 use mavlib_core::utils::MavSha256;
 use mavlib_core::{Frame, Receiver, Sender};
-use mavlib_spec::MavLinkVersion;
 
 /// Listen to incoming frames and decode `HEARTBEAT` message.
 fn listen<R: Read>(reader: R) -> mavlib_core::errors::Result<()> {

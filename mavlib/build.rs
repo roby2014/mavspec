@@ -2,7 +2,7 @@ use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::path::PathBuf;
 
-use mavcodegen::rust::{RustGenerator, RustGeneratorParams};
+use mavcodegen::rust::{Generator, GeneratorParams};
 use mavspec::parser::XMLInspector;
 
 fn main() {
@@ -34,12 +34,12 @@ fn main() {
         .parse()
         .unwrap();
 
-    RustGenerator::new(
+    Generator::new(
         protocol,
-        destination,
-        RustGeneratorParams {
-            module_path: "mavlib::mavlink".to_string(),
+        &destination,
+        GeneratorParams {
             serde: has_serde_feature,
+            ..Default::default()
         },
     )
     .generate()

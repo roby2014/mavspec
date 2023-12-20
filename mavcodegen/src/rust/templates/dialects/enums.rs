@@ -1,4 +1,4 @@
-use crate::rust::RustGeneratorParams;
+use crate::rust::GeneratorParams;
 use mavspec::protocol::{Enum, EnumEntry, MavType};
 use serde::Serialize;
 
@@ -31,11 +31,11 @@ pub struct EnumSpec {
     inferred_type: MavType,
     entries: Vec<EnumEntry>,
     is_bitmask: bool,
-    params: RustGeneratorParams,
+    params: GeneratorParams,
 }
 
 impl EnumSpec {
-    pub fn new(mav_enum: &Enum, params: &RustGeneratorParams) -> EnumSpec {
+    pub fn new(mav_enum: &Enum, params: &GeneratorParams) -> EnumSpec {
         let mut entries: Vec<EnumEntry> = mav_enum.entries().values().cloned().collect();
         entries.sort_by_key(|entry| entry.value());
 

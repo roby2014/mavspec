@@ -10,8 +10,5 @@
     html_favicon_url = "https://gitlab.com/mavka/libs/mavcodegen/-/raw/main/avatar.png?ref_type=heads"
 )]
 
-#[cfg(feature = "proto")]
-pub mod proto;
-
 #[cfg(feature = "rust")]
 pub mod rust;

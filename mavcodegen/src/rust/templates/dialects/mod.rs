@@ -1,8 +1,3 @@
-use mavspec::protocol::Dialect;
-use serde::Serialize;
-
-use crate::rust::RustGeneratorParams;
-
 pub mod enums;
 pub mod messages;
 
@@ -24,17 +19,10 @@ pub mod {{to-dialect-name name}};
 {{/each}}
 "#;
 
-/// Input for [`DIALECT_MODULE`].
-#[derive(Clone, Debug, Serialize)]
-pub struct DialectModuleSpec<'a> {
-    pub dialect: &'a Dialect,
-    pub params: &'a RustGeneratorParams,
-}
-
 /// Dialect module root template.
 ///
-/// Input: [`DialectModuleSpec`].
-pub const DIALECT_MODULE: &str = r#"//! # MAVLink dialect `{{dialect.name}}`
+/// Input: [`crate::rust::generator::DialectSpec`].
+pub const DIALECT_MODULE: &str = r#"//! # MAVLink dialect `{{name}}`
 
 use mavlib_spec::{
     IntoPayload, DialectSpec, Payload, MessageSpec,
@@ -50,7 +38,7 @@ pub mod enums;
 /// Dialect name as it appears in XML definition.
 /// 
 /// See [`DialectSpec::name`].
-const NAME: &str = "{{dialect.name}}";
+const NAME: &str = "{{name}}";
 /// [`Dialect`] specification.
 ///
 /// See: [`DialectSpec`].
@@ -99,21 +87,21 @@ impl DialectSpec for Dialect {
     }
 }
 
-/// Enum containing all messages within `{{dialect.name}}` dialect.
+/// Enum containing all messages within `{{name}}` dialect.
 #[derive(Clone, Debug)]
 // {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
 pub enum Message {
-{{#each dialect.messages}}
+{{#each messages}}
     /// MAVLink message `{{name}}`.
     {{to-messages-enum-entry-name name}}(messages::{{to-message-struct-name name}}),
 {{/each}}
 }
 
-/// Enum containing all raw messages within `{{dialect.name}}` dialect.
+/// Enum containing all raw messages within `{{name}}` dialect.
 #[derive(Clone, Debug)]
 // {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
 pub enum MessageRaw {
-{{#each dialect.messages}}
+{{#each messages}}
     /// Raw MAVLink message `{{name}}`.
     {{to-messages-enum-entry-name name}}(messages::{{to-message-mod-name name}}::{{to-message-raw-struct-name name}}),
 {{/each}}
@@ -198,7 +186,7 @@ pub const fn spec() -> &'static dyn DialectSpec {
 /// See [`DialectSpec::message_info`].
 pub fn message_info(id: MessageId) -> Result<&'static dyn MessageSpec, MessageError> {
     Ok(match id {
-{{#each dialect.messages}}
+{{#each messages}}
         {{id}} => &messages::{{to-message-mod-name name}}::MESSAGE_INFO,
 {{/each}}
         _ => return Err(MessageError::UnsupportedMessageId(id)),
@@ -208,7 +196,7 @@ pub fn message_info(id: MessageId) -> Result<&'static dyn MessageSpec, MessageEr
 /// Decodes [`Message`] from [`Payload`].
 pub fn decode(payload: &Payload) -> Result<Message, MessageError> {
     Ok(match payload.id() {
-{{#each dialect.messages}}
+{{#each messages}}
             messages::{{to-message-mod-name name}}::MESSAGE_ID => Message::{{to-messages-enum-entry-name name}}(messages::{{to-message-struct-name name}}::try_from(payload)?),
 {{/each}}
         id => return Err(MessageError::UnsupportedMessageId(id)),
@@ -218,7 +206,7 @@ pub fn decode(payload: &Payload) -> Result<Message, MessageError> {
 /// Decodes [`MessageRaw`] from [`Payload`].
 pub fn decode_raw(payload: &Payload) -> Result<MessageRaw, MessageError> {
     Ok(match payload.id() {
-{{#each dialect.messages}}
+{{#each messages}}
             messages::{{to-message-mod-name name}}::MESSAGE_ID => MessageRaw::{{to-messages-enum-entry-name name}}(messages::{{to-message-mod-name name}}::{{to-message-raw-struct-name name}}::try_from(payload)?),
 {{/each}}
         id => return Err(MessageError::UnsupportedMessageId(id)),
@@ -228,7 +216,7 @@ pub fn decode_raw(payload: &Payload) -> Result<MessageRaw, MessageError> {
 /// Encodes [`Message`] into [`Payload`].
 pub fn encode(msg: &Message, version: MavLinkVersion) -> Result<Payload, MessageError> {
     Ok(match msg {
-{{#each dialect.messages}}
+{{#each messages}}
         Message::{{to-messages-enum-entry-name name}}(message) => {message.encode(version)?}
 {{/each}}
     })
@@ -237,7 +225,7 @@ pub fn encode(msg: &Message, version: MavLinkVersion) -> Result<Payload, Message
 /// Encodes [`MessageRaw`] into [`Payload`].
 pub fn encode_raw(msg: &MessageRaw, version: MavLinkVersion) -> Result<Payload, MessageError> {
     Ok(match msg {
-{{#each dialect.messages}}
+{{#each messages}}
         MessageRaw::{{to-messages-enum-entry-name name}}(raw_message) => {raw_message.encode(version)?}
 {{/each}}
     })
@@ -250,7 +238,7 @@ mod tests {
     #[test]
     fn retrieve_message_info() {
         for id in [
-{{#each dialect.messages}}
+{{#each messages}}
             {{id}},
 {{/each}}
         ] {

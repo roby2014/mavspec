@@ -15,11 +15,13 @@
 //! use mavlib_core::errors::Result;
 //!
 //! trait Read {
+//!     fn read(&mut self, buf: &mut [u8]) -> Result<usize>;
 //!     fn read_exact(&mut self, buf: &mut [u8]) -> Result<()>;
 //! }
 //!
 //! trait Write {
 //!     fn write(&mut self, buf: &[u8]) -> Result<usize>;
+//!     fn write_all(&mut self, buf: &[u8]) -> Result<()>;
 //! }
 //! ```
 //!
