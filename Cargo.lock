@@ -338,6 +338,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "mavcodegen_rust_example"
+version = "0.1.0-alpha1"
+dependencies = [
+ "cargo-manifest",
+ "env_logger",
+ "log",
+ "mavcodegen",
+ "mavlib_spec",
+ "serde",
+ "serde_arrays",
+ "tbytes",
+ "toml 0.8.8",
+]
+
+[[package]]
 name = "mavlib"
 version = "0.1.0-alpha1"
 dependencies = [

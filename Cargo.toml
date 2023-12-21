@@ -7,4 +7,5 @@ members = [
     "mavlib",
     "mavlib_spec",
     "mavlib_core",
+    "examples/rust"
 ]

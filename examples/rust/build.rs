@@ -7,25 +7,11 @@ fn main() {
     let included_dialects = {
         let mut included_dialects: Vec<String> = Default::default();
 
-        let dialects = vec![
-            "all",
-            "ardupilotmega",
-            "asluav",
-            "avssuas",
-            "common",
-            "csairlink",
-            "cubepilot",
-            "development",
-            "icarous",
-            "matrixpilot",
-            "minimal",
-            "paparazzi",
-            "standard",
-            "ualberta",
-            "uavionix",
-        ];
+        let dialects = vec!["common", "MAVSpec_test", "minimal", "standard"];
         for dialect in dialects {
-            if var(format!("CARGO_FEATURE_{}", dialect.to_ascii_uppercase())).is_ok() {
+            let feature_name =
+                mavcodegen::rust::utils::dialect_module_name(dialect).to_ascii_uppercase();
+            if var(format!("CARGO_FEATURE_{}", feature_name)).is_ok() {
                 included_dialects.push(dialect.to_string())
             }
         }
@@ -33,9 +19,11 @@ fn main() {
         included_dialects
     };
 
-    let sources = vec![Path::new("../message_definitions/standard")];
-    // let destination = Path::new(&var("OUT_DIR").unwrap()).join("mavlink");
-    let destination = Path::new("src").join("mavlink");
+    let sources = vec![
+        Path::new("../../message_definitions/standard"),
+        Path::new("../../message_definitions/extra"),
+    ];
+    let destination = Path::new(&var("OUT_DIR").unwrap()).join("mavlink");
     let manifest_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
     let serde_feature_enabled = var("CARGO_FEATURE_SERDE").is_ok();
 

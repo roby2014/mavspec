@@ -18,6 +18,14 @@ categories = [
 ]
 resolver = "2"
 
+[lib]
+name = "mavcodegen"
+path = "src/lib.rs"
+
+[[bin]]
+name = "mavcodegen"
+path = "src/bin/mavcodegen.rs"
+
 [dependencies]
 anyhow = "1.0.75"
 cargo-manifest = { version = "0.12.1", optional = true }
@@ -36,11 +44,3 @@ thiserror = "1.0.50"
 default = ["rust", "build_utils"]
 build_utils = ["dep:cargo-manifest"]
 rust = []
-
-[lib]
-name = "mavcodegen"
-path = "src/lib.rs"
-
-[[bin]]
-name = "mavcodegen"
-path = "src/bin/mavcodegen.rs"

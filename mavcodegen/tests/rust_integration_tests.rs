@@ -1,7 +1,7 @@
 #[cfg(feature = "rust")]
 mod tests {
     use std::fs::remove_dir_all;
-    use std::path::{Path, PathBuf};
+    use std::path::PathBuf;
 
     fn xml_definition_paths() -> Vec<String> {
         vec![
@@ -11,7 +11,7 @@ mod tests {
     }
 
     fn out_path() -> PathBuf {
-        Path::new("../tmp/mavlink").to_path_buf()
+        PathBuf::from("../tmp/mavlink")
     }
 
     #[test]
