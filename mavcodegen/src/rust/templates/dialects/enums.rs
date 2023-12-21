@@ -1,3 +1,4 @@
+use crate::rust::conventions::split_description;
 use crate::rust::GeneratorParams;
 use mavspec::protocol::{Enum, EnumEntry, MavType};
 use serde::Serialize;
@@ -28,19 +29,45 @@ pub enum Enums {
 #[derive(Debug, Clone, Serialize)]
 pub struct EnumSpec {
     name: String,
+    description: Vec<String>,
     inferred_type: MavType,
-    entries: Vec<EnumEntry>,
+    entries: Vec<EnumEntrySpec>,
     is_bitmask: bool,
     params: GeneratorParams,
 }
 
+/// Enum entry representation for template.
+///
+/// Basically, this is a utility wrapper around `MAVSpec` [`EnumEntry`].
+#[derive(Debug, Clone, Serialize)]
+pub struct EnumEntrySpec {
+    value: u32,
+    name: String,
+    description: Vec<String>,
+}
+
+impl EnumEntrySpec {
+    pub fn from_enum_entry(entry: &EnumEntry) -> Self {
+        Self {
+            value: entry.value(),
+            name: entry.name().to_string(),
+            description: split_description(entry.description()),
+        }
+    }
+}
+
 impl EnumSpec {
     pub fn new(mav_enum: &Enum, params: &GeneratorParams) -> EnumSpec {
-        let mut entries: Vec<EnumEntry> = mav_enum.entries().values().cloned().collect();
-        entries.sort_by_key(|entry| entry.value());
+        let mut entries: Vec<EnumEntrySpec> = mav_enum
+            .entries()
+            .values()
+            .map(EnumEntrySpec::from_enum_entry)
+            .collect();
+        entries.sort_by_key(|entry| entry.value);
 
         EnumSpec {
             name: mav_enum.name().into(),
+            description: split_description(mav_enum.description()),
             inferred_type: mav_enum.inferred_type(),
             entries,
             is_bitmask: mav_enum.bitmask(),
@@ -59,21 +86,34 @@ use mavlib_spec::bitflags::bitflags;
 
 bitflags! {
     /// MAVLink bitmask `{{name}}`.
+    ///
+    {{#each description}}
+    /// {{this}}
+    {{/each}}
     #[derive(Copy, Clone, Debug, Default)]
-{{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
+{{#if params.serde}}
+    #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+{{/if}}
     pub struct {{to-enum-rust-name name}}: {{to-rust-type inferred_type}} {
 {{#each entries}}
         /// `{{name}}` flag.
+        ///
+{{#each description}}
+        /// {{this}}
+{{/each}}
         const {{name}} = {{value}};
 {{/each}}
     }
 }
-
-
 {{else}}
 use mavlib_spec::MessageError;
 
+#[allow(rustdoc::bare_urls)]
 /// MAVLink enum `{{name}}`.
+///
+{{#each description}}
+/// {{this}}
+{{/each}}
 #[derive(Copy, Clone, Debug, Default)]
 #[repr({{to-rust-type inferred_type}})]
 {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
@@ -81,6 +121,10 @@ pub enum {{to-enum-rust-name name}} {
     #[default]
 {{#each entries}}
     /// MAVLink enum entry `{{name}}`.
+    ///
+{{#each description}}
+    /// {{this}}
+{{/each}}
     {{to-enum-entry-name name}} = {{value}},
 {{/each}}
 }
@@ -98,7 +142,7 @@ impl {{to-enum-rust-name name}} {
     ///
     /// # Errors
     ///
-    /// * Returns [`MessageError::InvalidEnumValue`] if there is no enum varian corresponding to discriminant `value`.
+    /// * Returns [`MessageError::InvalidEnumValue`] if there is no enum variant corresponding to discriminant `value`.
     pub fn try_from_discriminant(value: {{to-rust-type inferred_type}}) -> Result<Self, MessageError> {
         Ok(match value {
 {{#each entries}}
@@ -113,6 +157,5 @@ impl {{to-enum-rust-name name}} {
         })
     }
 }
-
 {{/if}}
 "#;

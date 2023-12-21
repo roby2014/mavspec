@@ -76,10 +76,7 @@ mod process {
                 let protocol = crate::specs::parse_definitions(&cli.src)?;
 
                 let path = std::path::Path::new(&cli.out).to_path_buf();
-                log::info!(
-                    "Writing to output path: {}",
-                    path.canonicalize().unwrap().to_str().unwrap()
-                );
+                log::info!("Writing to output path: {:?}", path);
                 if cli.clean {
                     log::warn!("Output path will be cleaned.");
                     if let Err(err) = remove_dir_all(&path) {

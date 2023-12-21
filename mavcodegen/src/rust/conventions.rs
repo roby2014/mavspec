@@ -9,12 +9,31 @@ const RUST_RESERVED_KEYWORDS: [&str; 50] = [
     "virtual", "unsafe", "unsized", "use", "where", "while", "yield",
 ];
 
+pub const MAX_COMMENT_LENGTH: usize = 80;
+
 pub fn dialect_name(dialect_name: String) -> String {
     heck::AsSnakeCase(dialect_name).to_string()
 }
 
 pub fn enum_rust_name(enum_name: String) -> String {
     heck::AsUpperCamelCase(enum_name).to_string()
+}
+
+pub fn split_description(value: &str) -> Vec<String> {
+    let mut result = "".to_string();
+    let mut pos = 0;
+
+    for (_, ch) in value.chars().enumerate() {
+        pos += 1;
+        if pos >= MAX_COMMENT_LENGTH && ch == ' ' {
+            pos = 0;
+            result.push('\n');
+        } else {
+            result.push(ch);
+        }
+    }
+
+    result.split('\n').map(|s| s.to_string()).collect()
 }
 
 pub fn enum_mod_name(message_name: String) -> String {

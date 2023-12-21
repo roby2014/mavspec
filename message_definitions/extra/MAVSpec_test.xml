@@ -5,28 +5,64 @@
     <dialect>0</dialect>
     <enums>
         <enum name="SMALL_ENUM">
-            <entry name="SMALL_ENUM_FIRST" value="0"/>
-            <entry name="SMALL_ENUM_SECOND" value="1"/>
-            <entry name="SMALL_ENUM_THIRD" value="2"/>
-            <entry name="SMALL_ENUM_FOURTH" value="3"/>
+            <description>Small enum that fits into `u8`.</description>
+            <entry name="SMALL_ENUM_FIRST" value="0">
+                <description>First entry</description>
+            </entry>
+            <entry name="SMALL_ENUM_SECOND" value="1">
+                <description>Second entry</description>
+            </entry>
+            <entry name="SMALL_ENUM_THIRD" value="2">
+                <description>Third entry</description>
+            </entry>
+            <entry name="SMALL_ENUM_FOURTH" value="3">
+                <description>Fourth entry</description>
+            </entry>
         </enum>
         <enum name="LARGE_ENUM">
-            <entry name="SMALL_ENUM_FIRST" value="0"/>
-            <entry name="SMALL_ENUM_SECOND" value="256"/>
-            <entry name="SMALL_ENUM_THIRD" value="65536"/>
-            <entry name="SMALL_ENUM_FOURTH" value="4294967295"/>
+            <description>Large enum that requires larger container type size.</description>
+            <entry name="SMALL_ENUM_FIRST" value="0">
+                <description>First entry</description>
+            </entry>
+            <entry name="SMALL_ENUM_SECOND" value="256">
+                <description>Second entry</description>
+            </entry>
+            <entry name="SMALL_ENUM_THIRD" value="65536">
+                <description>Third entry</description>
+            </entry>
+            <entry name="SMALL_ENUM_FOURTH" value="4294967295">
+                <description>Fourth entry</description>
+            </entry>
         </enum>
         <enum name="SMALL_BITMASK" bitmask="true">
-            <entry name="SMALL_BITMASK_FIRST" value="1"/>
-            <entry name="SMALL_BITMASK_SECOND" value="2"/>
-            <entry name="SMALL_BITMASK_THIRD" value="4"/>
-            <entry name="SMALL_BITMASK_FOURTH" value="8"/>
+            <description>Small bitmask that fits into `u8`.</description>
+            <entry name="SMALL_BITMASK_FIRST" value="1">
+                <description>8th bit: 00000001.</description>
+            </entry>
+            <entry name="SMALL_BITMASK_SECOND" value="2">
+                <description>7th bit: 00000010.</description>
+            </entry>
+            <entry name="SMALL_BITMASK_THIRD" value="4">
+                <description>6th bit: 00000100.</description>
+            </entry>
+            <entry name="SMALL_BITMASK_FOURTH" value="8">
+                <description>5th bit: 00001000.</description>
+            </entry>
         </enum>
         <enum name="LARGE_BITMASK" bitmask="true">
-            <entry name="SMALL_BITMASK_FIRST" value="1"/>
-            <entry name="SMALL_BITMASK_SECOND" value="256"/>
-            <entry name="SMALL_BITMASK_THIRD" value="65536"/>
-            <entry name="SMALL_BITMASK_FOURTH" value="2147483648"/>
+            <description>Large bitmask that requires larger container type size.</description>
+            <entry name="LARGE_BITMASK_FIRST" value="1">
+                <description>32nd bit: 00000000 00000000 00000000 00000001.</description>
+            </entry>
+            <entry name="LARGE_BITMASK_SECOND" value="256">
+                <description>24rd bit: 00000000 00000000 00000001 00000000.</description>
+            </entry>
+            <entry name="LARGE_BITMASK_THIRD" value="65536">
+                <description>16th bit: 00000000 00000001 00000000 00000000.</description>
+            </entry>
+            <entry name="LARGE_BITMASK_FOURTH" value="16777216">
+                <description>8th bit: 00000001 00000000 00000000 00000000.</description>
+            </entry>
         </enum>
     </enums>
     <messages>

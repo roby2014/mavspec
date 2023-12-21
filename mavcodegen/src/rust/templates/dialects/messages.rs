@@ -1,3 +1,4 @@
+use crate::rust::conventions::split_description;
 use mavspec::protocol::{MavType, Message, MessageField, MessageId};
 use serde::Serialize;
 use std::collections::HashMap;
@@ -42,6 +43,7 @@ pub use {{to-message-mod-name name}}::{{to-message-struct-name name}};
 pub struct MessageSpec<'a> {
     id: u32,
     name: String,
+    description: Vec<String>,
     fields: Vec<FieldSpec>,
     is_v1_compatible: bool,
     fields_v1: Vec<FieldSpec>,
@@ -57,6 +59,7 @@ pub struct MessageSpec<'a> {
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct FieldSpec {
     name: String,
+    description: Vec<String>,
     r#type: MavType,
     is_enum: bool,
     is_bitmask: bool,
@@ -72,6 +75,7 @@ impl FieldSpec {
     fn from_mavspec_field(value: &MessageField, dialect_spec: &DialectSpec) -> FieldSpec {
         let mut spec = FieldSpec {
             name: value.name().into(),
+            description: split_description(value.description()),
             r#type: value.r#type().clone(),
             is_array: value.r#type().is_array(),
             ..Default::default()
@@ -113,6 +117,7 @@ impl<'a> MessageSpec<'a> {
         Self {
             id: message.id(),
             name: message.name().to_string(),
+            description: split_description(message.description()),
             fields: FieldSpec::from_mavspec_fields(message.fields(), dialect_spec),
             // `MAVLink 1`
             is_v1_compatible: message.is_v1_compatible(),
@@ -157,9 +162,16 @@ pub const fn spec() -> &'static dyn MessageSpec {
     &MESSAGE_INFO
 }
 
-/// MAVLink message `{{name}}`.
+#[allow(rustdoc::bare_urls)]
+/// MAVLink `{{name}}` message.
 ///
 /// Minimum supported MAVLink version is `MAVLink {{#if is_v1_compatible}}1{{else}}2{{/if}}`.
+///
+/// # Description
+///
+{{#each description}}
+/// {{this}}
+{{/each}}
 ///
 /// # Encoding/Decoding
 /// 
@@ -172,6 +184,10 @@ pub const fn spec() -> &'static dyn MessageSpec {
 pub struct {{to-message-struct-name name}} {
 {{#each fields}}
     /// MAVLink field `{{name}}`.
+    ///
+{{#each description}}
+    /// {{this}}
+{{/each}}
 {{#if serde_arrays}}
     #[cfg_attr(feature = "serde", serde(with = "serde_arrays"))]
 {{/if}}
