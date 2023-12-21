@@ -18,6 +18,13 @@ categories = [
 ]
 resolver = "2"
 
+[lib]
+name = "mavlib_core"
+path = "src/lib.rs"
+
+###########################################################
+# Dependencies
+###########################################################
 [dependencies]
 crc-any = { version = "2.4.3", default-features = false }
 mavlib_spec = { path = "../mavlib_spec", default-features = false }
@@ -30,6 +37,7 @@ thiserror = { version = "1.0.50", optional = true }
 [dev-dependencies]
 log = "0.4.20"
 env_logger = "0.10.1"
+portpicker = "0.1.1"
 
 [build-dependencies]
 cargo-manifest = "0.12.1"
@@ -39,9 +47,12 @@ mavspec = { git = "https://gitlab.com/mavka/libs/mavspec.git" }
 serde = "1.0.193"
 toml = "0.8.8"
 
+###########################################################
+# Features
+###########################################################
 [features]
 ## Default features
-default = ["std", "common", "sha2"]
+default = ["std", "minimal", "sha2"]
 ## Enables memory allocation support.
 alloc = [
     "mavlib_spec/alloc",
@@ -65,6 +76,9 @@ serde = [
     "dep:serde_arrays",
 ]
 
+###########################################################
+# Dialects
+###########################################################
 ## Include `ardupilotmega` dialect
 ardupilotmega = ["common"]
 ## Include `ASLUAV` dialect
@@ -97,15 +111,27 @@ uavionix = ["common"]
 ## Include `all` meta-dialect
 all = ["common", "ardupilotmega"]
 
-[lib]
-name = "mavlib_core"
-path = "src/lib.rs"
-
+###########################################################
+# Examples
+###########################################################
 [[example]]
-name = "tcp_basic"
+name = "tcp_client"
 test = true
 required-features = ["std", "minimal", "sha2"]
 
+[[example]]
+name = "tcp_server"
+test = true
+required-features = ["std", "minimal", "sha2"]
+
+[[example]]
+name = "tcp_ping_pong"
+test = true
+required-features = ["std", "minimal", "sha2"]
+
+###########################################################
+# Metadata
+###########################################################
 [package.metadata.docs.rs]
 # Features to include into `docs.rs` documentation
 features = ["default", "serde", "all"]
