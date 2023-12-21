@@ -28,7 +28,7 @@ use mavlib_spec::{
     IntoPayload, DialectSpec, Payload, MessageSpec,
     MavLinkVersion, MessageError,
 };
-use mavlib_spec::types::MessageId;
+use mavlib_spec::types::{MessageId, DialectId, DialectVersion};
 
 // MAVLink messages.
 pub mod messages;
@@ -39,6 +39,14 @@ pub mod enums;
 /// 
 /// See [`DialectSpec::name`].
 const NAME: &str = "{{name}}";
+/// Dialect id as it appears in XML definition.
+/// 
+/// See [`DialectSpec::dialect`].
+const ID: Option<DialectId> = {{to-dialect-id dialect_id}};
+/// Dialect version as it appears in XML definition.
+/// 
+/// See [`DialectSpec::dialect`].
+const VERSION: Option<DialectVersion> = {{to-dialect-ver version}};
 /// [`Dialect`] specification.
 ///
 /// See: [`DialectSpec`].
@@ -46,7 +54,7 @@ const SPEC: Dialect = Dialect {};
 
 /// Dialect specification.
 ///
-/// This struct can'be instantiated directly. The constant (and the only) instance is accessable
+/// This struct can'be instantiated directly. The constant (and the only) instance is accessible
 /// through [`spec`] function.  
 #[derive(Copy, Clone, Debug, Default)]
 struct Dialect;
@@ -58,6 +66,22 @@ impl Dialect {
     #[inline]
     pub fn name() -> &'static str {
         NAME
+    }
+    
+    /// Returns `dialect` identifier as specified in MAVLink [XML definitions](https://mavlink.io/en/guide/xml_schema.html).
+    //
+    // See [`DialectSpec::dialect`].
+    #[inline]
+    fn dialect() -> Option<DialectId> {
+        ID
+    }
+    
+    /// Minor dialect `version` as specified in MAVLink [XML definitions](https://mavlink.io/en/guide/xml_schema.html).
+    ///
+    /// See [`DialectSpec::version`].
+    #[inline]
+    fn version() -> Option<DialectVersion> {
+        VERSION
     }
 
     /// Message specification by `id`.
@@ -76,6 +100,22 @@ impl DialectSpec for Dialect {
     #[inline]
     fn name(&self) -> &str {
         Self::name()
+    }
+    
+    /// Returns `dialect` identifier as specified in MAVLink [XML definitions](https://mavlink.io/en/guide/xml_schema.html).
+    //
+    // See [`DialectSpec::dialect`].
+    #[inline]
+    fn dialect(&self) -> Option<DialectId> {
+        Self::dialect()
+    }
+    
+    /// Minor dialect `version` as specified in MAVLink [XML definitions](https://mavlink.io/en/guide/xml_schema.html).
+    ///
+    /// See [`DialectSpec::version`].
+    #[inline]
+    fn version(&self) -> Option<DialectVersion> {
+        Self::version()
     }
 
     /// Message specification by `id`.

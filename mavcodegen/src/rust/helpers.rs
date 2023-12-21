@@ -1,5 +1,5 @@
 use handlebars::{handlebars_helper, Handlebars};
-use mavspec::protocol::MavType;
+use mavspec::protocol::{DialectId, DialectVersion, MavType};
 
 use super::conventions::{
     dialect_name, enum_entry_name, enum_mod_name, enum_rust_name, message_file_name,
@@ -28,6 +28,15 @@ handlebars_helper!(to_rust_default_value: | mav_type: MavType | rust_default_val
 handlebars_helper!(to_reader_fn: | mav_type: MavType | t_bytes_read_fn(mav_type));
 handlebars_helper!(to_writer_fn: | mav_type: MavType | t_bytes_write_fn(mav_type));
 
+handlebars_helper!(to_dialect_ver: | v: Option<DialectVersion> | match v {
+    None => "None".to_string(),
+    Some(val) => format!("Some({val})")
+});
+handlebars_helper!(to_dialect_id: | v: Option<DialectId> | match v {
+    None => "None".to_string(),
+    Some(val) => format!("Some({val})")
+});
+
 pub fn register_helpers(reg: &mut Handlebars) {
     reg.register_helper("to-crate-path", Box::new(to_crate_path));
     reg.register_helper("to-dialect-name", Box::new(to_dialect_name));
@@ -54,4 +63,7 @@ pub fn register_helpers(reg: &mut Handlebars) {
     reg.register_helper("to-rust-default-value", Box::new(to_rust_default_value));
     reg.register_helper("to-reader-fn", Box::new(to_reader_fn));
     reg.register_helper("to-writer-fn", Box::new(to_writer_fn));
+
+    reg.register_helper("to-dialect-ver", Box::new(to_dialect_ver));
+    reg.register_helper("to-dialect-id", Box::new(to_dialect_id));
 }

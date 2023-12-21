@@ -6,7 +6,7 @@ use handlebars::Handlebars;
 use serde::Serialize;
 
 use crate::rust::templates::dialects::messages::MessagesSpec;
-use mavspec::protocol::{Dialect, Enum, Message, MessageId, Protocol};
+use mavspec::protocol::{Dialect, DialectId, DialectVersion, Enum, Message, MessageId, Protocol};
 
 use super::conventions;
 use super::helpers::register_helpers;
@@ -30,6 +30,8 @@ pub struct GeneratorParams {
 #[derive(Clone, Debug, Serialize)]
 pub(crate) struct DialectSpec<'a> {
     name: String,
+    version: Option<DialectVersion>,
+    dialect_id: Option<DialectId>,
     messages: HashMap<MessageId, Message>,
     enums: HashMap<String, Enum>,
     params: &'a GeneratorParams,
@@ -45,6 +47,8 @@ impl<'a> DialectSpec<'a> {
 
         Self {
             name: dialect.name().to_string(),
+            version: dialect.version(),
+            dialect_id: dialect.dialect(),
             messages: dialect.messages().clone(),
             enums: dialect.enums().clone(),
             params,

@@ -84,7 +84,7 @@ fn send_heartbeats<W: Write>(
                 & MavModeFlag::MAV_MODE_FLAG_CUSTOM_MODE_ENABLED,
             custom_mode: 0,
             system_status: MavState::MavStateActive,
-            mavlink_version: 3,
+            mavlink_version: dialect::spec().version().unwrap_or(0),
         };
 
         // Build frame from message
