@@ -44,3 +44,7 @@ thiserror = "1.0.50"
 default = ["rust", "build_utils"]
 build_utils = ["dep:cargo-manifest"]
 rust = []
+
+[package.metadata.docs.rs]
+# Features to include into `docs.rs` documentation
+features = ["default", "rust", "build_utils"]

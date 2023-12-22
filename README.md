@@ -35,9 +35,9 @@ fn main() {
     // Parse XML definitions
     let protocol = XMLInspector::builder()
         // Paths to XML definitions directories
-        .set_sources(vec![
-            "./message_definitions/standard".to_string(),
-            "./message_definitions/extra".to_string(),
+        .set_sources(&[
+            "./message_definitions/standard",
+            "./message_definitions/extra",
         ])
         // Build configuration and parse dialects
         .build().unwrap()
@@ -93,8 +93,8 @@ use mavcodegen::rust::BuildHelper;
 fn main() {
     // Assume that your library and `message_definitions` are both in the root of your project.
     let sources = vec![
-        Path::new("./message_definitions/standard"),
-        Path::new("./message_definitions/extra"),
+        "./message_definitions/standard",
+        "./message_definitions/extra",
     ];
     // Output path
     let destination = Path::new(&var("OUT_DIR").unwrap()).join("mavlink");

@@ -1,7 +1,11 @@
 //! # MAVCodeGen
 //!
 //! Code-generation for [MAVLink](https://mavlink.io/en/) protocol based on
-//! [`mavspec`](https://gitlab.com/mavka/libs/mavspec).
+//! [MAVSpec](https://gitlab.com/mavka/libs/mavspec).
+//!
+//! # Rust
+//!
+//! Check [`rust`] module for details.
 
 #![warn(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]

@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::ffi::OsStr;
 use std::fs::remove_dir_all;
 use std::path::{Path, PathBuf};
 
@@ -31,7 +32,10 @@ impl BuildHelper {
     ///
     /// * `sources` - paths to XML definitions directories.
     /// * `out_path` - output path where sources will be generated.
-    pub fn builder(sources: &[&Path], out_path: &Path) -> BuildHelperConf {
+    pub fn builder<S: ?Sized + AsRef<OsStr>, O: ?Sized + AsRef<OsStr>>(
+        sources: &[&S],
+        out_path: &O,
+    ) -> BuildHelperConf {
         BuildHelperConf(Self {
             sources: sources.iter().map(|&src| PathBuf::from(src)).collect(),
             out_path: PathBuf::from(out_path),
@@ -46,15 +50,12 @@ impl BuildHelper {
         }
 
         let mut inspector_builder = XMLInspector::builder();
-        inspector_builder.set_sources(
-            self.sources
-                .iter()
-                .map(|s| s.to_str().unwrap().to_string())
-                .collect(),
-        );
+
+        let sources: Vec<&Path> = self.sources.iter().map(|s| s.as_path()).collect();
+        inspector_builder.set_sources(&sources);
 
         if let Some(dialects) = &self.dialects {
-            inspector_builder.set_include(Vec::from_iter(dialects.iter().cloned()));
+            inspector_builder.set_include(&Vec::from_iter(dialects.iter().map(|d| d.as_str())));
         }
 
         let protocol = inspector_builder.build()?.parse()?;
@@ -103,7 +104,7 @@ impl BuildHelperConf {
     /// The `all_enums` key defines whether only enums required for specified messages will be generated.
     ///
     /// Overrides configuration set by [`Self::set_messages`] and [`Self::set_all_enums`].
-    pub fn set_manifest_path(&mut self, manifest_path: &Path) -> &mut Self {
+    pub fn set_manifest_path<T: ?Sized + AsRef<OsStr>>(&mut self, manifest_path: &T) -> &mut Self {
         self.0.manifest_path = Some(PathBuf::from(manifest_path));
         self.apply_manifest_config();
         self
@@ -113,7 +114,7 @@ impl BuildHelperConf {
     ///
     /// This does not apply to included dialects. If specified dialect has `<include>` tag, all these dialects will be
     /// generated as well.
-    pub fn set_dialects(&mut self, dialects: &[String]) -> &mut Self {
+    pub fn set_dialects<T: ToString>(&mut self, dialects: &[T]) -> &mut Self {
         self.0.dialects = Some(HashSet::from_iter(dialects.iter().map(|s| s.to_string())));
         self
     }
@@ -121,8 +122,8 @@ impl BuildHelperConf {
     /// Defines which messages will be generated.
     ///
     /// Overrides configuration defined by [`Self::set_manifest_path`].
-    pub fn set_messages(&mut self, messages: &[&str]) -> &mut Self {
-        self.0.messages = Some(HashSet::from_iter(messages.iter().map(|&s| s.to_string())));
+    pub fn set_messages<T: ToString>(&mut self, messages: &[T]) -> &mut Self {
+        self.0.messages = Some(HashSet::from_iter(messages.iter().map(|s| s.to_string())));
         self
     }
 
@@ -160,5 +161,41 @@ impl BuildHelperConf {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::remove_dir_all;
+    use std::path::Path;
+
+    #[test]
+    fn test_build_helper_conf_paths() {
+        // `&[&str]` sources, `Path` destination
+        BuildHelper::builder(
+            &[
+                "../message_definitions/standard",
+                "../message_definitions/extra",
+            ],
+            &Path::new("../tmp/mavlink"),
+        )
+        .set_dialects(&["minimal"])
+        .generate()
+        .unwrap();
+
+        // `Vec<Path>` sources, `&str` destination
+        BuildHelper::builder(
+            &vec![
+                Path::new("../message_definitions/standard"),
+                Path::new("../message_definitions/extra"),
+            ],
+            "../tmp/mavlink",
+        )
+        .set_dialects(&["minimal"])
+        .generate()
+        .unwrap();
+
+        remove_dir_all("../tmp/mavlink").unwrap();
     }
 }

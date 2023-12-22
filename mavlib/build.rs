@@ -25,10 +25,10 @@ fn main() {
         return;
     }
 
-    let sources = vec!["../../message_definitions/extra".to_string()];
+    let sources = vec!["../../message_definitions/extra"];
 
     let protocol = XMLInspector::builder()
-        .set_sources(sources)
+        .set_sources(&sources)
         .build()
         .unwrap()
         .parse()

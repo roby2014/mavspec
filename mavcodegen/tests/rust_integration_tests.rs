@@ -3,10 +3,10 @@ mod tests {
     use std::fs::remove_dir_all;
     use std::path::PathBuf;
 
-    fn xml_definition_paths() -> Vec<String> {
+    fn xml_definition_paths() -> Vec<&'static str> {
         vec![
-            "../message_definitions/standard".to_string(),
-            "../message_definitions/extra".to_string(),
+            "../message_definitions/standard",
+            "../message_definitions/extra",
         ]
     }
 
@@ -22,7 +22,7 @@ mod tests {
         let out_path = out_path();
 
         let protocol = XMLInspector::builder()
-            .set_sources(xml_definition_paths())
+            .set_sources(&xml_definition_paths())
             .build()
             .unwrap()
             .parse()

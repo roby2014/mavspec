@@ -19,9 +19,9 @@ fn main() {
         included_dialects
     };
 
-    let sources = vec![
-        Path::new("../../message_definitions/standard"),
-        Path::new("../../message_definitions/extra"),
+    let sources = [
+        "../../message_definitions/standard",
+        "../../message_definitions/extra",
     ];
     let destination = Path::new(&var("OUT_DIR").unwrap()).join("mavlink");
     let manifest_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");

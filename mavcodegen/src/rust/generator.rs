@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::ffi::OsStr;
 use std::fs::{create_dir_all, File};
 use std::path::PathBuf;
 
@@ -75,19 +76,23 @@ impl<'a> DialectSpec<'a> {
 /// Rust code generator.
 pub struct Generator<'a> {
     protocol: Protocol,
-    path: &'a PathBuf,
+    path: PathBuf,
     params: GeneratorParams,
     handlebars: Handlebars<'a>,
 }
 
 impl<'a> Generator<'a> {
     /// Default constructor.
-    pub fn new(protocol: Protocol, path: &'a PathBuf, params: GeneratorParams) -> Self {
+    pub fn new<T: ?Sized + AsRef<OsStr>>(
+        protocol: Protocol,
+        path: &T,
+        params: GeneratorParams,
+    ) -> Self {
         let handlebars = Self::build_handlebars().unwrap();
 
         Self {
             protocol,
-            path,
+            path: PathBuf::from(path),
             params,
             handlebars,
         }
@@ -117,7 +122,7 @@ impl<'a> Generator<'a> {
 
     fn generate_root_module(&self) -> anyhow::Result<()> {
         // Ensure that root directory exists
-        create_dir_all(self.path)?;
+        create_dir_all(self.path.as_path())?;
 
         let file = File::create(self.root_module_file_path("mod.rs"))?;
         self.handlebars

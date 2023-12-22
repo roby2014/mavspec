@@ -52,9 +52,11 @@ mod specs {
     use mavspec::parser::XMLInspector;
     use mavspec::protocol::Protocol;
 
-    pub fn parse_definitions(src: &[String]) -> anyhow::Result<Protocol> {
+    pub fn parse_definitions<'a>(src: &[String]) -> anyhow::Result<Protocol> {
+        let src: Vec<&str> = src.iter().map(|s| s.as_str()).collect();
+
         XMLInspector::builder()
-            .set_sources(src.to_vec())
+            .set_sources(&src)
             .build()?
             .parse()
             .map_err(|err| anyhow!(err))
