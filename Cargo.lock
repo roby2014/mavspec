@@ -398,7 +398,7 @@ dependencies = [
 [[package]]
 name = "mavspec"
 version = "0.1.0-alpha4"
-source = "git+https://gitlab.com/mavka/libs/mavspec.git#0ff8e309135766e49d4f04c65f868a6442ebbdd7"
+source = "git+https://gitlab.com/mavka/libs/mavspec.git#cc5d58cdd5be0b0e9638a197be0f98ebc60ebfde"
 dependencies = [
  "crc-any",
  "heck 0.5.0-rc.1",

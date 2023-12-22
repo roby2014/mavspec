@@ -12,12 +12,11 @@ pub fn main() {
         use rust_example::dialects::minimal as dialect;
 
         let message = dialect::messages::Heartbeat {
-            r#type: MavType::MavTypeFixedWing,
-            autopilot: MavAutopilot::MavAutopilotGeneric,
-            base_mode: MavModeFlag::MAV_MODE_FLAG_TEST_ENABLED
-                | MavModeFlag::MAV_MODE_FLAG_MANUAL_INPUT_ENABLED,
+            r#type: MavType::FixedWing,
+            autopilot: MavAutopilot::Generic,
+            base_mode: MavModeFlag::TEST_ENABLED | MavModeFlag::MANUAL_INPUT_ENABLED,
             custom_mode: 0,
-            system_status: MavState::MavStateActive,
+            system_status: MavState::Active,
             mavlink_version: dialect::spec().version().unwrap(),
         };
 
@@ -32,11 +31,11 @@ pub fn main() {
         let message = dialect::messages::CommandInt {
             target_system: 10,
             target_component: 1,
-            frame: MavFrame::MavFrameGlobal,
-            command: MavCmd::MavCmdDoChangeSpeed,
+            frame: MavFrame::Global,
+            command: MavCmd::DoChangeSpeed,
             current: 0,
             autocontinue: 0,
-            param1: (SpeedType::SpeedTypeAirspeed as u8) as f32,
+            param1: (SpeedType::Airspeed as u8) as f32,
             param2: 40.0, // 40 m/s
             param3: 70.0, // 70%
             param4: 0.0,
@@ -58,9 +57,8 @@ pub fn main() {
             plain_int16: -1000,
             small_array: [1, 2, 3, 4],
             large_array: [500; 40],
-            small_enum_native: SmallEnum::SmallEnumFirst,
-            small_bitmask_native: SmallBitmask::SMALL_BITMASK_FIRST
-                | SmallBitmask::SMALL_BITMASK_SECOND,
+            small_enum_native: SmallEnum::First,
+            small_bitmask_native: SmallBitmask::FIRST | SmallBitmask::SECOND,
             // And so forth (lots of test cases)
             ..Default::default()
         };

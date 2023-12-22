@@ -43,6 +43,7 @@ pub struct EnumSpec {
 pub struct EnumEntrySpec {
     value: u32,
     name: String,
+    name_stripped: String,
     description: Vec<String>,
 }
 
@@ -51,6 +52,7 @@ impl EnumEntrySpec {
         Self {
             value: entry.value(),
             name: entry.name().to_string(),
+            name_stripped: entry.name_stripped().to_string(),
             description: split_description(entry.description()),
         }
     }
@@ -101,7 +103,7 @@ bitflags! {
 {{#each description}}
         /// {{this}}
 {{/each}}
-        const {{name}} = {{value}};
+        const {{name_stripped}} = {{value}};
 {{/each}}
     }
 }
@@ -125,7 +127,7 @@ pub enum {{to-enum-rust-name name}} {
 {{#each description}}
     /// {{this}}
 {{/each}}
-    {{to-enum-entry-name name}} = {{value}},
+    {{to-enum-entry-name name_stripped}} = {{value}},
 {{/each}}
 }
 
@@ -146,11 +148,11 @@ impl {{to-enum-rust-name name}} {
     pub fn try_from_discriminant(value: {{to-rust-type inferred_type}}) -> Result<Self, MessageError> {
         Ok(match value {
 {{#each entries}}
-            {{value}} => Self::{{to-enum-entry-name name}},
+            {{value}} => Self::{{to-enum-entry-name name_stripped}},
 {{/each}}
             _ => {
                 return Err(MessageError::InvalidEnumValue {
-                    enum_name: "{{name}}".into(),
+                    enum_name: "{{name_stripped}}".into(),
                     value: value.into(),
                 })
             }
