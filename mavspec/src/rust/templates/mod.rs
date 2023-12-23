@@ -2,7 +2,7 @@ pub mod dialects;
 
 /// Root module template.
 ///
-/// Input: [`mavspec::protocol::Protocol`].
+/// Input: [`mavinspect::protocol::Protocol`].
 pub const ROOT_MODULE: &str = r#"// MAVLink protocol definition.
 // 
 // Since this file is intended to be included with `include!`, we can not  provide module

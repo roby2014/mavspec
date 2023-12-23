@@ -4,10 +4,10 @@ description = "Core interfaces for MAVLib."
 version = "0.1.0-alpha1"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
-repository = "https://gitlab.com/mavka/libs/mavcodegen"
+repository = "https://gitlab.com/mavka/libs/mavspec"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
-homepage = "https://gitlab.com/mavka/libs/mavcodegen"
+homepage = "https://gitlab.com/mavka/libs/mavspec"
 keywords = ["MAVLink", "UAV", "drones"]
 categories = [
     "aerospace::protocols",

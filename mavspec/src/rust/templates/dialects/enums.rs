@@ -1,11 +1,11 @@
 use crate::rust::conventions::split_description;
 use crate::rust::GeneratorParams;
-use mavspec::protocol::{Enum, EnumEntry, MavType};
+use mavinspect::protocol::{Enum, EnumEntry, MavType};
 use serde::Serialize;
 
 /// Enums module root template.
 ///
-/// Input: [`mavspec::protocol::Dialect`].
+/// Input: [`mavinspect::protocol::Dialect`].
 pub const ENUMS_MODULE_ROOT: &str = "\
 //! MAVLink enums of `{{name}}` dialect.
 
@@ -25,7 +25,7 @@ pub enum Enums {
 
 /// Input for [`ENUM`] template.
 ///
-/// Basically, this is a utility wrapper around `MAVSpec` [`Enum`].
+/// Basically, this is a utility wrapper around `MAVInspect` [`Enum`].
 #[derive(Debug, Clone, Serialize)]
 pub struct EnumSpec {
     name: String,
@@ -38,7 +38,7 @@ pub struct EnumSpec {
 
 /// Enum entry representation for template.
 ///
-/// Basically, this is a utility wrapper around `MAVSpec` [`EnumEntry`].
+/// Basically, this is a utility wrapper around `MAVInspect` [`EnumEntry`].
 #[derive(Debug, Clone, Serialize)]
 pub struct EnumEntrySpec {
     value: u32,

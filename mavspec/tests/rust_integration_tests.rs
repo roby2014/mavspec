@@ -16,8 +16,8 @@ mod tests {
 
     #[test]
     fn generate() {
-        use mavcodegen::rust::{Generator, GeneratorParams};
-        use mavspec::parser::XMLInspector;
+        use mavinspect::parser::XMLInspector;
+        use mavspec::rust::{Generator, GeneratorParams};
 
         let out_path = out_path();
 

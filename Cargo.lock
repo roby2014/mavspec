@@ -321,42 +321,24 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 
 [[package]]
-name = "mavcodegen"
-version = "0.1.0-alpha1"
+name = "mavinspect"
+version = "0.1.0-alpha3"
+source = "git+https://gitlab.com/mavka/libs/mavinspect.git#f51ab599fbfebfbad998ee17fa5380833e5a3c2b"
 dependencies = [
- "anyhow",
- "cargo-manifest",
- "clap",
- "env_logger",
- "handlebars",
+ "crc-any",
  "heck 0.5.0-rc.1",
  "log",
- "mavspec",
+ "quick-xml",
+ "regex",
  "serde",
- "serde_json",
  "thiserror",
-]
-
-[[package]]
-name = "mavcodegen_rust_example"
-version = "0.1.0-alpha1"
-dependencies = [
- "cargo-manifest",
- "env_logger",
- "log",
- "mavcodegen",
- "mavlib_spec",
- "serde",
- "serde_arrays",
- "tbytes",
- "toml 0.8.8",
 ]
 
 [[package]]
 name = "mavlib"
 version = "0.1.0-alpha1"
 dependencies = [
- "mavcodegen",
+ "mavinspect",
  "mavlib_core",
  "mavlib_spec",
  "mavspec",
@@ -373,7 +355,7 @@ dependencies = [
  "crc-any",
  "env_logger",
  "log",
- "mavcodegen",
+ "mavinspect",
  "mavlib_spec",
  "mavspec",
  "portpicker",
@@ -398,15 +380,33 @@ dependencies = [
 [[package]]
 name = "mavspec"
 version = "0.1.0-alpha4"
-source = "git+https://gitlab.com/mavka/libs/mavspec.git#8fe3416e481f21624c56e72c5341763028d53714"
 dependencies = [
- "crc-any",
+ "anyhow",
+ "cargo-manifest",
+ "clap",
+ "env_logger",
+ "handlebars",
  "heck 0.5.0-rc.1",
  "log",
- "quick-xml",
- "regex",
+ "mavinspect",
  "serde",
+ "serde_json",
  "thiserror",
+]
+
+[[package]]
+name = "mavspec_rust_example"
+version = "0.1.0-alpha1"
+dependencies = [
+ "cargo-manifest",
+ "env_logger",
+ "log",
+ "mavlib_spec",
+ "mavspec",
+ "serde",
+ "serde_arrays",
+ "tbytes",
+ "toml 0.8.8",
 ]
 
 [[package]]

@@ -6,7 +6,7 @@
 //!
 //! ```rust
 //! # use std::fs::remove_dir_all;
-//! use mavcodegen::rust::BuildHelper;
+//! use mavspec::rust::BuildHelper;
 //!
 //! // Paths to XML definitions directories.
 //! let sources = vec![
@@ -24,13 +24,13 @@
 //! ```
 //!
 //! For better control you may use [`Generator`] that consumes parsed MAVLink XML definitions provided by
-//! [MAVSpec](https://gitlab.com/mavka/libs/mavspec)'s `XMLInspector`.
+//! [MAVInspect](https://gitlab.com/mavka/libs/mavinspect)'s `XMLInspector`.
 //!
 //! ```rust
 //! # use std::fs::remove_dir_all;
 //! use std::path::Path;
-//! use mavcodegen::rust::{Generator, GeneratorParams};
-//! use mavspec::parser::XMLInspector;
+//! use mavspec::rust::{Generator, GeneratorParams};
+//! use mavinspect::parser::XMLInspector;
 //!
 //! // Paths to XML definitions directories.
 //! let sources = vec![

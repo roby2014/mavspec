@@ -1,7 +1,7 @@
 use std::env::var;
 use std::path::Path;
 
-use mavcodegen::rust::BuildHelper;
+use mavspec::rust::BuildHelper;
 
 fn main() {
     let included_dialects = {

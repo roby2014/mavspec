@@ -1,7 +1,7 @@
 //! # MAVLib
 //!
 //! This is toy implementation of a MAVLink-speaking library made to show capabilities of
-//! `MAVCodeGen`.
+//! `MAVSpec`.
 
 #![warn(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]

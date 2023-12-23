@@ -3,7 +3,7 @@
 resolver = "2"
 
 members = [
-    "mavcodegen",
+    "mavspec",
     "mavlib",
     "mavlib_spec",
     "mavlib_core",

@@ -2,8 +2,8 @@ use std::fs::{create_dir_all, File};
 use std::io::Write;
 use std::path::PathBuf;
 
-use mavcodegen::rust::{Generator, GeneratorParams};
-use mavspec::parser::XMLInspector;
+use mavinspect::parser::XMLInspector;
+use mavspec::rust::{Generator, GeneratorParams};
 
 fn main() {
     let has_serde_feature = std::env::var("CARGO_FEATURE_SERDE").is_ok();

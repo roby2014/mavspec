@@ -66,8 +66,8 @@
         </enum>
     </enums>
     <messages>
-        <message id="255" name="MAV_SPEC_V1">
-            <description>MAVSpec message compatible with MAVLink 1</description>
+        <message id="255" name="MAV_INSPECT_V1">
+            <description>MAVInspect message compatible with MAVLink 1</description>
             <field type="uint8_t" name="plain_uint8">Plain `uint8_t` value.</field>
             <field type="int16_t" name="plain_int16">Plain `int16_t` value.</field>
             <field type="uint16_t[4]" name="small_array">Array of 4 `uint16_t`.</field>

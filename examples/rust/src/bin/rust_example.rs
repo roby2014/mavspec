@@ -4,7 +4,7 @@
 ///
 /// * `minimal`
 /// * `common`
-/// * `mav_spec_test`
+/// * `mav_inspect_test`
 pub fn main() {
     #[cfg(feature = "minimal")]
     {
@@ -47,12 +47,12 @@ pub fn main() {
         println!("{message:#?}");
     }
 
-    #[cfg(feature = "mav_spec_test")]
+    #[cfg(feature = "mav_inspect_test")]
     {
         use dialect::enums::{SmallBitmask, SmallEnum};
-        use rust_example::dialects::mav_spec_test as dialect;
+        use rust_example::dialects::mav_inspect_test as dialect;
 
-        let message = dialect::messages::MavSpecV1 {
+        let message = dialect::messages::MavInspectV1 {
             plain_uint8: 10,
             plain_int16: -1000,
             small_array: [1, 2, 3, 4],

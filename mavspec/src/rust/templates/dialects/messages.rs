@@ -1,5 +1,5 @@
 use crate::rust::conventions::split_description;
-use mavspec::protocol::{MavType, Message, MessageField, MessageId};
+use mavinspect::protocol::{MavType, Message, MessageField, MessageId};
 use serde::Serialize;
 use std::collections::HashMap;
 
@@ -38,7 +38,7 @@ pub use {{to-message-mod-name name}}::{{to-message-struct-name name}};
 
 /// Input for [`MESSAGE`] template.
 ///
-/// Basically, this is a utility wrapper around `MAVSpec` [`Message`].
+/// Basically, this is a utility wrapper around `MAVInspect` [`Message`].
 #[derive(Clone, Debug, Serialize)]
 pub struct MessageSpec<'a> {
     id: u32,
@@ -72,7 +72,7 @@ pub struct FieldSpec {
 }
 
 impl FieldSpec {
-    fn from_mavspec_field(value: &MessageField, dialect_spec: &DialectSpec) -> FieldSpec {
+    fn from_mavinspect_field(value: &MessageField, dialect_spec: &DialectSpec) -> FieldSpec {
         let mut spec = FieldSpec {
             name: value.name().into(),
             description: split_description(value.description()),
@@ -103,10 +103,13 @@ impl FieldSpec {
         spec
     }
 
-    fn from_mavspec_fields(fields: &[MessageField], dialect_spec: &DialectSpec) -> Vec<FieldSpec> {
+    fn from_mavinspect_fields(
+        fields: &[MessageField],
+        dialect_spec: &DialectSpec,
+    ) -> Vec<FieldSpec> {
         fields
             .iter()
-            .map(|fld| FieldSpec::from_mavspec_field(fld, dialect_spec))
+            .map(|fld| FieldSpec::from_mavinspect_field(fld, dialect_spec))
             .collect()
     }
 }
@@ -118,15 +121,21 @@ impl<'a> MessageSpec<'a> {
             id: message.id(),
             name: message.name().to_string(),
             description: split_description(message.description()),
-            fields: FieldSpec::from_mavspec_fields(message.fields(), dialect_spec),
+            fields: FieldSpec::from_mavinspect_fields(message.fields(), dialect_spec),
             // `MAVLink 1`
             is_v1_compatible: message.is_v1_compatible(),
-            fields_v1: FieldSpec::from_mavspec_fields(message.fields_v1().as_slice(), dialect_spec),
+            fields_v1: FieldSpec::from_mavinspect_fields(
+                message.fields_v1().as_slice(),
+                dialect_spec,
+            ),
             payload_v1_size: message.size_v1(),
             // `MAVLink 2`
-            fields_v2: FieldSpec::from_mavspec_fields(message.fields_v2().as_slice(), dialect_spec),
+            fields_v2: FieldSpec::from_mavinspect_fields(
+                message.fields_v2().as_slice(),
+                dialect_spec,
+            ),
             payload_v2_size: message.size_v2(),
-            extension_fields: FieldSpec::from_mavspec_fields(
+            extension_fields: FieldSpec::from_mavinspect_fields(
                 message.extension_fields().as_slice(),
                 dialect_spec,
             ),

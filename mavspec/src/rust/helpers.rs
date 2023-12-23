@@ -1,5 +1,5 @@
 use handlebars::{handlebars_helper, Handlebars};
-use mavspec::protocol::{DialectId, DialectVersion, MavType};
+use mavinspect::protocol::{DialectId, DialectVersion, MavType};
 
 use super::conventions::{
     dialect_name, enum_entry_name, enum_mod_name, enum_rust_name, message_file_name,

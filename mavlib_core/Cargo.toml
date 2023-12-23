@@ -4,10 +4,10 @@ description = "Minimalistic MAVLink client"
 version = "0.1.0-alpha1"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
-repository = "https://gitlab.com/mavka/libs/mavcodegen"
+repository = "https://gitlab.com/mavka/libs/mavspec"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
-homepage = "https://gitlab.com/mavka/libs/mavcodegen"
+homepage = "https://gitlab.com/mavka/libs/mavspec"
 keywords = ["MAVLink", "UAV", "drones"]
 categories = [
     "aerospace::protocols",
@@ -41,9 +41,9 @@ portpicker = "0.1.1"
 
 [build-dependencies]
 cargo-manifest = "0.12.1"
-mavcodegen = { path = "../mavcodegen", default-features = false, features = ["rust", "build_utils"] }
-#mavspec = { version = "0.1.0-alpha4", default-features = false, features = ["serde"] }
-mavspec = { git = "https://gitlab.com/mavka/libs/mavspec.git" }
+mavspec = { path = "../mavspec", default-features = false, features = ["rust", "build_utils"] }
+#mavinspect = { version = "0.1.0-alpha4", default-features = false, features = ["serde"] }
+mavinspect = { git = "https://gitlab.com/mavka/libs/mavinspect.git" }
 serde = "1.0.193"
 toml = "0.8.8"
 
@@ -136,6 +136,6 @@ required-features = ["std", "minimal", "sha2"]
 # Features to include into `docs.rs` documentation
 features = ["default", "serde", "all"]
 
-[package.metadata.mavcodegen]
+[package.metadata.mavspec]
 messages = ["HEARTBEAT", "PROTOCOL_VERSION", "COMMAND_INT", "COMMAND_LONG"]
 all_enums = false

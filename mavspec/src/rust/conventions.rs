@@ -1,4 +1,4 @@
-use mavspec::protocol::MavType;
+use mavinspect::protocol::MavType;
 
 // See: https://doc.rust-lang.org/reference/keywords.html
 const RUST_RESERVED_KEYWORDS: [&str; 50] = [

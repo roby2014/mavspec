@@ -9,7 +9,7 @@ stages:
 
 variables:
   DRY_CARGO_RELEASE: "true"
-  CI_CARGO_PACKAGE: mavcodegen
+  CI_CARGO_PACKAGE: mavspec
 
 # ---------------------------------------------------------
 #                          Test

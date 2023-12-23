@@ -1,13 +1,13 @@
 [package]
-name = "mavcodegen"
+name = "mavspec"
 description = "A set of code generation utilities for MAVLink protocol."
-version = "0.1.0-alpha1"
+version = "0.1.0-alpha4"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
-repository = "https://gitlab.com/mavka/libs/mavcodegen"
+repository = "https://gitlab.com/mavka/libs/mavspec"
 readme = "../README.md"
 license = "MIT OR Apache-2.0"
-homepage = "https://gitlab.com/mavka/libs/mavcodegen"
+homepage = "https://gitlab.com/mavka/libs/mavspec"
 keywords = ["MAVLink", "UAV", "drones", "parser"]
 categories = [
     "aerospace::protocols",
@@ -19,12 +19,12 @@ categories = [
 resolver = "2"
 
 [lib]
-name = "mavcodegen"
+name = "mavspec"
 path = "src/lib.rs"
 
 [[bin]]
-name = "mavcodegen"
-path = "src/bin/mavcodegen.rs"
+name = "mavspec"
+path = "src/bin/mavspec.rs"
 
 [dependencies]
 anyhow = "1.0.75"
@@ -34,8 +34,8 @@ env_logger = "0.10.1"
 handlebars = "5.0.0-beta.5"
 heck = "0.5.0-rc.1"
 log = "0.4.20"
-#mavspec = { version = "0.1.0-alpha4", features = ["serde"] }
-mavspec = { git = "https://gitlab.com/mavka/libs/mavspec.git", features = ["serde"] }
+#mavinspect = { version = "0.1.0-alpha4", features = ["serde"] }
+mavinspect = { git = "https://gitlab.com/mavka/libs/mavinspect.git", features = ["serde"] }
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
 thiserror = "1.0.50"

@@ -7,7 +7,9 @@ use handlebars::Handlebars;
 use serde::Serialize;
 
 use crate::rust::templates::dialects::messages::MessagesSpec;
-use mavspec::protocol::{Dialect, DialectId, DialectVersion, Enum, Message, MessageId, Protocol};
+use mavinspect::protocol::{
+    Dialect, DialectId, DialectVersion, Enum, Message, MessageId, Protocol,
+};
 
 use super::conventions;
 use super::helpers::register_helpers;

@@ -6,8 +6,8 @@
 !/.gitignore
 
 # Sources
-!/mavcodegen/
-!/mavcodegen/**
+!/mavspec/
+!/mavspec/**
 !/mavlib*/
 !/mavlib*/**
 !/examples/
@@ -23,10 +23,10 @@
 !/bin/**
 
 # Cargo
-!/mavcodegen/Cargo.lock
-!/mavcodegen/Cargo.toml
+!/mavspec/Cargo.lock
+!/mavspec/Cargo.toml
 !/Cross.toml
-!/mavcodegen/build.rs
+!/mavspec/build.rs
 
 # Docs
 !/README.md

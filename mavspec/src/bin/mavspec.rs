@@ -49,8 +49,8 @@ mod cli {
 #[cfg(any(feature = "rust"))]
 mod specs {
     use anyhow::anyhow;
-    use mavspec::parser::XMLInspector;
-    use mavspec::protocol::Protocol;
+    use mavinspect::parser::XMLInspector;
+    use mavinspect::protocol::Protocol;
 
     pub fn parse_definitions<'a>(src: &[String]) -> anyhow::Result<Protocol> {
         let src: Vec<&str> = src.iter().map(|s| s.as_str()).collect();
@@ -66,7 +66,7 @@ mod specs {
 #[cfg(any(feature = "rust"))]
 mod process {
     use crate::cli::{Cli, Commands};
-    use mavcodegen::rust::GeneratorParams;
+    use mavspec::rust::GeneratorParams;
     use std::collections::HashSet;
     use std::fs::remove_dir_all;
 
@@ -92,7 +92,7 @@ mod process {
                         serde,
                         messages,
                         all_enums,
-                    } => mavcodegen::rust::Generator::new(
+                    } => mavspec::rust::Generator::new(
                         protocol,
                         &path,
                         GeneratorParams {

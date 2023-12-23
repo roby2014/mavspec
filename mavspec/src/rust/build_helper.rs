@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 extern crate cargo_manifest;
 use cargo_manifest::{Manifest, Value};
-use mavspec::parser::XMLInspector;
+use mavinspect::parser::XMLInspector;
 
 use crate::rust::{Generator, GeneratorParams};
 
@@ -96,8 +96,8 @@ impl BuildHelperConf {
     /// You can control which messages to include by specifying `messages` key in your `Cargo.toml`:
     ///
     /// ```toml
-    /// [package.metadata.mavcodegen]
-    /// messages = ["HEARTBEAT", "PROTOCOL_VERSION", "MAV_SPEC_V1", "COMMAND_INT", "COMMAND_LONG"]
+    /// [package.metadata.mavspec]
+    /// messages = ["HEARTBEAT", "PROTOCOL_VERSION", "MAV_INSPECT_V1", "COMMAND_INT", "COMMAND_LONG"]
     /// all_enums = false
     /// ```
     ///
@@ -148,7 +148,7 @@ impl BuildHelperConf {
             let manifest = Manifest::from_path(manifest_path).unwrap();
             if let Some(package) = manifest.package {
                 if let Some(metadata) = package.metadata {
-                    if let Some(spec) = metadata.get("mavcodegen") {
+                    if let Some(spec) = metadata.get("mavspec") {
                         if let Some(Value::Array(msgs)) = spec.get("messages") {
                             self.0.messages = Some(HashSet::from_iter(
                                 msgs.iter().map(|v| v.to_string().replace('"', "")),
