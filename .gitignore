@@ -10,8 +10,6 @@
 !/mavspec/**
 !/mavspec_*/
 !/mavspec_*/**
-!/mavlib*/
-!/mavlib*/**
 !/examples/
 !/examples/**
 

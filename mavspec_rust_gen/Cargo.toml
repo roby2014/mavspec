@@ -1,11 +1,11 @@
 [package]
 name = "mavspec_rust_gen"
-description = "A set of code generation utilities for MAVLink protocol."
+description = "Rust code generation module for MAVSpec."
 version = "0.1.0-alpha4"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
 repository = "https://gitlab.com/mavka/libs/mavspec"
-readme = "../README.md"
+readme = "README.md"
 license = "MIT OR Apache-2.0"
 homepage = "https://gitlab.com/mavka/libs/mavspec"
 keywords = ["MAVLink", "UAV", "drones", "parser", "code-generator"]
@@ -13,7 +13,8 @@ categories = [
     "aerospace::protocols",
     "aerospace::drones",
     "aerospace::unmanned-aerial-vehicles",
-    "parsing"
+    "no-std",
+    "no-std::no-alloc",
 ]
 resolver = "2"
 

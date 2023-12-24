@@ -1,6 +1,6 @@
 [package]
 name = "mavspec_rust_spec"
-description = "Core interfaces for MAVLib."
+description = "Core interfaces for MAVSpec's Rust code generation toolchain."
 version = "0.1.0-alpha1"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]

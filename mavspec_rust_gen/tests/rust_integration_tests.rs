@@ -1,4 +1,3 @@
-#[cfg(feature = "rust")]
 mod tests {
     use std::fs::remove_dir_all;
     use std::path::PathBuf;
@@ -17,7 +16,7 @@ mod tests {
     #[test]
     fn generate_rust() {
         use mavinspect::Inspector;
-        use mavspec::rust::gen::{Generator, GeneratorParams};
+        use mavspec_rust_gen::BuildHelper;
 
         let out_path = out_path();
 
@@ -28,17 +27,12 @@ mod tests {
             .parse()
             .unwrap();
 
-        let generator = Generator::new(
-            protocol,
-            &out_path,
-            GeneratorParams {
-                serde: true,
-                ..Default::default()
-            },
-        );
-        generator.generate().unwrap();
+        BuildHelper::builder(&out_path)
+            .set_protocol(protocol)
+            .set_serde(true)
+            .generate()
+            .unwrap();
 
-        // Clean up
         remove_dir_all(&out_path).unwrap();
     }
 }

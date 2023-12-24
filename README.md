@@ -1,68 +1,82 @@
 MAVSpec
 =======
 
-`MAVSpec` is a code-generator for [MAVLink](https://mavlink.io/en/) bindings based on
-[`MAVInspect`](https://gitlab.com/mavka/libs/mavinspect) XML definitions parser.
+A code-generator for [MAVLink](https://mavlink.io/en/).
 
 [`repository`](https://gitlab.com/mavka/libs/mavspec)
 [`crates.io`](https://crates.io/crates/mavspec)
 [`API docs`](https://docs.rs/mavspec/latest/mavspec/)
+[`issues`](https://gitlab.com/mavka/libs/mavspec/-/issues)
+
+MAVLink is a lightweight open protocol for communicating between drones, onboard components and ground control stations.
+It is used by such autopilots like [PX4](https://px4.io) or [ArduPilot](https://ardupilot.org/#). MAVLink has simple and
+compact serialization model. The basic abstraction is `message` which can be sent through the link (UDP, TCP, UNIX
+socket, UART, whatever) and deserialized into a struct with fields of primitive types or arrays of primitive types.
+Such fields can be additionally restricted by `enum` variants, annotated with metadata like units of measurements,
+default or invalid values. There are several MAVLink dialects. Official dialect definitions are
+[XML files]([MAVLink XML schema](https://mavlink.io/en/guide/xml_schema.html)) that can be found in the MAVlink
+[repository](https://github.com/mavlink/mavlink/tree/master/message_definitions/v1.0). Based on `message` abstractions,
+MAVLink defines so-called [`microservices`](https://mavlink.io/en/services/) that specify how clients should respond on
+a particular message under certain conditions or how they should initiate a particular action.
+
+This library is a building block for other MAVLink-related tools (telemetry collectors, IO, etc.). It is only responsible
+for code generation. Other [Mavka](https://mavka.gitlab.io/home/) projects are focused on different areas:
+
+* [MAVInspect](https://gitlab.com/mavka/libs/mavspec) responsible for parsing mavlink message XML definitions. MAVSpec 
+  is using this it to discover and parse MAVLink dialects.
+* [Mavio](https://gitlab.com/mavka/libs/mavio), a minimalistic library for transport-agnostic MAVLink communication
+  written in Rust. It supports `no-std` (and `no-alloc`) targets and focuses on stateless parts of MAVLink protocol.
+* [Maviola](https://gitlab.com/mavka/libs/maviola) (WIP), an elaborated MAVLink communication library based on `Mavio`
+  that takes care about stateful features: sequencing, message time-stamping, automatic heartbeats, simplifies message
+  signing, and so on.
+
+This project respects [`semantic versioning`](https://semver.org).
 
 Install
 -------
 
-Install MAVSpec with cargo:
+Install as a Cargo dependency.
 
 ```shell
-cargo add mavspec
+cargo add --build mavspec
 ```
 
-# Usage
+Since you probably want to generate code as a part of you build sequence, we suggest to also add MAVSpec as a build
+dependency.
+
+```shell
+cargo add --build mavspec
+```
+
+Usage
+-----
 
 > The following explains how to use library API, for command-line tool usage check [CLI](#cli) section.
 
-Basic usage:
+### Rust
 
-```rust
-use std::path::PathBuf;
-use mavspec::rust::{Generator, GeneratorParams};
-use mavinspect::Inspector;
+Add MAVSpec with `rust` feature to your `Cargo.toml`.
 
-fn main() {
-    // Parse XML definitions
-    let protocol = Inspector::builder()
-        // Paths to XML definitions directories
-        .set_sources(&[
-            "./message_definitions/standard",
-            "./message_definitions/extra",
-        ])
-        // Build configuration and parse dialects
-        .build().unwrap()
-        .parse().unwrap();
-
-    // Generate MAVLink dialects
-    let generator = Generator::new(
-        protocol,
-        PathBuf::from("./tmp/mavlink"),
-        GeneratorParams {
-            serde: true,
-            ..Default::default()
-        },
-    );
-    generator.generate().unwrap();
-}
+```toml
+[dependencies]
+#...
+mavspec = { version = "0.1.0", features = ["rust"] }
+#...
 ```
 
-### As build dependency
+This feature enables interfaces upon which your generated code will depend. You can access these interfaces through
+`use mavspec::rust::spec`.
 
-In most scenarios you'd like to generate code as a part of your build sequence. For such cases MAVSpec provides a
-`Builder` helper. First, add MAVSpec as a build dependency to your `Cargo.toml`:
+Optionally enable `std` (for Rust standard library) or `alloc` (for memory allocation support) features if your target
+supports them (if you are not developing for an embedded devices, then we suggest to always enable `std`).
+
+Add MAVSpec with `rust_gen` as a build dependency:
 
 ```toml
 [build-dependencies]
-# ...
-mavspec = "0.1.0-alpha4"
-# ...
+#...
+mavspec = { version = "0.1.0", features = ["rust_gen"] }
+#...
 ```
 
 If necessary, add optional section to your `Cargo.toml` to generate only specific messages:
@@ -73,13 +87,14 @@ messages = ["HEARTBEAT", "PROTOCOL_VERSION", "MAV_INSPECT_V1", "COMMAND_INT", "C
 all_enums = false
 ```
 
-This will greatly reduce compile time and may slightly reduce memory footprint. 
+This will greatly reduce compile time and may slightly reduce memory footprint (if you are not going to expose
+autogenerated code as a part of your library API, then Rust compiler will probably optimize away all unused pieces). 
 
 The `all_enum` key controls which enums will be generated. By default, only MAVLink enums required for selected messages
 will be generated. Set `all_enums = true` to generate all enums. If `messages` key is not specified, then `all_enums`
 won't have any effect.
 
-Build MAVLink bindings in your `build.rs`:
+Update your `build.rs`:
 
 ```rust
 use std::env::var;
@@ -98,14 +113,19 @@ fn main() {
     // Path to your `Cargo.toml` manifest
     let manifest_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
 
-    BuildHelper::builder(&sources, &destination)
+    // Parse XML definitions and generate Rust code
+    BuildHelper::builder(&destination)
+        .set_sources(&sources)
         .set_manifest_path(&manifest_path)
         .generate()
         .unwrap();
 }
 ```
 
-Finally, import generated code in your `lib.rs`:
+The `OUT_DIR` environment variable is provided by Rust build toolchain and points to output library for your crate. It
+is considered a bad practice to write outside this path in the build scripts.
+
+Finally, import generated code in your `lib.rs` (or anywhere it seems appropriate):
 
 ```rust
 mod mavlink {
@@ -114,7 +134,8 @@ mod mavlink {
 pub use mavlink::dialects;
 ```
 
-Check [`examples/rust`](examples/rust/README.md) for a more elaborated example.
+Check [`examples/rust`](examples/rust/README.md) for a slightly more elaborated example which uses Cargo features as flags for MAVLink
+dialect selection.
 
 CLI
 ---

@@ -1,4 +1,4 @@
-//! # Rust bindings generator for [MAVSpec](https://gitlab.com/mavka/libs/mavspec.
+//! # Rust bindings generator for [MAVSpec](https://gitlab.com/mavka/libs/mavspec).
 //!
 //! Generates [MAVLink](https://mavlink.io/en/) bindings for Rust.
 //!
