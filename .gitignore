@@ -8,6 +8,8 @@
 # Sources
 !/mavspec/
 !/mavspec/**
+!/mavspec_*/
+!/mavspec_*/**
 !/mavlib*/
 !/mavlib*/**
 !/examples/

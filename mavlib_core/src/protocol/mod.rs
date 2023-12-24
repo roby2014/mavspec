@@ -2,18 +2,18 @@
 //!
 //! MAVLink protocol abstractions.
 //!
-//! We also re-export from [`mavlib_spec`] crate to provide a full specification of MAVLink-related types.
+//! We also re-export from [`mavspec::rust::spec`] crate to provide a full specification of MAVLink-related types.
 
 use crate::consts::{
     HEADER_V1_SIZE, HEADER_V2_SIZE, SIGNATURE_LENGTH, SIGNATURE_TIMESTAMP_LENGTH,
     SIGNATURE_VALUE_LENGTH,
 };
 
-// Re-export from `mavlib_spec`
+// Re-export from `mavspec::rust::spec`
 #[doc(no_inline)]
-pub use mavlib_spec::types::{CrcExtra, MessageId};
+pub use mavspec::rust::spec::types::{CrcExtra, MessageId};
 #[doc(no_inline)]
-pub use mavlib_spec::{
+pub use mavspec::rust::spec::{
     DialectSpec, IntoPayload, MavLinkVersion, MessageImpl, MessageSpec, Payload,
 };
 

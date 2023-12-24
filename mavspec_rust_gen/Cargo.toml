@@ -1,5 +1,5 @@
 [package]
-name = "mavspec"
+name = "mavspec_rust_gen"
 description = "A set of code generation utilities for MAVLink protocol."
 version = "0.1.0-alpha4"
 edition = "2021"
@@ -8,49 +8,35 @@ repository = "https://gitlab.com/mavka/libs/mavspec"
 readme = "../README.md"
 license = "MIT OR Apache-2.0"
 homepage = "https://gitlab.com/mavka/libs/mavspec"
-keywords = ["MAVLink", "UAV", "drones", "parser"]
+keywords = ["MAVLink", "UAV", "drones", "parser", "code-generator"]
 categories = [
     "aerospace::protocols",
     "aerospace::drones",
     "aerospace::unmanned-aerial-vehicles",
-    "command-line-utilities",
     "parsing"
 ]
 resolver = "2"
 
 [lib]
-name = "mavspec"
+name = "mavspec_rust_gen"
 path = "src/lib.rs"
-
-[[bin]]
-name = "mavspec"
-path = "src/bin/mavspec.rs"
-required-features = ["rust_gen"]
 
 [dependencies]
 anyhow = "1.0.75"
-cargo-manifest = { version = "0.12.1", optional = true }
-clap = { version = "4.4.8", features = ["derive"] }
-env_logger = "0.10.1"
+cargo-manifest = "0.12.1"
 handlebars = "5.0.0-beta.5"
 heck = "0.5.0-rc.1"
 log = "0.4.20"
-mavinspect = "0.1.0"
-mavspec_rust_gen = { path = "../mavspec_rust_gen", optional = true }
-mavspec_rust_spec = { path = "../mavspec_rust_spec", optional = true }
+mavinspect = { version = "0.1.0", features = ["serde"] }
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
 thiserror = "1.0.50"
 
+[dev-dependencies]
+mavspec = { path = "../mavspec", default-features = false, features = ["rust"] }
+
 [features]
-default = ["rust", "rust_gen"]
-
-alloc = ["mavspec_rust_spec/alloc"]
-serde = ["mavspec_rust_spec/serde"]
-std = ["mavspec_rust_spec/std"]
-
-rust_gen = ["dep:mavspec_rust_gen", "std"]
-rust = ["dep:mavspec_rust_spec"]
+default = []
 
 [package.metadata.docs.rs]
 # Features to include into `docs.rs` documentation

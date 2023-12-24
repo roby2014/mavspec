@@ -1,10 +1,10 @@
-use crate::rust::conventions::split_description;
+use crate::conventions::split_description;
 use mavinspect::protocol::{MavType, Message, MessageField, MessageId};
 use serde::Serialize;
 use std::collections::HashMap;
 
-use crate::rust::generator::DialectSpec;
-use crate::rust::GeneratorParams;
+use crate::generator::DialectSpec;
+use crate::generator::GeneratorParams;
 
 /// Input for [`MESSAGES_MODULE_ROOT`] template.
 #[derive(Clone, Debug, Serialize)]
@@ -153,10 +153,10 @@ impl<'a> MessageSpec<'a> {
 /// Input: [`MessageSpec`].
 pub const MESSAGE: &str = r#"//! # MAVLink `{{name}}` message implementation.
 
-use mavlib_spec::{
+use mavspec::rust::spec::{
     IntoPayload, MavLinkVersion, MessageError, MessageImpl, MessageInfo, MessageSpec, Payload,
 };
-use mavlib_spec::types::{MessageId, CrcExtra};
+use mavspec::rust::spec::types::{MessageId, CrcExtra};
 
 /// `{{name}}` message ID.
 pub(crate) const MESSAGE_ID: MessageId = {{id}};
@@ -530,7 +530,7 @@ impl From<{{to-message-struct-name name}}> for {{to-message-raw-struct-name name
 ///
 /// See [MAVLink 2](https://mavlink.io/en/guide/mavlink_2.html).
 pub mod v2 {
-    use mavlib_spec::{Payload, MavLinkVersion, MessageError};
+    use mavspec::rust::spec::{Payload, MavLinkVersion, MessageError};
     use tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
     
     use super::{ {{to-message-struct-name name}}, {{to-message-raw-struct-name name}}, MESSAGE_ID };
@@ -574,7 +574,7 @@ pub mod v2 {
     /// * Returns [`MessageError::BufferError`] in case of malformed `payload`.
     /// * Returns [`MessageError::InvalidEnumValue`] if invalid value was provided for MAVLink enum.
     pub fn decode(payload: &[u8]) -> Result<{{to-message-struct-name name}}, MessageError> {
-        Ok(decode_raw(payload)?.try_into()?)
+        decode_raw(payload)?.try_into()
     }
     
     /// Encodes [`{{to-message-raw-struct-name name}}`] message into MAVLink [`Payload`].
@@ -626,7 +626,7 @@ pub mod v2 {
 ///
 /// See [MAVLink versions](https://mavlink.io/en/guide/mavlink_version.html).
 pub mod v1 {
-    use mavlib_spec::{Payload, MavLinkVersion, MessageError};
+    use mavspec::rust::spec::{Payload, MavLinkVersion, MessageError};
     use tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
     
     use super::{ {{to-message-struct-name name}}, {{to-message-raw-struct-name name}}, MESSAGE_ID };
@@ -675,7 +675,7 @@ pub mod v1 {
     /// * Returns [`MessageError::BufferError`] in case of malformed `payload`.
     /// * Returns [`MessageError::InvalidEnumValue`] if invalid value was provided for MAVLink enum.
     pub fn decode(payload: &[u8]) -> Result<{{to-message-struct-name name}}, MessageError> {
-        Ok(decode_raw(payload)?.try_into()?)
+        decode_raw(payload)?.try_into()
     }
 
     /// Encodes [`{{to-message-raw-struct-name name}}`] message into MAVLink [`Payload`].
@@ -790,7 +790,7 @@ impl InheritedMessageSpec {
 pub const INHERITED_MESSAGE: &str = "\
 //! MAVLink message `{{message_name}}` inherited from [`super::super::super::{{to-dialect-name dialect_name}}`] dialect.
 
-use mavlib_spec::MessageInfo;
+use mavspec::rust::spec::MessageInfo;
 
 use super::super::super::{{to-dialect-name dialect_name}} as dialect;
 

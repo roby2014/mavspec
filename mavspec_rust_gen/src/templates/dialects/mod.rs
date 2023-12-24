@@ -21,14 +21,14 @@ pub mod {{to-dialect-name name}};
 
 /// Dialect module root template.
 ///
-/// Input: [`crate::rust::generator::DialectSpec`].
+/// Input: [`crate::generator::DialectSpec`].
 pub const DIALECT_MODULE: &str = r#"//! # MAVLink dialect `{{name}}`
 
-use mavlib_spec::{
+use mavspec::rust::spec::{
     IntoPayload, DialectSpec, Payload, MessageSpec,
     MavLinkVersion, MessageError,
 };
-use mavlib_spec::types::{MessageId, DialectId, DialectVersion};
+use mavspec::rust::spec::types::{MessageId, DialectId, DialectVersion};
 
 // MAVLink messages.
 pub mod messages;

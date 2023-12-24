@@ -1,5 +1,5 @@
-use crate::rust::conventions::split_description;
-use crate::rust::GeneratorParams;
+use crate::conventions::split_description;
+use crate::generator::GeneratorParams;
 use mavinspect::protocol::{Enum, EnumEntry, MavType};
 use serde::Serialize;
 
@@ -84,7 +84,7 @@ impl EnumSpec {
 pub const ENUM: &str = r#"//! MAVLink `{{name}}` enum implementation.
 
 {{#if is_bitmask}}
-use mavlib_spec::bitflags::bitflags;
+use mavspec::rust::spec::bitflags::bitflags;
 
 bitflags! {
     /// MAVLink bitmask `{{name}}`.
@@ -108,7 +108,7 @@ bitflags! {
     }
 }
 {{else}}
-use mavlib_spec::MessageError;
+use mavspec::rust::spec::MessageError;
 
 #[allow(rustdoc::bare_urls)]
 /// MAVLink enum `{{name}}`.
@@ -152,7 +152,7 @@ impl {{to-enum-rust-name name}} {
 {{/each}}
             _ => {
                 return Err(MessageError::InvalidEnumValue {
-                    enum_name: "{{name_stripped}}".into(),
+                    enum_name: "{{name}}",
                     value: value.into(),
                 })
             }

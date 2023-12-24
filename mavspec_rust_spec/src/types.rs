@@ -1,6 +1,6 @@
 //! # Tiny types and type aliases
 //!
-//! Type aliases and tiny types (that require a few lines of code) used across the `mavlib_spec` library.
+//! Type aliases and tiny types (that require a few lines of code) used across the `mavspec_rust_spec` library.
 
 /// MAVLink message ID regardless of protocol.
 ///

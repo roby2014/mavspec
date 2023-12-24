@@ -11,7 +11,6 @@ extern crate alloc;
 
 // pub mod api;
 pub mod errors;
-pub mod io;
 
 mod mavlink {
     include!("mavlink/mod.rs");

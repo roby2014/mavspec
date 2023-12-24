@@ -6,7 +6,7 @@
 //! [`Error`] usually wrapping another underlying error.
 
 use mavlib_core::errors::FrameError;
-use mavlib_spec::MessageError;
+use mavspec::rust::spec::MessageError;
 
 /// This is a common result returned by `mavlib` functions and methods.
 pub type Result<T> = core::result::Result<T, Error>;

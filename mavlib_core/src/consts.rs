@@ -1,14 +1,14 @@
 //! # Constants
 //!
-//! We re-export from [`mavlib_spec::consts`] to to provide a full specification of MAVLink-related types.
+//! We re-export from [`mavspec::rust::spec::consts`] to to provide a full specification of MAVLink-related types.
 
-// Re-export from `mavlib_spec::consts`
+// Re-export from `mavspec::rust::spec::consts`
 #[doc(no_inline)]
-pub use mavlib_spec::consts::MESSAGE_ID_V1_MAX;
+pub use mavspec::rust::spec::consts::MESSAGE_ID_V1_MAX;
 #[doc(no_inline)]
-pub use mavlib_spec::consts::MESSAGE_ID_V2_MAX;
+pub use mavspec::rust::spec::consts::MESSAGE_ID_V2_MAX;
 #[doc(no_inline)]
-pub use mavlib_spec::consts::PAYLOAD_MAX_SIZE;
+pub use mavspec::rust::spec::consts::PAYLOAD_MAX_SIZE;
 
 /// `MAVLink 1` packet start marker value.
 ///

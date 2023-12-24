@@ -5,7 +5,8 @@ resolver = "2"
 members = [
     "mavspec",
     "mavlib",
-    "mavlib_spec",
+    "mavspec_rust_gen",
+    "mavspec_rust_spec",
     "mavlib_core",
     "examples/rust"
 ]

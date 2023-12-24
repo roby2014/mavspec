@@ -5,16 +5,16 @@
 //! The top-level error is [`CoreError`]. Library API returns versions of this error possibly wrapping other types of
 //! errors.
 //!
-//! We also re-export errors from [`mavlib_spec`] crate to provide a full specification of MAVLink-related errors.
+//! We also re-export errors from [`mavspec::rust::spec`] crate to provide a full specification of MAVLink-related errors.
 
 use tbytes::errors::TBytesError;
 
 #[cfg(feature = "std")]
 use thiserror::Error;
 
-// Re-export `mavlib_spec` errors.
+// Re-export `mavspec::rust::spec` errors.
 #[doc(no_inline)]
-pub use mavlib_spec::MessageError;
+pub use mavspec::rust::spec::MessageError;
 
 /// Common result type returned by `mavlib_core` functions and methods.
 pub type Result<T> = core::result::Result<T, CoreError>;

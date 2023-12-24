@@ -46,28 +46,9 @@ mod cli {
     }
 }
 
-#[cfg(any(feature = "rust"))]
-mod specs {
-    use anyhow::anyhow;
-    use mavinspect::parser::XMLInspector;
-    use mavinspect::protocol::Protocol;
-
-    pub fn parse_definitions<'a>(src: &[String]) -> anyhow::Result<Protocol> {
-        let src: Vec<&str> = src.iter().map(|s| s.as_str()).collect();
-
-        XMLInspector::builder()
-            .set_sources(&src)
-            .build()?
-            .parse()
-            .map_err(|err| anyhow!(err))
-    }
-}
-
-#[cfg(any(feature = "rust"))]
+#[cfg(feature = "rust_gen")]
 mod process {
     use crate::cli::{Cli, Commands};
-    use mavspec::rust::GeneratorParams;
-    use std::collections::HashSet;
     use std::fs::remove_dir_all;
 
     pub fn process(cli: &Cli) -> anyhow::Result<()> {
@@ -75,13 +56,12 @@ mod process {
             None => Ok(()),
             Some(command) => {
                 log::info!("MAVLink XML definition sources dirs: {:?}", cli.src);
-                let protocol = crate::specs::parse_definitions(&cli.src)?;
 
-                let path = std::path::Path::new(&cli.out).to_path_buf();
-                log::info!("Writing to output path: {:?}", path);
+                let out_path = std::path::Path::new(&cli.out).to_path_buf();
+
                 if cli.clean {
                     log::warn!("Output path will be cleaned.");
-                    if let Err(err) = remove_dir_all(&path) {
+                    if let Err(err) = remove_dir_all(&out_path) {
                         log::debug!("Error cleaning directory: {err:?}.");
                     };
                 }
@@ -92,18 +72,21 @@ mod process {
                         serde,
                         messages,
                         all_enums,
-                    } => mavspec::rust::Generator::new(
-                        protocol,
-                        &path,
-                        GeneratorParams {
-                            serde: *serde,
-                            messages: messages
-                                .as_ref()
-                                .map(|messages| HashSet::from_iter(messages.iter().cloned())),
-                            all_enums: *all_enums,
-                        },
-                    )
-                    .generate(),
+                    } => {
+                        log::info!("Writing Rust bindings to output path: {:?}", out_path);
+
+                        let mut conf = mavspec::rust::gen::BuildHelper::builder(&out_path);
+
+                        if let Some(messages) = messages {
+                            conf.set_messages(messages);
+                        };
+                        let sources: Vec<&str> = cli.src.iter().map(|s| s.as_str()).collect();
+
+                        conf.set_sources(&sources)
+                            .set_all_enums(*all_enums)
+                            .set_serde(*serde)
+                            .generate()
+                    }
                 }
             }
         }
@@ -126,6 +109,6 @@ fn main() {
     log::debug!("CLI arguments: {cli:?}");
 
     // Process CLI commands
-    #[cfg(any(feature = "rust"))]
+    #[cfg(feature = "rust_gen")]
     process::process(&cli).unwrap();
 }

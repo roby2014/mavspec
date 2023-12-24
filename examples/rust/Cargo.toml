@@ -20,7 +20,7 @@ path = "src/bin/rust_example.rs"
 # Dependencies
 ###########################################################
 [dependencies]
-mavlib_spec = { path = "../../mavlib_spec" }
+mavspec = { path = "../../mavspec" }
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
 serde_arrays = { version = "0.1.0", default-features = false, optional = true }
 tbytes = { version = "0.1.0-alpha1", default-features = false }
@@ -31,7 +31,7 @@ env_logger = "0.10.1"
 
 [build-dependencies]
 cargo-manifest = "0.12.1"
-mavspec = { path = "../../mavspec", default-features = false, features = ["rust", "build_utils"] }
+mavspec = { path = "../../mavspec", features = ["rust", "rust_gen"] }
 serde = "1.0.193"
 toml = "0.8.8"
 

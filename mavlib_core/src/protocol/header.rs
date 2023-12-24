@@ -3,7 +3,7 @@
 //! This module contains implementation for MAVLink packet header both for `MAVLink 1` and
 //! `MAVLink 2`.
 
-use mavlib_spec::consts::{MESSAGE_ID_V1_MAX, MESSAGE_ID_V2_MAX};
+use mavspec::rust::spec::consts::{MESSAGE_ID_V1_MAX, MESSAGE_ID_V2_MAX};
 use tbytes::{TBytesReader, TBytesReaderFor};
 
 use crate::consts::{

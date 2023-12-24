@@ -2,11 +2,12 @@ use std::collections::{HashMap, HashSet};
 use std::ffi::OsStr;
 use std::fs::{create_dir_all, File};
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use handlebars::Handlebars;
 use serde::Serialize;
 
-use crate::rust::templates::dialects::messages::MessagesSpec;
+use crate::templates::dialects::messages::MessagesSpec;
 use mavinspect::protocol::{
     Dialect, DialectId, DialectVersion, Enum, Message, MessageId, Protocol,
 };
@@ -77,7 +78,7 @@ impl<'a> DialectSpec<'a> {
 
 /// Rust code generator.
 pub struct Generator<'a> {
-    protocol: Protocol,
+    protocol: Arc<Protocol>,
     path: PathBuf,
     params: GeneratorParams,
     handlebars: Handlebars<'a>,
@@ -86,7 +87,7 @@ pub struct Generator<'a> {
 impl<'a> Generator<'a> {
     /// Default constructor.
     pub fn new<T: ?Sized + AsRef<OsStr>>(
-        protocol: Protocol,
+        protocol: Arc<Protocol>,
         path: &T,
         params: GeneratorParams,
     ) -> Self {
@@ -128,7 +129,7 @@ impl<'a> Generator<'a> {
 
         let file = File::create(self.root_module_file_path("mod.rs"))?;
         self.handlebars
-            .render_to_write("mod.rs", &self.protocol, file)?;
+            .render_to_write("mod.rs", self.protocol.as_ref(), file)?;
         log::debug!("Generated: root module.");
 
         Ok(())
@@ -141,7 +142,7 @@ impl<'a> Generator<'a> {
         // Generate root module for all dialects
         let file = File::create(self.dialects_mod_rs())?;
         self.handlebars
-            .render_to_write("dialects/mod.rs", &self.protocol, file)?;
+            .render_to_write("dialects/mod.rs", self.protocol.as_ref(), file)?;
         log::debug!("Generated: 'dialects' root module.");
 
         // Generate individual dialects

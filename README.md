@@ -26,11 +26,11 @@ Basic usage:
 ```rust
 use std::path::PathBuf;
 use mavspec::rust::{Generator, GeneratorParams};
-use mavinspect::parser::XMLInspector;
+use mavinspect::Inspector;
 
 fn main() {
     // Parse XML definitions
-    let protocol = XMLInspector::builder()
+    let protocol = Inspector::builder()
         // Paths to XML definitions directories
         .set_sources(&[
             "./message_definitions/standard",

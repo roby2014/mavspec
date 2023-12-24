@@ -20,7 +20,7 @@ resolver = "2"
 publish = false
 
 [dependencies]
-mavlib_spec = { path = "../mavlib_spec", default-features = false }
+mavspec = { path = "../mavspec", default-features = false, features = ["rust"] }
 mavlib_core = { path = "../mavlib_core", default-features = false }
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
 serde_arrays = { version = "0.1.0", default-features = false, optional = true }
@@ -30,22 +30,21 @@ tbytes = "0.1.0-alpha2"
 
 
 [build-dependencies]
-mavspec = { path = "../mavspec", features = ["rust"], default-features = false }
-#mavinspect = { version = "0.1.0-alpha4", default-features = false, features = ["serde"] }
-mavinspect = { git = "https://gitlab.com/mavka/libs/mavinspect.git", features = ["serde"] }
+mavspec = { path = "../mavspec", features = ["rust_gen"], default-features = false }
+mavinspect = "0.1.0"
 
 [dev-dependencies]
 
 [features]
 ## Enables memory allocation support.
 alloc = [
-    "mavlib_spec/alloc",
+    "mavspec/alloc",
     "serde/alloc",
 ]
 ## Enables `std` library.
 std = [
     "alloc",
-    "mavlib_spec/std",
+    "mavspec/std",
     "serde/std",
 ]
 ## Enables serde support (with `serde-big-array` for large arrays)

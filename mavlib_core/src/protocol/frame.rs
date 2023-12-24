@@ -548,7 +548,7 @@ impl FrameBuilder {
         let payload = match &self.payload {
             Some(payload) => payload.clone(),
             None => {
-                return Err(FrameError::MissingFrameField("payload".into()).into());
+                return Err(FrameError::MissingFrameField("payload").into());
             }
         };
 
@@ -568,7 +568,7 @@ impl FrameBuilder {
         frame.checksum = match self.crc_extra {
             Some(crc_extra) => frame.calculate_crc(crc_extra),
             None => {
-                return Err(FrameError::MissingFrameField("crc_extra".into()).into());
+                return Err(FrameError::MissingFrameField("crc_extra").into());
             }
         };
 

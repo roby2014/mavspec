@@ -1,7 +1,7 @@
 use std::env::var;
 use std::path::Path;
 
-use mavspec::rust::BuildHelper;
+use mavspec::rust::gen::BuildHelper;
 
 fn main() {
     let included_dialects = {
@@ -39,10 +39,11 @@ fn main() {
     let manifest_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
     let serde_feature_enabled = var("CARGO_FEATURE_SERDE").is_ok();
 
-    BuildHelper::builder(&sources, &destination)
+    BuildHelper::builder(&destination)
+        .set_sources(&sources)
         .set_manifest_path(&manifest_path)
         .set_serde(serde_feature_enabled)
-        .set_dialects(&included_dialects)
+        .set_include_dialects(&included_dialects)
         .generate()
         .unwrap();
 }

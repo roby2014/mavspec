@@ -1,5 +1,5 @@
 [package]
-name = "mavlib_spec"
+name = "mavspec_rust_spec"
 description = "Core interfaces for MAVLib."
 version = "0.1.0-alpha1"
 edition = "2021"
@@ -45,5 +45,5 @@ serde = [
 ]
 
 [lib]
-name = "mavlib_spec"
+name = "mavspec_rust_spec"
 path = "src/lib.rs"

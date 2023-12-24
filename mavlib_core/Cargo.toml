@@ -27,7 +27,7 @@ path = "src/lib.rs"
 ###########################################################
 [dependencies]
 crc-any = { version = "2.4.3", default-features = false }
-mavlib_spec = { path = "../mavlib_spec", default-features = false }
+mavspec = { path = "../mavspec", default-features = false, features = ["rust"] }
 tbytes = { version = "0.1.0-alpha1", default-features = false }
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
 serde_arrays = { version = "0.1.0", default-features = false, optional = true }
@@ -41,9 +41,8 @@ portpicker = "0.1.1"
 
 [build-dependencies]
 cargo-manifest = "0.12.1"
-mavspec = { path = "../mavspec", default-features = false, features = ["rust", "build_utils"] }
-#mavinspect = { version = "0.1.0-alpha4", default-features = false, features = ["serde"] }
-mavinspect = { git = "https://gitlab.com/mavka/libs/mavinspect.git" }
+mavinspect = "0.1.0"
+mavspec = { path = "../mavspec", default-features = false, features = ["rust", "rust_gen"] }
 serde = "1.0.193"
 toml = "0.8.8"
 
@@ -55,7 +54,7 @@ toml = "0.8.8"
 default = ["std", "minimal", "sha2"]
 ## Enables memory allocation support.
 alloc = [
-    "mavlib_spec/alloc",
+    "mavspec/alloc",
     "serde/alloc",
     "tbytes/alloc",
 ]
@@ -63,7 +62,7 @@ sha2 = ["dep:sha2"]
 ## Enables Rust std library.
 std = [
     "alloc",
-    "mavlib_spec/std",
+    "mavspec/std",
     "serde/std",
     "sha2/std",
     "tbytes/std",
@@ -72,7 +71,7 @@ std = [
 ## Enables serde support.
 serde = [
     "dep:serde",
-    "mavlib_spec/serde",
+    "mavspec/serde",
     "dep:serde_arrays",
 ]
 
