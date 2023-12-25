@@ -34,7 +34,7 @@ serde_json = "1.0.108"
 thiserror = "1.0.50"
 
 [dev-dependencies]
-mavspec = { path = "../mavspec", default-features = false, features = ["rust"] }
+mavspec = { path = "../mavspec", default-features = false, features = ["rust_gen"] }
 
 [features]
 default = []

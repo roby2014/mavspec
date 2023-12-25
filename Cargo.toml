@@ -6,5 +6,7 @@ members = [
     "mavspec",
     "mavspec_rust_gen",
     "mavspec_rust_spec",
-    "examples/rust"
+
+    "examples/*",
+    "tests/*",
 ]

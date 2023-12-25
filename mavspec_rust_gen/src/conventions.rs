@@ -10,6 +10,7 @@ const RUST_RESERVED_KEYWORDS: [&str; 50] = [
 ];
 
 pub const MAX_COMMENT_LENGTH: usize = 80;
+pub const NUMERIC_IDENTIFIER_PREFIX: &str = "MAV_";
 
 pub fn dialect_name(dialect_name: String) -> String {
     heck::AsSnakeCase(dialect_name).to_string()
@@ -22,6 +23,7 @@ pub fn enum_rust_name(enum_name: String) -> String {
 pub fn split_description(value: &str) -> Vec<String> {
     let mut result = "".to_string();
     let mut pos = 0;
+    let value = value.replace('\t', " ");
 
     for (_, ch) in value.chars().enumerate() {
         pos += 1;
@@ -45,7 +47,18 @@ pub fn enum_file_name(message_name: String) -> String {
 }
 
 pub fn enum_entry_name(entry_name: String) -> String {
-    heck::AsUpperCamelCase(entry_name).to_string()
+    heck::AsUpperCamelCase(enum_entry_name_stripped(entry_name)).to_string()
+}
+
+pub fn enum_bitmap_entry_name(entry_name: String) -> String {
+    enum_entry_name_stripped(entry_name)
+}
+
+pub fn enum_entry_name_stripped(entry_name: String) -> String {
+    match entry_name.chars().next() {
+        Some(ch) if ch.is_numeric() => format!("{}{}", NUMERIC_IDENTIFIER_PREFIX, entry_name),
+        None | Some(_) => entry_name,
+    }
 }
 
 pub fn message_mod_name(message_name: String) -> String {

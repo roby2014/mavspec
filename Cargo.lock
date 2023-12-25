@@ -329,23 +329,17 @@ name = "mavspec"
 version = "0.1.0-alpha4"
 dependencies = [
  "anyhow",
- "cargo-manifest",
  "clap",
  "env_logger",
- "handlebars",
- "heck 0.5.0-rc.1",
  "log",
  "mavinspect",
  "mavspec_rust_gen",
  "mavspec_rust_spec",
- "serde",
- "serde_json",
- "thiserror",
 ]
 
 [[package]]
-name = "mavspec_rust_example"
-version = "0.1.0-alpha1"
+name = "mavspec_examples_rust"
+version = "0.0.0"
 dependencies = [
  "cargo-manifest",
  "env_logger",
@@ -375,12 +369,26 @@ dependencies = [
 
 [[package]]
 name = "mavspec_rust_spec"
-version = "0.1.0-alpha1"
+version = "0.1.0-alpha4"
 dependencies = [
  "bitflags",
  "serde",
  "serde_arrays",
  "tbytes",
+]
+
+[[package]]
+name = "mavspec_tests_rust"
+version = "0.0.0"
+dependencies = [
+ "cargo-manifest",
+ "env_logger",
+ "log",
+ "mavspec",
+ "serde",
+ "serde_arrays",
+ "tbytes",
+ "toml 0.8.8",
 ]
 
 [[package]]
@@ -583,9 +591,9 @@ checksum = "73473c0e59e6d5812c5dfe2a064a6444949f089e20eec9a2e5506596494e4623"
 
 [[package]]
 name = "syn"
-version = "2.0.42"
+version = "2.0.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b7d0a2c048d661a1a59fcd7355baa232f7ed34e0ee4df2eef3c1c1c0d3852d8"
+checksum = "ee659fb5f3d355364e1f3e5bc10fb82068efbf824a1e9d1c9504244a6469ad53"
 dependencies = [
  "proc-macro2",
  "quote",

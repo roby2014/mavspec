@@ -12,6 +12,8 @@
 !/mavspec_*/**
 !/examples/
 !/examples/**
+!/tests/
+!/tests/**
 
 # MAVLink
 !/mavlink

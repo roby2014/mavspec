@@ -2,10 +2,10 @@ use handlebars::{handlebars_helper, Handlebars};
 use mavinspect::protocol::{DialectId, DialectVersion, MavType};
 
 use super::conventions::{
-    dialect_name, enum_entry_name, enum_mod_name, enum_rust_name, message_file_name,
-    message_mod_name, message_raw_struct_name, message_struct_name, messages_enum_entry_name,
-    module_path_to_crate_path, rust_default_value, rust_var_name, t_bytes_read_fn,
-    t_bytes_write_fn,
+    dialect_name, enum_bitmap_entry_name, enum_entry_name, enum_mod_name, enum_rust_name,
+    message_file_name, message_mod_name, message_raw_struct_name, message_struct_name,
+    messages_enum_entry_name, module_path_to_crate_path, rust_default_value, rust_var_name,
+    t_bytes_read_fn, t_bytes_write_fn,
 };
 
 handlebars_helper!(to_crate_path: | s: String | module_path_to_crate_path(s));
@@ -14,6 +14,7 @@ handlebars_helper!(to_dialect_name: | s: String | dialect_name(s));
 handlebars_helper!(to_enum_rust_name: | s: String | enum_rust_name(s));
 handlebars_helper!(to_enum_mod_name: | s: String | enum_mod_name(s));
 handlebars_helper!(to_enum_entry_name: | s: String | enum_entry_name(s));
+handlebars_helper!(to_enum_bitmap_entry_name: | s: String | enum_bitmap_entry_name(s));
 
 handlebars_helper!(to_message_mod_name: | s: String | message_mod_name(s));
 handlebars_helper!(to_messages_enum_entry_name: | s: String | messages_enum_entry_name(s));
@@ -44,6 +45,10 @@ pub fn register_helpers(reg: &mut Handlebars) {
     reg.register_helper("to-enum-rust-name", Box::new(to_enum_rust_name));
     reg.register_helper("to-enum-mod-name", Box::new(to_enum_mod_name));
     reg.register_helper("to-enum-entry-name", Box::new(to_enum_entry_name));
+    reg.register_helper(
+        "to-enum-bitmap-entry-name",
+        Box::new(to_enum_bitmap_entry_name),
+    );
 
     reg.register_helper("to-message-mod-name", Box::new(to_message_mod_name));
     reg.register_helper(

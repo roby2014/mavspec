@@ -8,7 +8,7 @@ stages:
   - release
 
 variables:
-  DRY_CARGO_RELEASE: "true"
+  DRY_CARGO_RELEASE: "false"
   CI_CARGO_PACKAGE: mavspec
 
 # ---------------------------------------------------------
@@ -31,25 +31,36 @@ test:test:
   extends: .test:test  # from: local: "/.gitlab-ci/test.gitlab-ci.yml"
   stage: test
 
-test:publish:
-  extends: .test:publish  # from: local: "/.gitlab-ci/test.gitlab-ci.yml"
-  stage: test
-
 # ---------------------------------------------------------
 #                        Release
 # ---------------------------------------------------------
 
-release:publish:crates:
+release:publish:crates:deps:
   extends: .release:publish:crates  # from: local: "/.gitlab-ci/release.gitlab-ci.yml"
   stage: release
   needs:
     - test:validate:tags
     - test:build:docs
     - test:test
-    - test:publish
+  parallel:
+    matrix:
+      - CI_CARGO_PACKAGE:
+          - "mavspec_rust_gen"
+          - "mavspec_rust_spec"
+
+release:publish:crates:mavspec:
+  extends: .release:publish:crates  # from: local: "/.gitlab-ci/release.gitlab-ci.yml"
+  stage: release
+  variables:
+    CI_CARGO_PACKAGE: mavspec
+  needs:
+    - test:validate:tags
+    - test:build:docs
+    - test:test
+    - release:publish:crates:deps
 
 release:release:
   extends: .release:release  # from: local: "/.gitlab-ci/release.gitlab-ci.yml"
   stage: release
   needs:
-    - release:publish:crates
+    - release:publish:crates:mavspec

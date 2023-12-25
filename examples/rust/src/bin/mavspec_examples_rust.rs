@@ -9,7 +9,7 @@ pub fn main() {
     #[cfg(feature = "minimal")]
     {
         use dialect::enums::{MavAutopilot, MavModeFlag, MavState, MavType};
-        use rust_example::dialects::minimal as dialect;
+        use mavspec_examples_rust::dialects::minimal as dialect;
 
         let message = dialect::messages::Heartbeat {
             r#type: MavType::FixedWing,
@@ -26,7 +26,7 @@ pub fn main() {
     #[cfg(feature = "common")]
     {
         use dialect::enums::{MavCmd, MavFrame, SpeedType};
-        use rust_example::dialects::common as dialect;
+        use mavspec_examples_rust::dialects::common as dialect;
 
         let message = dialect::messages::CommandInt {
             target_system: 10,
@@ -50,7 +50,7 @@ pub fn main() {
     #[cfg(feature = "mav_inspect_test")]
     {
         use dialect::enums::{SmallBitmask, SmallEnum};
-        use rust_example::dialects::mav_inspect_test as dialect;
+        use mavspec_examples_rust::dialects::mav_inspect_test as dialect;
 
         let message = dialect::messages::MavInspectV1 {
             plain_uint8: 10,
@@ -64,5 +64,13 @@ pub fn main() {
         };
 
         println!("{message:#?}");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn rust_example_test() {
+        super::main();
     }
 }

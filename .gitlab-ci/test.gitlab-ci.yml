@@ -46,8 +46,9 @@ include:
     - !reference [ .executor:rust, before_script ]  # from: local: "/.gitlab-ci/executors.gitlab-ci.yml"
     - rustup component add clippy
   script:
-    # Lint code for minimal features
-    - cargo check ${FEATURES}
+    # Build package (to prevent Clippy)
+    - cargo build ${FEATURES}
+    # Lint code
     - cargo clippy ${FEATURES}
     # Run tests
     - cargo test ${FEATURES} --lib --tests --bins
@@ -57,12 +58,3 @@ include:
           - "--no-default-features"
           - ""
           - "--all-features"
-
-# ---------------------------------------------------------
-#      [TEST] Dry run for publishing to Crates.io
-# ---------------------------------------------------------
-.test:publish:
-  stage: test
-  extends: .executor:rust  # from local: "/.gitlab-ci/executors.gitlab-ci.yml"
-  script:
-    - cargo publish --package ${CI_CARGO_PACKAGE} --dry-run

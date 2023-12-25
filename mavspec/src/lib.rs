@@ -1,5 +1,10 @@
 //! # MAVSpec
 //!
+//! [`repository`](https://gitlab.com/mavka/libs/mavspec) |
+//! [`crates.io`](https://crates.io/crates/mavspec) |
+//! [`API docs`](https://docs.rs/mavspec/latest/mavspec/) |
+//! [`issues`](https://gitlab.com/mavka/libs/mavspec/-/issues)
+//!
 //! Code-generation for [MAVLink](https://mavlink.io/en/) protocol based on
 //! [MAVInspect](https://gitlab.com/mavka/libs/mavinspect).
 //!
@@ -17,10 +22,12 @@
 
 #[cfg(feature = "rust")]
 pub mod rust {
-    //! MAVSpec for Rust.
+    //! MAVSpec's code generation toolchain for Rust.
 
+    #[doc(inline)]
     pub use mavspec_rust_spec as spec;
 
     #[cfg(feature = "rust_gen")]
+    #[doc(inline)]
     pub use mavspec_rust_gen as gen;
 }

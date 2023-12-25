@@ -1,7 +1,8 @@
-use crate::conventions::split_description;
-use crate::generator::GeneratorParams;
 use mavinspect::protocol::{Enum, EnumEntry, MavType};
 use serde::Serialize;
+
+use crate::conventions::split_description;
+use crate::generator::GeneratorParams;
 
 /// Enums module root template.
 ///
@@ -87,6 +88,8 @@ pub const ENUM: &str = r#"//! MAVLink `{{name}}` enum implementation.
 use mavspec::rust::spec::bitflags::bitflags;
 
 bitflags! {
+    #[allow(rustdoc::bare_urls)]
+    #[allow(rustdoc::broken_intra_doc_links)]
     /// MAVLink bitmask `{{name}}`.
     ///
     {{#each description}}
@@ -103,14 +106,16 @@ bitflags! {
 {{#each description}}
         /// {{this}}
 {{/each}}
-        const {{name_stripped}} = {{value}};
+        const {{to-enum-bitmap-entry-name name_stripped}} = {{value}};
 {{/each}}
     }
 }
 {{else}}
 use mavspec::rust::spec::MessageError;
 
+#[cfg(not(doctest))]
 #[allow(rustdoc::bare_urls)]
+#[allow(rustdoc::broken_intra_doc_links)]
 /// MAVLink enum `{{name}}`.
 ///
 {{#each description}}
@@ -134,7 +139,7 @@ pub enum {{to-enum-rust-name name}} {
 impl TryFrom<{{to-rust-type inferred_type}}> for {{to-enum-rust-name name}} {
     type Error = MessageError;
 
-    fn try_from(value: {{to-rust-type inferred_type}}) -> Result<Self, Self::Error> {
+    fn try_from(value: {{to-rust-type inferred_type}}) -> Result<Self, MessageError> {
         Self::try_from_discriminant(value)
     }
 }

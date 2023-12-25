@@ -1,6 +1,12 @@
-//! # Rust bindings generator for [MAVSpec](https://gitlab.com/mavka/libs/mavspec).
+//! # Rust bindings generator for MAVSpec
 //!
-//! Generates [MAVLink](https://mavlink.io/en/) bindings for Rust.
+//! [`repository`](https://gitlab.com/mavka/libs/mavspec) |
+//! [`crates.io`](https://crates.io/crates/mavspec) |
+//! [`API docs`](https://docs.rs/mavspec/latest/mavspec/rust/gen) |
+//! [`issues`](https://gitlab.com/mavka/libs/mavspec/-/issues)
+//!
+//! This module contains Rust bindings for [MAVSpec](https://gitlab.com/mavka/libs/mavinspect), a code generation
+//! toolchain for [MAVLink](https://mavlink.io/en/) protocol.
 //!
 //! # Usage
 //!
@@ -60,7 +66,7 @@
 //! #   .set_include_dialects(&["minimal"])
 //!     .generate()
 //!     .unwrap();
-//! # remove_dir_all(&destination).unwrap();
+//! # remove_dir_all("../tmp/mavlink").unwrap();
 //! ```
 
 #![warn(missing_docs)]

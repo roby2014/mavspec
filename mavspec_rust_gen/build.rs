@@ -1,7 +1,7 @@
 use std::path::Path;
 use std::process::Command;
 
-fn main() {
+fn git_submodule_update() {
     let src_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
 
     // Update and init submodule
@@ -14,4 +14,8 @@ fn main() {
     {
         eprintln!("{error}");
     }
+}
+
+fn main() {
+    git_submodule_update();
 }

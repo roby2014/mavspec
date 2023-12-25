@@ -1,8 +1,9 @@
-use crate::conventions::split_description;
-use mavinspect::protocol::{MavType, Message, MessageField, MessageId};
-use serde::Serialize;
 use std::collections::HashMap;
 
+use mavinspect::protocol::{MavType, Message, MessageField, MessageId};
+use serde::Serialize;
+
+use crate::conventions::split_description;
 use crate::generator::DialectSpec;
 use crate::generator::GeneratorParams;
 
@@ -172,6 +173,7 @@ pub const fn spec() -> &'static dyn MessageSpec {
 }
 
 #[allow(rustdoc::bare_urls)]
+#[allow(rustdoc::broken_intra_doc_links)]
 /// MAVLink `{{name}}` message.
 ///
 /// Minimum supported MAVLink version is `MAVLink {{#if is_v1_compatible}}1{{else}}2{{/if}}`.
@@ -467,6 +469,7 @@ impl {{to-message-raw-struct-name name}} {
             {{to-rust-var name}}: {
                 use super::super::enums::{{to-enum-rust-name enum_name}} as Enum;
                 let mut values: [Enum; {{array_length}}] = [Enum::default(); {{array_length}}];
+                #[allow(clippy::needless_range_loop)]
                 for i in 0 .. {{array_length}} {
                     values[i] = Enum::from_bits_retain(
                         self.{{to-rust-var name}}[i]{{#if cast_enum}} as {{to-rust-type enum_type}}{{/if}},
@@ -484,6 +487,7 @@ impl {{to-message-raw-struct-name name}} {
             {{to-rust-var name}}: {
                 use super::super::enums::{{to-enum-rust-name enum_name}} as Enum;
                 let mut values: [Enum; {{array_length}}] = [Enum::default(); {{array_length}}];
+                #[allow(clippy::needless_range_loop)]
                 for i in 0 .. {{array_length}} {
                     values[i] = Enum::try_from_discriminant(
                         self.{{to-rust-var name}}[i]{{#if cast_enum}} as {{to-rust-type enum_type}}{{/if}},
@@ -531,7 +535,7 @@ impl From<{{to-message-struct-name name}}> for {{to-message-raw-struct-name name
 /// See [MAVLink 2](https://mavlink.io/en/guide/mavlink_2.html).
 pub mod v2 {
     use mavspec::rust::spec::{Payload, MavLinkVersion, MessageError};
-    use tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
+    use mavspec::rust::spec::tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
     
     use super::{ {{to-message-struct-name name}}, {{to-message-raw-struct-name name}}, MESSAGE_ID };
 
@@ -627,7 +631,7 @@ pub mod v2 {
 /// See [MAVLink versions](https://mavlink.io/en/guide/mavlink_version.html).
 pub mod v1 {
     use mavspec::rust::spec::{Payload, MavLinkVersion, MessageError};
-    use tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
+    use mavspec::rust::spec::tbytes::{TBytesWriterFor, TBytesReader, TBytesReaderFor, TBytesWriter};
     
     use super::{ {{to-message-struct-name name}}, {{to-message-raw-struct-name name}}, MESSAGE_ID };
 
