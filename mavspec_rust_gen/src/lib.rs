@@ -33,8 +33,8 @@
 //! # remove_dir_all("../tmp/mavlink").unwrap();
 //! ```
 //!
-//! For better control you may directly pass `Protocol` from [MAVInspect](https://gitlab.com/mavka/libs/mavinspect)'s
-//! `Inspector`.
+//! For better control over included dialects you may directly pass `Protocol` from
+//! [MAVInspect](https://gitlab.com/mavka/libs/mavinspect)'s `Inspector`.
 //!
 //! ```rust
 //! # use std::fs::remove_dir_all;
@@ -63,7 +63,6 @@
 //! // Generate rust bindings
 //! BuildHelper::builder(destination)
 //!     .set_protocol(protocol)
-//! #   .set_include_dialects(&["minimal"])
 //!     .generate()
 //!     .unwrap();
 //! # remove_dir_all("../tmp/mavlink").unwrap();
