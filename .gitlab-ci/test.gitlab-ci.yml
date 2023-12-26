@@ -46,7 +46,7 @@ include:
     - !reference [ .executor:rust, before_script ]  # from: local: "/.gitlab-ci/executors.gitlab-ci.yml"
     - rustup component add clippy
   script:
-    # Build package (to prevent Clippy)
+    # Build package (to prevent Clippy errors)
     - cargo build ${FEATURES}
     # Lint code
     - cargo clippy ${FEATURES}

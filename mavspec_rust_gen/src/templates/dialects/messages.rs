@@ -727,6 +727,7 @@ pub mod v1 {
 }
 {{/if}}
 
+{{#if params.generate_tests}}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -765,6 +766,7 @@ mod tests {
     }
 {{/if}}
 }
+{{/if}}
 "#;
 
 /// Input for [`INHERITED_MESSAGE`] template.

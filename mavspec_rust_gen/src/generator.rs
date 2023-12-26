@@ -19,15 +19,10 @@ use super::templates;
 /// [`Generator`] parameters.
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct GeneratorParams {
-    /// Add `serde` support for all generated entities.
     pub serde: bool,
-    /// Messages to include.
-    ///
-    /// Only specified messages and related enums will be included to generated files. To include all enums
-    /// set `all_enums` to `true`.
     pub messages: Option<HashSet<String>>,
-    /// Include all enums regardless of specified `messages`.
     pub all_enums: bool,
+    pub generate_tests: bool,
 }
 
 /// Specification for dialect-level templates.

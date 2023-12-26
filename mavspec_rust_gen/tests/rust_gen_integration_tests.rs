@@ -30,6 +30,7 @@ mod tests {
         BuildHelper::builder(&out_path)
             .set_protocol(protocol)
             .set_serde(true)
+            .set_generate_tests(true)
             .generate()
             .unwrap();
 

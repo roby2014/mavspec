@@ -39,8 +39,13 @@
 //! # Errors
 //!
 //! All fallible functions and methods return [`MessageError`] on failure.
+
 #![warn(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
+#![doc(
+    html_logo_url = "https://gitlab.com/mavka/libs/mavspec/-/raw/main/avatar.png?ref_type=heads",
+    html_favicon_url = "https://gitlab.com/mavka/libs/mavspec/-/raw/main/avatar.png?ref_type=heads"
+)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub use bitflags;

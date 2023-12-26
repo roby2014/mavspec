@@ -274,6 +274,7 @@ pub fn encode_raw(msg: &MessageRaw, version: MavLinkVersion) -> Result<Payload, 
     })
 }
 
+{{#if params.generate_tests}}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -291,4 +292,5 @@ mod tests {
         }
     }
 }
+{{/if}}
 "#;

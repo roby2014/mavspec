@@ -70,3 +70,4 @@ standard = ["minimal"]
 [package.metadata.mavspec]
 messages = ["HEARTBEAT", "PROTOCOL_VERSION", "MAV_INSPECT_V1", "COMMAND_INT", "COMMAND_LONG"]
 all_enums = false
+generate_tests = true
