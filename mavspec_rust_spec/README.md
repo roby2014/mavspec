@@ -11,7 +11,7 @@ Core interfaces for [MAVSpec](https://gitlab.com/mavka/libs/mavinspect)'s Rust c
 
 This crate is a part of [MAVSpec](https://gitlab.com/mavka/libs/mavinspect) code generation toolchain for
 [MAVLink](https://mavlink.io/en/). While nothing prevents from using this crate directly, such approach
-usage is not encouraged (and not documented). We suggest to import this module from Mavspec as `mavspec::rust::gen`.
+is not encouraged (and not documented). We suggest to import this module from Mavspec as `mavspec::rust::gen`.
 
 This project is a member of [Mavka](https://mavka.gitlab.io/home/) family.
 

@@ -14,7 +14,7 @@ compact serialization model. The basic abstraction is `message` which can be sen
 socket, UART, whatever) and deserialized into a struct with fields of primitive types or arrays of primitive types.
 Such fields can be additionally restricted by `enum` variants, annotated with metadata like units of measurements,
 default or invalid values. There are several MAVLink dialects. Official dialect definitions are
-[XML files]([MAVLink XML schema](https://mavlink.io/en/guide/xml_schema.html)) that can be found in the MAVlink
+[XML files](https://mavlink.io/en/guide/xml_schema.html) that can be found in the MAVlink
 [repository](https://github.com/mavlink/mavlink/tree/master/message_definitions/v1.0). Based on `message` abstractions,
 MAVLink defines so-called [`microservices`](https://mavlink.io/en/services/) that specify how clients should respond on
 a particular message under certain conditions or how they should initiate a particular action.
@@ -54,6 +54,8 @@ Usage
 > The following explains how to use library API, for command-line tool usage check [CLI](#cli) section.
 
 ### Rust
+
+API documentation for Rust code-generation can be found [here](https://docs.rs/mavspec/latest/mavspec/rust).
 
 Add MAVSpec with `rust` feature to your `Cargo.toml`.
 
