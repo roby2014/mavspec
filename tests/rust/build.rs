@@ -36,7 +36,6 @@ fn main() {
         .set_manifest_path(&manifest_path)
         .set_serde(serde_feature_enabled)
         .set_include_dialects(&included_dialects)
-        .set_generate_tests(true)
         .generate()
         .unwrap();
 }

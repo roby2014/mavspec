@@ -21,20 +21,16 @@ test = true
 # Dependencies
 ###########################################################
 [dependencies]
+# MAVSpec: enable `rust` feature to import Rust interfaces.
 mavspec = { path = "../../mavspec", default-features = false, features = ["rust"] }
+
+# Serde support: we need to include both `serde` and `serde_arrays`.
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
 serde_arrays = { version = "0.1.0", default-features = false, optional = true }
-tbytes = { version = "0.1.0-alpha1", default-features = false }
-
-[dev-dependencies]
-log = "0.4.20"
-env_logger = "0.10.1"
 
 [build-dependencies]
-cargo-manifest = "0.12.1"
-mavspec = { path = "../../mavspec", features = ["rust", "rust_gen"] }
-serde = "1.0.193"
-toml = "0.8.8"
+# MAVSpec: enable `rust_gen` feature to include Rust code-generation tools.
+mavspec = { path = "../../mavspec", features = ["rust_gen"] }
 
 ###########################################################
 # Features
@@ -68,6 +64,13 @@ standard = ["minimal"]
 # Metadata
 ###########################################################
 [package.metadata.mavspec]
+# Inclide only the following messages
 messages = ["HEARTBEAT", "PROTOCOL_VERSION", "MAV_INSPECT_V1", "COMMAND_INT", "COMMAND_LONG"]
+# Include only enums relevant to specified messages (set to `true` to include all)
 all_enums = false
+# Generate tests
 generate_tests = true
+
+[package.metadata.cargo-machete]
+ignored = ["mavspec", "serde", "serde_arrays"]
+

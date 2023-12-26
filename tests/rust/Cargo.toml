@@ -18,17 +18,9 @@ path = "src/lib.rs"
 mavspec = { path = "../../mavspec", default-features = false, features = ["rust"] }
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
 serde_arrays = { version = "0.1.0", default-features = false, optional = true }
-tbytes = { version = "0.1.0-alpha1", default-features = false }
-
-[dev-dependencies]
-log = "0.4.20"
-env_logger = "0.10.1"
 
 [build-dependencies]
-cargo-manifest = "0.12.1"
 mavspec = { path = "../../mavspec", features = ["rust", "rust_gen"] }
-serde = "1.0.193"
-toml = "0.8.8"
 
 ###########################################################
 # Features
@@ -53,3 +45,7 @@ std = ["alloc", "mavspec/std"]
 [package.metadata.mavspec]
 messages = ["HEARTBEAT", "PROTOCOL_VERSION", "MAV_INSPECT_V1", "COMMAND_INT", "COMMAND_LONG"]
 all_enums = false
+generate_tests = true
+
+[package.metadata.cargo-machete]
+ignored = ["serde_arrays"]

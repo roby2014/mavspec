@@ -1,7 +1,7 @@
 [package]
 name = "mavspec_rust_gen"
 description = "Rust code generation module for MAVSpec."
-version = "0.1.0-alpha5"
+version = "0.1.0-alpha6"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
 repository = "https://gitlab.com/mavka/libs/mavspec"
@@ -22,6 +22,9 @@ resolver = "2"
 name = "mavspec_rust_gen"
 path = "src/lib.rs"
 
+###########################################################
+# Dependencies
+###########################################################
 [dependencies]
 anyhow = "1.0.75"
 cargo-manifest = "0.12.1"
@@ -31,14 +34,16 @@ log = "0.4.20"
 mavinspect = { version = "0.1.0", features = ["serde"] }
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = "1.0.108"
-thiserror = "1.0.50"
 
 [dev-dependencies]
 mavspec = { path = "../mavspec", default-features = false, features = ["rust_gen"] }
 
-[features]
-default = []
-
+###########################################################
+# Metadata
+###########################################################
 [package.metadata.docs.rs]
 # Features to include into `docs.rs` documentation
-features = ["default", "rust", "rust_gen"]
+features = ["rust", "rust_gen"]
+
+[package.metadata.cargo-machete]
+ignored = ["serde_json"]

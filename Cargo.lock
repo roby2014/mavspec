@@ -91,7 +91,7 @@ checksum = "78d013e7f1d7783aa824b5096f12af7c583e58b7a169a04998d5fe20d940cbb9"
 dependencies = [
  "serde",
  "thiserror",
- "toml 0.7.8",
+ "toml",
 ]
 
 [[package]]
@@ -326,13 +326,12 @@ dependencies = [
 
 [[package]]
 name = "mavspec"
-version = "0.1.0-alpha4"
+version = "0.1.0-alpha5"
 dependencies = [
  "anyhow",
  "clap",
  "env_logger",
  "log",
- "mavinspect",
  "mavspec_rust_gen",
  "mavspec_rust_spec",
 ]
@@ -341,19 +340,14 @@ dependencies = [
 name = "mavspec_examples_rust"
 version = "0.0.0"
 dependencies = [
- "cargo-manifest",
- "env_logger",
- "log",
  "mavspec",
  "serde",
  "serde_arrays",
- "tbytes",
- "toml 0.8.8",
 ]
 
 [[package]]
 name = "mavspec_rust_gen"
-version = "0.1.0-alpha4"
+version = "0.1.0-alpha5"
 dependencies = [
  "anyhow",
  "cargo-manifest",
@@ -364,16 +358,14 @@ dependencies = [
  "mavspec",
  "serde",
  "serde_json",
- "thiserror",
 ]
 
 [[package]]
 name = "mavspec_rust_spec"
-version = "0.1.0-alpha4"
+version = "0.1.0-alpha5"
 dependencies = [
  "bitflags",
  "serde",
- "serde_arrays",
  "tbytes",
 ]
 
@@ -381,14 +373,9 @@ dependencies = [
 name = "mavspec_tests_rust"
 version = "0.0.0"
 dependencies = [
- "cargo-manifest",
- "env_logger",
- "log",
  "mavspec",
  "serde",
  "serde_arrays",
- "tbytes",
- "toml 0.8.8",
 ]
 
 [[package]]
@@ -645,19 +632,7 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_edit 0.19.15",
-]
-
-[[package]]
-name = "toml"
-version = "0.8.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1a195ec8c9da26928f773888e0742ca3ca1040c6cd859c919c9f59c1954ab35"
-dependencies = [
- "serde",
- "serde_spanned",
- "toml_datetime",
- "toml_edit 0.21.0",
+ "toml_edit",
 ]
 
 [[package]]
@@ -674,19 +649,6 @@ name = "toml_edit"
 version = "0.19.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b5bb770da30e5cbfde35a2d7b9b8a2c4b8ef89548a7a6aeab5c9a576e3e7421"
-dependencies = [
- "indexmap",
- "serde",
- "serde_spanned",
- "toml_datetime",
- "winnow",
-]
-
-[[package]]
-name = "toml_edit"
-version = "0.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d34d383cd00a163b4a5b85053df514d45bc330f6de7737edfe0a93311d1eaa03"
 dependencies = [
  "indexmap",
  "serde",
