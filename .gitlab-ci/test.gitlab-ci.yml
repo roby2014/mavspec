@@ -52,6 +52,7 @@ include:
     - cargo clippy ${FEATURES}
     # Run tests
     - cargo test ${FEATURES} --lib --tests --bins
+    - cargo test ${FEATURES} --doc
   parallel:
     matrix:
       - FEATURES:
