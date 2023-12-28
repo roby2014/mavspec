@@ -4,9 +4,10 @@ mod cli {
     const DEFAULT_OUT_PATH: &str = ".";
     const DELIMITER: char = ' ';
 
-    /// MavLink code generator.
+    /// MAVLink code generator.
     #[derive(Debug, Parser)]
     #[command(author, version, about, long_about = None)]
+    #[command(arg_required_else_help = true)]
     pub struct Cli {
         #[command(subcommand)]
         pub command: Option<Commands>,
@@ -27,10 +28,10 @@ mod cli {
     /// Cli commands
     #[derive(Debug, Subcommand)]
     pub enum Commands {
-        /// Generate Rust bindings from MavLink message definitions
+        /// Generate Rust bindings from MAVLink message definitions
         #[cfg(feature = "rust")]
         Rust {
-            /// Add serde support.
+            /// Enable Serde support.
             #[arg(short = 's', long, default_value_t = false)]
             serde: bool,
             /// Messages to generate.
@@ -42,6 +43,9 @@ mod cli {
             /// Include all enums regardless of specified messages.
             #[arg(short = 'a', long, default_value_t = false)]
             all_enums: bool,
+            /// Generate tests.
+            #[arg(short = 't', long, default_value_t = false)]
+            generate_tests: bool,
         },
     }
 }
@@ -72,6 +76,7 @@ mod process {
                         serde,
                         messages,
                         all_enums,
+                        generate_tests,
                     } => {
                         log::info!("Writing Rust bindings to output path: {:?}", out_path);
 
@@ -85,6 +90,7 @@ mod process {
                         conf.set_sources(&sources)
                             .set_all_enums(*all_enums)
                             .set_serde(*serde)
+                            .set_generate_tests(*generate_tests)
                             .generate()
                     }
                 }
@@ -97,16 +103,11 @@ fn main() {
     use clap::Parser;
 
     // Setup logger
-    env_logger::builder()
-        // Suppress everything below `info` for third-party modules.
-        .filter_level(log::LevelFilter::Info)
-        // Allow everything from current package
-        .filter_module(env!("CARGO_PKG_NAME"), log::LevelFilter::Trace)
-        .init();
+    env_logger::init();
 
     // Parse CLI arguments:
     let cli = cli::Cli::parse();
-    log::debug!("CLI arguments: {cli:?}");
+    log::trace!("CLI arguments: {cli:?}");
 
     // Process CLI commands
     #[cfg(feature = "rust_gen")]

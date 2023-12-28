@@ -25,8 +25,11 @@ path = "src/lib.rs"
 [[bin]]
 name = "mavspec"
 path = "src/bin/mavspec.rs"
-required-features = ["cli", "rust_gen"]
+required-features = ["cli"]
 
+###########################################################
+# Dependencies
+###########################################################
 [dependencies]
 # External dependencies
 anyhow = { version = "1.0.75", optional = true }
@@ -38,27 +41,40 @@ log = { version = "0.4.20", optional = true }
 mavspec_rust_gen = { version = "0.1.0-alpha8", path = "../mavspec_rust_gen", optional = true }
 mavspec_rust_spec = { version = "0.1.0-alpha8", path = "../mavspec_rust_spec", optional = true }
 
+###########################################################
+# Features
+###########################################################
 [features]
-# Default features
-default = ["rust", "rust_gen"]
+## Default features
+default = []
+## Enables unstable API features.
+unstable = ["mavspec_rust_gen/unstable", "mavspec_rust_spec/unstable"]
 
-# Enable serde support
+## Enable serde support
 serde = ["mavspec_rust_spec/serde"]
 
-# Enable global allocator
+## Enable global allocator
 alloc = ["mavspec_rust_spec/alloc"]
-# Enable standard library
+## Enable standard library
 std = ["mavspec_rust_spec/std"]
 
-# Rust core interfaces
+## Rust core interfaces
 rust = ["dep:mavspec_rust_spec"]
-# Rust code-generation tools
+## Rust code-generation tools
 rust_gen = ["std", "dep:mavspec_rust_gen", "rust"]
 
-# Command-line utilities
-cli = ["dep:anyhow", "dep:clap", "dep:log", "dep:env_logger"]
+## All core interfaces
+specs = ["rust"]
+## All generators
+generators = ["rust_gen"]
 
+## Command-line utilities
+cli = ["dep:anyhow", "dep:clap", "dep:log", "dep:env_logger", "generators"]
+
+###########################################################
+# Metadata
+###########################################################
 [package.metadata.docs.rs]
-features = ["default", "rust", "rust_gen", "serde"]
+features = ["default", "rust", "rust_gen", "serde", "unstable"]
 rustdoc-args = ["--cfg", "docsrs"]
 

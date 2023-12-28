@@ -33,8 +33,9 @@ tbytes = { version = "0.1.0-alpha1", default-features = false }
 ###########################################################
 # Features
 ###########################################################
-
 [features]
+## Enables unstable API features.
+unstable = []
 ## Enables memory allocation support.
 alloc = [
     "tbytes/alloc",
@@ -58,4 +59,4 @@ serde = [
 ###########################################################
 [package.metadata.docs.rs]
 # Features to include into `docs.rs` documentation
-features = ["std", "serde"]
+features = ["std", "serde", "unstable"]
