@@ -6,8 +6,8 @@ mod tests {
 
     fn xml_definition_paths() -> Vec<&'static str> {
         vec![
-            "../message_definitions/standard",
-            "../message_definitions/extra",
+            "./message_definitions/standard",
+            "./message_definitions/extra",
         ]
     }
 

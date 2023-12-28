@@ -18,8 +18,8 @@
 //!
 //! // Paths to XML definitions directories.
 //! let sources = vec![
-//!     "../message_definitions/standard",
-//!     "../message_definitions/extra",
+//!     "./message_definitions/standard",
+//!     "./message_definitions/extra",
 //! ];
 //! // Output path
 //! let destination = "../tmp/mavlink";
@@ -44,8 +44,8 @@
 //!
 //! // Paths to XML definitions directories.
 //! let sources = vec![
-//!     "../message_definitions/standard",
-//!     "../message_definitions/extra",
+//!     "./message_definitions/standard",
+//!     "./message_definitions/extra",
 //! ];
 //!
 //! // Parse XML definitions

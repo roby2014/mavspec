@@ -1,7 +1,7 @@
 [package]
 name = "mavspec_rust_gen"
 description = "Rust code generation module for MAVSpec."
-version = "0.1.0-alpha7"
+version = "0.1.0-alpha8"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
 repository = "https://gitlab.com/mavka/libs/mavspec"

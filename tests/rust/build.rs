@@ -24,9 +24,11 @@ fn update_git_submodules() {
 fn main() {
     update_git_submodules();
 
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+
     let destination = Path::new(&var("OUT_DIR").unwrap()).join("mavlink");
-    let sources = ["../../message_definitions/extra"];
-    let manifest_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
+    let sources = [manifest_dir.join("message_definitions").join("extra")];
+    let manifest_path = manifest_dir.join("Cargo.toml");
     let included_dialects = vec!["MAVInspect_test"];
     let serde_feature_enabled = var("CARGO_FEATURE_SERDE").is_ok();
 

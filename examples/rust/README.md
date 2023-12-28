@@ -3,7 +3,8 @@ MAVSpec Rust Example
 
 A simple Rust library which contains auto-generated MAVLink dialects.
 
-# Usage
+Usage
+-----
 
 Run with default dialects:
 
@@ -23,7 +24,8 @@ Run with only `common` dialect generated:
 cargo run --package mavspec_examples_rust --features common --bin mavspec_examples_rust
 ```
 
-# Configuration
+Configuration
+-------------
 
 Dialects are generated in [`build.rs`](build.rs). MAVSpec [`BuildeHelper`](../../mavspec_rust_gen/src/build_helper.rs)
 scans package [`Cargo.toml`](Cargo.toml) for metadata and generates only specified `messages`. The `all_enums` key is
@@ -34,3 +36,10 @@ responsible for enabling all enums regardless of which messages are generated.
 messages = ["HEARTBEAT", "PROTOCOL_VERSION", "MAV_INSPECT_V1", "COMMAND_INT", "COMMAND_LONG"]
 all_enums = false
 ```
+
+Caveats
+-------
+
+Note that [`message_definitions`](../../message_definitions) was symlinked into package directory. It is necessary
+to make `cargo publish` work properly. Although we don't publish example packages, we want to keep them as close as
+possible to what people might use in production.
