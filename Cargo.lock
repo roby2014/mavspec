@@ -61,9 +61,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.76"
+version = "1.0.77"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59d2a3357dde987206219e78ecfbbb6e8dad06cbb65292758d3270e6254f7355"
+checksum = "c9d19de80eff169429ac1e9f48fffb163916b448a44e8e046186232046d9e1f9"
 
 [[package]]
 name = "bitflags"
@@ -311,9 +311,9 @@ checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 
 [[package]]
 name = "mavinspect"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "800a3e189e6523bb5065f094435db422df3b2b3a3c222d0f425a6e3423195995"
+checksum = "11c93bc4e187334f3c713b28dbca392d3e84b5aad75ffb9745aed61aeec945f4"
 dependencies = [
  "crc-any",
  "heck 0.5.0-rc.1",
@@ -326,7 +326,7 @@ dependencies = [
 
 [[package]]
 name = "mavspec"
-version = "0.1.0-alpha6"
+version = "0.1.0-alpha7"
 dependencies = [
  "anyhow",
  "clap",
@@ -347,7 +347,7 @@ dependencies = [
 
 [[package]]
 name = "mavspec_rust_gen"
-version = "0.1.0-alpha6"
+version = "0.1.0-alpha7"
 dependencies = [
  "anyhow",
  "cargo-manifest",
@@ -362,7 +362,7 @@ dependencies = [
 
 [[package]]
 name = "mavspec_rust_spec"
-version = "0.1.0-alpha6"
+version = "0.1.0-alpha7"
 dependencies = [
  "bitflags",
  "serde",
@@ -604,18 +604,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.51"
+version = "1.0.52"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f11c217e1416d6f036b870f14e0413d480dbf28edbee1f877abaf0206af43bb7"
+checksum = "83a48fd946b02c0a526b2e9481c8e2a17755e47039164a86c4070446e3a4614d"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.51"
+version = "1.0.52"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01742297787513b79cf8e29d1056ede1313e2420b7b3b15d0a768b4921f549df"
+checksum = "e7fbe9b594d6568a6a1443250a7e67d80b74e1e96f6d1715e1e21cc1888291d3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -852,9 +852,9 @@ checksum = "dff9641d1cd4be8d1a070daf9e3773c5f67e78b4d9d42263020c057706765c04"
 
 [[package]]
 name = "winnow"
-version = "0.5.30"
+version = "0.5.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b5c3db89721d50d0e2a673f5043fc4722f76dcc352d7b1ab8b8288bed4ed2c5"
+checksum = "97a4882e6b134d6c28953a387571f1acdd3496830d5e36c5e3a1075580ea641c"
 dependencies = [
  "memchr",
 ]

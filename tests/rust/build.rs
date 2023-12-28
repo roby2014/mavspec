@@ -24,18 +24,17 @@ fn update_git_submodules() {
 fn main() {
     update_git_submodules();
 
-    let included_dialects = vec!["MAVInspect_test"];
-
-    let sources = ["../../message_definitions/extra"];
     let destination = Path::new(&var("OUT_DIR").unwrap()).join("mavlink");
+    let sources = ["../../message_definitions/extra"];
     let manifest_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
+    let included_dialects = vec!["MAVInspect_test"];
     let serde_feature_enabled = var("CARGO_FEATURE_SERDE").is_ok();
 
-    BuildHelper::builder(&destination)
+    BuildHelper::builder(destination)
         .set_sources(&sources)
         .set_manifest_path(&manifest_path)
-        .set_serde(serde_feature_enabled)
         .set_include_dialects(&included_dialects)
+        .set_serde(serde_feature_enabled)
         .generate()
         .unwrap();
 }

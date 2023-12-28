@@ -2,7 +2,7 @@ mod tests {
     use mavspec::rust::spec::{MavLinkVersion, MessageSpec};
 
     #[test]
-    fn test_dialect_is_present() {
+    fn dialect_is_present() {
         use dialect::enums::{SmallBitmask, SmallEnum};
         use dialect::messages::MavInspectV1;
         use mavspec_tests_rust::dialects::mav_inspect_test as dialect;
