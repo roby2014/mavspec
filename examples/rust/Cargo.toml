@@ -37,7 +37,7 @@ mavspec = { path = "../../mavspec", features = ["rust_gen"] }
 ###########################################################
 [features]
 ## Default features
-default = ["minimal"]
+default = ["minimal", "mav_inspect_test"]
 ## Enables serde support.
 serde = [
     "dep:serde",

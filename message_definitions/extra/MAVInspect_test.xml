@@ -64,6 +64,18 @@
                 <description>8th bit: 00000001 00000000 00000000 00000000.</description>
             </entry>
         </enum>
+        <enum name="1ST_CLASS_CITIZEN">
+            <description>Enum with a peculiar name that starts with a numeric character.</description>
+            <entry name="1ST_CLASS_CITIZEN_1ST_OPTION" value="0">
+                <description>Enum entry that starts with a numeric character</description>
+            </entry>
+        </enum>
+        <enum name="2ND_CHANCE_FLAGS" bitmask="true">
+            <description>Bitmask with a peculiar name that starts with a numeric character.</description>
+            <entry name="2ND_CHANCE_FLAGS_1ST_FLAG" value="1">
+                <description>Bitmask flag that starts with a numeric character</description>
+            </entry>
+        </enum>
     </enums>
     <messages>
         <message id="255" name="MAV_INSPECT_V1">
@@ -90,6 +102,10 @@
             <field type="uint8_t[2]" name="small_bitmask_small_array" enum="SMALL_BITMASK">Small bitmask in small array.</field>
             <field type="uint8_t[40]" name="small_bitmask_large_array" enum="SMALL_BITMASK">Small bitmask in large array.</field>
             <field type="uint32_t" name="large_bitmask" enum="LARGE_BITMASK">Large bitmask.</field>
+            <!-- Naming edge cases -->
+            <field type="uint8_t" name="1st_class_citizen" enum="1ST_CLASS_CITIZEN">Field that starts with a numeric character (enum).</field>
+            <field type="uint8_t" name="2nd_chance_flags" enum="2ND_CHANCE_FLAGS">Field that starts with a numeric character (bitmask).</field>
+            <field type="uint8_t" name="type">Field has a Rust keyword name.</field>
             <extensions/>
             <field type="uint8_t" name="extension_uint8">Extension with primitive type `uint8_t`.</field>
             <field type="uint16_t[4]" name="extension_uint16_4" enum="SMALL_ENUM">Extension with array type `uint16_t[4]`.</field>

@@ -3,6 +3,7 @@ MAVSpec
 
 A code-generator for [MAVLink](https://mavlink.io/en/).
 
+[🇺🇦](#a-note-on-the-war-in-ukraine)
 [`repository`](https://gitlab.com/mavka/libs/mavspec)
 [`crates.io`](https://crates.io/crates/mavspec)
 [`API docs`](https://docs.rs/mavspec/latest/mavspec/)
@@ -24,10 +25,10 @@ responsible for code generation. Other [Mavka](https://mavka.gitlab.io/home/) pr
 
 * [MAVInspect](https://gitlab.com/mavka/libs/mavspec) is responsible for parsing mavlink message XML definitions.
   `MAVSpec` is using this library to discover and parse MAVLink dialects.
-* [Mavio](https://gitlab.com/mavka/libs/mavio) is a minimalistic library for transport-agnostic MAVLink communication.
-  It supports `no-std` (and `no-alloc`) targets and focuses on stateless parts of MAVLink protocol.
-* [Maviola](https://gitlab.com/mavka/libs/maviola) (WIP), is MAVLink communication library based on `Mavio` that
-  provides a high-level interface for MAVLink messaging and takes care about stateful features of the protocol:
+* [Mavio](https://gitlab.com/mavka/libs/mavio), a minimalistic library for transport-agnostic MAVLink communication
+  written in Rust. It supports `no-std` (and `no-alloc`) targets and focuses on **stateless** parts of MAVLink protocol.
+* [Maviola](https://gitlab.com/mavka/libs/maviola) (WIP), is a MAVLink communication library based on `Mavio` that
+  provides a high-level interface for MAVLink messaging and takes care about **stateful** features of the protocol:
   sequencing, message time-stamping, automatic heartbeats, simplifies message signing, and so on.
 
 This project respects [`semantic versioning`](https://semver.org).
@@ -155,9 +156,13 @@ of the naming rules:
 * For **bitmask flags** (enum entries for enums which are bitmasks) we use `SCREAMING_SNAKE_CASE` with MAVLink enum name
   prefix stripped (whenever applicable). For example, if bitmask enum has name `VERY_IMPORTANT_FLAGS` and flag name is
   `VERY_IMPORTANT_FLAGS_THE_MATTER_OF_LIFE_AND_DEATH_FLAG`, then flag name will be `THE_MATTER_OF_LIFE_AND_DEATH_FLAG`.
-* In the case of collision with rust keywords, we use raw strings. For example, `type` field of `HEARTBEAT` message will
-  be encoded as `r#type`.
+* In the case of collision with rust keywords, we add underscore suffix. For example, `type` field of `HEARTBEAT`
+  message will be encoded as `type_`.
 * In the rare cases when symbolic name starts with numeric character, it will be prefixed with `_`.
+
+Check [`mavspec_examples_rust.rs`](examples/rust/src/bin/mavspec_examples_rust.rs) which shows how the last two cases of
+inconvenient names are handled (this is not something of high aesthetic value but in our defence we must say that all
+approaches we've considered looked equally ugly).
 
 CLI
 ---
@@ -207,24 +212,16 @@ Roadmap
 API is considered relatively stable but certain advanced features are yet to be developed. However, most of these
 features are nice to have, rather than something necessary to consider this library complete.
 
-Rust code generator:
+Milestone [`v1`](https://gitlab.com/mavka/libs/mavinspect/-/milestones/1) contains features considered necessary to
+reach stable version `1.0.0`. Most of these features are related to Rust code generator.
 
-- [ ] Generate descriptions with proper indentations.
-- [ ] Create abstractions for [MAVLink commands](https://mavlink.io/en/services/command.html).
-- [ ] Allow clients to discover which MAVLink [microservices](https://mavlink.io/en/services/) are supported by a
-  particular dialect.
-- [ ] Filter messages and enums by MAVLink microservices.
-- [ ] Improve compilation time. Right now its just 25% lower than in
-  [`rust-mavlink`](https://github.com/mavlink/rust-mavlink) which is still not good enough (especially for opensource
-  projects that usually use slow CI runners).
+Other code generators (will form a basis for other [Mavka](https://mavka.gitlab.io/home/) projects):
 
-Other code generators (will form a basis for other projects):
-
-- [ ] Database schema generator and bindings for time-series databases:
-  - [ ] [Timescale](https://www.timescale.com). 
-  - [ ] [InfluxDB](https://www.influxdata.com).
-- [ ] [Protobuf](https://protobuf.dev) and [gRPC](https://grpc.io) for MAVLink messages and selected MAVLink
-  microservices.
+- [`telemetry`](https://gitlab.com/mavka/libs/mavspec/-/milestones/2) milestone is focused on code generators required
+  for storing MAVLink data in time-series databases like [InfluxDB](https://www.influxdata.com) or
+  [Timescale](https://www.timescale.com). 
+- [`gRPC`](https://gitlab.com/mavka/libs/mavspec/-/milestones/3) milestone is reserved for
+  [Protobuf](https://protobuf.dev) and [gRPC](https://grpc.io) bindings.
 
 [Propositions](https://gitlab.com/mavka/spec/libs/mavinspect/-/issues) and
 [pull-requests](https://gitlab.com/mavka/spec/libs/mavinspect/-/merge_requests) are welcomed.
@@ -251,12 +248,35 @@ stable and robust, while others are nice and feature-rich but incomplete.
 Acknowledgements
 ----------------
 
-I am deeply grateful to the people who helped to build the Rust ecosystem. This project has started as a learning
-exercise, and even though I had a hard time debugging my understanding of Rust compiler, I've rarely done the same for
-the libraries written by other people.
+I am deeply grateful to the people helping build the Rust ecosystem. This project started as a learning exercise, and
+even though I had a hard time debugging my understanding of the Rust compiler, I've rarely done the same for the
+libraries written by other people.
 
-I've used images from [Flaticon](https://www.flaticon.com) to create project avatar. Their free of charge use model
-requires mentioning in social networks. I hope that GitLab counts.
+I've used images from [Flaticon](https://www.flaticon.com) to create a project avatar. They allow the use of their
+content freely under the condition of mentioning them on social networks. I hope that GitLab counts since we sort of
+socialize here.
+
+A Note on the War in Ukraine
+----------------------------
+
+This project was initiated and mainly written in Kyiv under the constant threat of missile strikes. As a fair witness,
+I must admit that the intensity of such strikes and the danger they pose to my life is incomparable to what my fellow
+citizens are facing in the southern and eastern parts of Ukraine. I don't want to focus on my experience of such events.
+After all, experience is overrated. I initially thought to put a link to a charity foundation I consider efficient and
+trustworthy, but something stopped me. Instead, I am offering to think about the order of things compatible with a
+decent way of life and the threat this soon-to-be ten-year war poses to such order.
+
+I've intentionally put this note here, almost at the very bottom, not to avoid accusations of sentimental manipulation.
+Rather opposite, it belongs to the place right above the license clause where I put things in order, deciding what to
+restrain and what to set free. In normal conditions, we pay little attention to the order of things that puts such
+decisions into effect. One may ground their confidence in the law but not bother themselves with thinking about what
+makes the law possible.
+
+The exercise I am offering, to put oneself into the position of a person responsible for the state of the World (because
+human beings either belong to the entire World or belong to nothing), if performed honestly, is probably less pleasant
+than an act of charity (I am doing a lot of charity and know for sure). Yet, at the same time, it gives us a common
+ground and a basis for prudent political action. At least, as far as we agree that both of us, the one who writes and
+the one who reads, are *equally* incompatible with the war, that is clearly right here.
 
 License
 -------

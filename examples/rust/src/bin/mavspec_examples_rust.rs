@@ -12,7 +12,7 @@ pub fn main() {
         use mavspec_examples_rust::dialects::minimal as dialect;
 
         let message = dialect::messages::Heartbeat {
-            r#type: MavType::FixedWing,
+            type_: MavType::FixedWing,
             autopilot: MavAutopilot::Generic,
             base_mode: MavModeFlag::TEST_ENABLED | MavModeFlag::MANUAL_INPUT_ENABLED,
             custom_mode: 0,
@@ -49,7 +49,7 @@ pub fn main() {
 
     #[cfg(feature = "mav_inspect_test")]
     {
-        use dialect::enums::{SmallBitmask, SmallEnum};
+        use dialect::enums::{SmallBitmask, SmallEnum, _1stClassCitizen, _2ndChanceFlags};
         use mavspec_examples_rust::dialects::mav_inspect_test as dialect;
 
         let message = dialect::messages::MavInspectV1 {
@@ -59,6 +59,16 @@ pub fn main() {
             large_array: [500; 40],
             small_enum_native: SmallEnum::First,
             small_bitmask_native: SmallBitmask::FIRST | SmallBitmask::SECOND,
+
+            // Inconvenient names
+            //
+            // Rust keyword is suffixed with underscore
+            type_: 1,
+            // Entities that starts with numeric characters are prefixed with underscore
+            _1st_class_citizen: _1stClassCitizen::_1stOption,
+            // Same for bitmap flags
+            _2nd_chance_flags: _2ndChanceFlags::_1ST_FLAG,
+
             // And so forth (lots of test cases)
             ..Default::default()
         };
