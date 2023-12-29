@@ -174,6 +174,7 @@ pub const fn spec() -> &'static dyn MessageSpec {
 
 #[allow(rustdoc::bare_urls)]
 #[allow(rustdoc::broken_intra_doc_links)]
+#[allow(rustdoc::invalid_rust_codeblocks)]
 /// MAVLink `{{name}}` message.
 ///
 /// Minimum supported MAVLink version is `MAVLink {{#if is_v1_compatible}}1{{else}}2{{/if}}`.
@@ -186,9 +187,9 @@ pub const fn spec() -> &'static dyn MessageSpec {
 ///
 /// # Encoding/Decoding
 /// 
-/// Message encoding/decoding are provided by implementing [`TryFrom<Payload>`] for
+/// Message encoding/decoding are provided by implementing [`core::convert::TryFrom<Payload>`] for
 /// [`{{to-message-struct-name name}}`] (encoding) and [`IntoPayload`] (decoding) traits.
-#[derive(Clone, Debug)]
+#[derive(core::clone::Clone, core::fmt::Debug)]
 {{#if params.serde}}
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 {{/if}}
@@ -214,10 +215,10 @@ pub struct {{to-message-struct-name name}} {
 {{/each}}
 }
 
-/// Raw representation of [`{{to-message-struct-name name}}`] MAVLink message.
+/// Raw representation of [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) MAVLink message.
 ///
 /// Minimum supported MAVLink version is `MAVLink {{#if is_v1_compatible}}1{{else}}2{{/if}}`.
-#[derive(Clone, Debug)]
+#[derive(core::clone::Clone, core::fmt::Debug)]
 {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
 pub struct {{to-message-raw-struct-name name}} {
 {{#each fields}}
@@ -288,8 +289,8 @@ impl MessageImpl for {{to-message-struct-name name}} {}
 impl MessageImpl for {{to-message-raw-struct-name name}} {}
 
 #[allow(clippy::derivable_impls)]
-impl Default for {{to-message-struct-name name}} {
-    /// Creates [`{{to-message-struct-name name}}`] initialized with default values.
+impl core::default::Default for {{to-message-struct-name name}} {
+    /// Creates [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) initialized with default values.
     fn default() -> Self {
         Self {
 {{#each fields}}
@@ -308,24 +309,24 @@ impl Default for {{to-message-struct-name name}} {
 }
 
 #[allow(clippy::derivable_impls)]
-impl Default for {{to-message-raw-struct-name name}} {
+impl core::default::Default for {{to-message-raw-struct-name name}} {
     /// Creates [`{{to-message-raw-struct-name name}}`] initialized with default values.
     fn default() -> Self {
         {{to-message-struct-name name}}::default().into()
     }
 }
 
-impl TryFrom<&Payload> for {{to-message-struct-name name}} {
+impl core::convert::TryFrom<&Payload> for {{to-message-struct-name name}} {
     type Error = MessageError;
 
-    /// Decodes [`Payload`] into [`{{to-message-struct-name name}}`] according to [`MavLinkVersion`].
+    /// Decodes [`Payload`] into [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) according to [`MavLinkVersion`].
     #[inline]
     fn try_from(value: &Payload) -> Result<Self, Self::Error> {
         Self::try_from_payload(value)
     }
 }
 
-impl TryFrom<&Payload> for {{to-message-raw-struct-name name}} {
+impl core::convert::TryFrom<&Payload> for {{to-message-raw-struct-name name}} {
     type Error = MessageError;
 
     /// Decodes [`Payload`] into [`{{to-message-raw-struct-name name}}`] according to [`MavLinkVersion`].
@@ -336,7 +337,7 @@ impl TryFrom<&Payload> for {{to-message-raw-struct-name name}} {
 }
 
 impl IntoPayload for {{to-message-struct-name name}} {
-    /// Encodes [`{{to-message-struct-name name}}`] into [`Payload`] according to [`MavLinkVersion`].
+    /// Encodes [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) into [`Payload`] according to [`MavLinkVersion`].
     #[inline]
     fn encode(
         &self,
@@ -358,7 +359,7 @@ impl IntoPayload for {{to-message-raw-struct-name name}} {
 }
 
 impl {{to-message-struct-name name}} {
-    /// Decodes [`Payload`] into [`{{to-message-struct-name name}}`] according to [`MavLinkVersion`].
+    /// Decodes [`Payload`] into [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) according to [`MavLinkVersion`].
     pub fn try_from_payload(value: &Payload) -> Result<Self, MessageError> {
         match value.version() {
             MavLinkVersion::V2 => v2::decode(value.bytes()),
@@ -375,7 +376,7 @@ impl {{to-message-struct-name name}} {
         }
     }
 
-    /// Encodes [`{{to-message-struct-name name}}`] into [`Payload`] according to [`MavLinkVersion`].
+    /// Encodes [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) into [`Payload`] according to [`MavLinkVersion`].
     pub fn encode(
         &self,
         version: MavLinkVersion,
@@ -459,7 +460,7 @@ impl {{to-message-raw-struct-name name}} {
         })
     }
 
-    /// Attempts to convert [`{{to-message-raw-struct-name name}}`] into [`{{to-message-struct-name name}}`].
+    /// Attempts to convert [`{{to-message-raw-struct-name name}}`] into [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}).
     pub fn try_to_message(&self) -> Result<{{to-message-struct-name name}}, MessageError> {
         Ok({{to-message-struct-name name}} {
 {{#each fields}}
@@ -509,28 +510,28 @@ impl {{to-message-raw-struct-name name}} {
     }
 }
 
-impl TryFrom<{{to-message-raw-struct-name name}}> for {{to-message-struct-name name}} {
+impl core::convert::TryFrom<{{to-message-raw-struct-name name}}> for {{to-message-struct-name name}} {
     type Error = MessageError;
 
-    /// Converts raw [`{{to-message-raw-struct-name name}}`] into enriched [`{{to-message-struct-name name}}`].
+    /// Converts raw [`{{to-message-raw-struct-name name}}`] into enriched [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}).
     ///
     /// # Errors
     ///
     /// * Returns [`MessageError::InvalidEnumValue`] if [`{{to-message-raw-struct-name name}}`] contains invalid values
-    /// for MAVLink enums in [`{{to-message-struct-name name}}`].
+    /// for MAVLink enums in [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}).
     fn try_from(value: {{to-message-raw-struct-name name}}) -> Result<Self, Self::Error> {
         value.try_to_message()
     }
 }
 
-impl From<{{to-message-struct-name name}}> for {{to-message-raw-struct-name name}} {
-    /// Converts enriched [`{{to-message-struct-name name}}`] into raw [`{{to-message-raw-struct-name name}}`].
+impl core::convert::From<{{to-message-struct-name name}}> for {{to-message-raw-struct-name name}} {
+    /// Converts enriched [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) into raw [`{{to-message-raw-struct-name name}}`].
     fn from(value: {{to-message-struct-name name}}) -> Self {
         value.to_raw_message()
     }
 }
 
-/// Encoding/decoding for [`{{to-message-struct-name name}}`] within `MAVLink 2` protocol.
+/// Encoding/decoding for [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) within `MAVLink 2` protocol.
 ///
 /// See [MAVLink 2](https://mavlink.io/en/guide/mavlink_2.html).
 pub mod v2 {
@@ -539,7 +540,7 @@ pub mod v2 {
     
     use super::{ {{to-message-struct-name name}}, {{to-message-raw-struct-name name}}, MESSAGE_ID };
 
-    /// Message [`{{to-message-struct-name name}}`] payload size (non-truncated) according to `MAVLink 2` protocol.
+    /// Message [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) payload size (non-truncated) according to `MAVLink 2` protocol.
     pub const PAYLOAD_SIZE: usize = {{payload_v2_size}};
     
     /// Decodes into [`{{to-message-raw-struct-name name}}`] message.
@@ -566,7 +567,7 @@ pub mod v2 {
         })
     }
 
-    /// Decodes into [`{{to-message-struct-name name}}`] message.
+    /// Decodes into [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) message.
     ///
     /// If `payload` is less than expected, the remaining elements will be considered to be zeros.
     /// See [MAVLink 2 payload truncation](https://mavlink.io/en/guide/serialization.html#payload_truncation).
@@ -607,7 +608,7 @@ pub mod v2 {
         Ok(payload)
     }
 
-    /// Encodes [`{{to-message-struct-name name}}`] message into MAVLink [`Payload`].
+    /// Encodes [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) message into MAVLink [`Payload`].
     ///
     /// Fields are reordered according to [MAVLink specification](https://mavlink.io/en/guide/serialization.html#field_reordering).
     ///
@@ -626,7 +627,7 @@ pub mod v2 {
 }
 
 {{#if is_v1_compatible}}
-/// Encoding/decoding for [`{{to-message-struct-name name}}`] within `MAVLink 1` protocol.
+/// Encoding/decoding for [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) within `MAVLink 1` protocol.
 ///
 /// See [MAVLink versions](https://mavlink.io/en/guide/mavlink_version.html).
 pub mod v1 {
@@ -635,7 +636,7 @@ pub mod v1 {
     
     use super::{ {{to-message-struct-name name}}, {{to-message-raw-struct-name name}}, MESSAGE_ID };
 
-    /// Message [`{{to-message-struct-name name}}`] payload size according to `MAVLink 1` protocol.
+    /// Message [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) payload size according to `MAVLink 1` protocol.
     pub const PAYLOAD_SIZE: usize = {{payload_v1_size}};
 
     /// Decodes [`Payload`] into [`{{to-message-raw-struct-name name}}`] message.
@@ -663,12 +664,12 @@ pub mod v1 {
 {{/each}}
 {{#if has_extension_fields}}
             // Set default values for `MAVLink 2` extensions field
-            .. Default::default()
+            .. core::default::Default::default()
 {{/if}}
         })
     }
     
-    /// Decodes [`Payload`] into [`{{to-message-struct-name name}}`] message.
+    /// Decodes [`Payload`] into [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) message.
     ///
     /// Fields are reordered according to [MAVLink specification](https://mavlink.io/en/guide/serialization.html#field_reordering).
     ///
@@ -711,7 +712,7 @@ pub mod v1 {
         Ok(payload)
     }
     
-    /// Encodes [`{{to-message-struct-name name}}`] message into MAVLink [`Payload`].
+    /// Encodes [`{{to-message-struct-name name}}`](struct@self::{{to-message-struct-name name}}) message into MAVLink [`Payload`].
     ///
     /// Fields are reordered according to [MAVLink specification](https://mavlink.io/en/guide/serialization.html#field_reordering).
     ///

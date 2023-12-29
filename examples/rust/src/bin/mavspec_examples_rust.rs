@@ -5,7 +5,7 @@
 /// * `minimal`
 /// * `common`
 /// * `mav_inspect_test`
-pub fn main() {
+pub fn play_with_dialects() {
     #[cfg(feature = "minimal")]
     {
         use dialect::enums::{MavAutopilot, MavModeFlag, MavState, MavType};
@@ -20,7 +20,7 @@ pub fn main() {
             mavlink_version: dialect::spec().version().unwrap(),
         };
 
-        println!("{message:#?}");
+        log::info!("{message:#?}");
     }
 
     #[cfg(feature = "common")]
@@ -44,7 +44,7 @@ pub fn main() {
             z: 0.0,
         };
 
-        println!("{message:#?}");
+        log::info!("{message:#?}");
     }
 
     #[cfg(feature = "mav_inspect_test")]
@@ -73,14 +73,25 @@ pub fn main() {
             ..Default::default()
         };
 
-        println!("{message:#?}");
+        log::info!("{message:#?}");
     }
+}
+
+fn main() {
+    // Setup logger
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Info) // Suppress everything below `info` for third-party modules.
+        .filter_module(env!("CARGO_PKG_NAME"), log::LevelFilter::Trace) // Allow everything from current package
+        .init();
+
+    // Play with messages from various dialects
+    play_with_dialects()
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
     fn rust_example_test() {
-        super::main();
+        super::play_with_dialects();
     }
 }

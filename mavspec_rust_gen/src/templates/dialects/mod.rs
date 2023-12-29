@@ -57,7 +57,7 @@ const SPEC: Dialect = Dialect {};
 ///
 /// This struct can'be instantiated directly. The constant (and the only) instance is accessible
 /// through [`spec`] function.  
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(core::clone::Clone, core::fmt::Debug, Default)]
 struct Dialect;
 
 impl Dialect {
@@ -129,7 +129,7 @@ impl DialectSpec for Dialect {
 }
 
 /// Enum containing all messages within `{{name}}` dialect.
-#[derive(Clone, Debug)]
+#[derive(core::clone::Clone, core::fmt::Debug)]
 // {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
 #[allow(clippy::large_enum_variant)]
 pub enum Message {
@@ -140,7 +140,7 @@ pub enum Message {
 }
 
 /// Enum containing all raw messages within `{{name}}` dialect.
-#[derive(Clone, Debug)]
+#[derive(core::clone::Clone, core::fmt::Debug)]
 // {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
 #[allow(clippy::large_enum_variant)]
 pub enum MessageRaw {
@@ -150,7 +150,7 @@ pub enum MessageRaw {
 {{/each}}
 }
 
-impl TryFrom<&Payload> for Message {
+impl core::convert::TryFrom<&Payload> for Message {
     type Error = MessageError;
 
     /// Decodes message from MAVLink payload.
@@ -159,7 +159,7 @@ impl TryFrom<&Payload> for Message {
     }
 }
 
-impl TryFrom<&Payload> for MessageRaw {
+impl core::convert::TryFrom<&Payload> for MessageRaw {
     type Error = MessageError;
 
     /// Decodes message from MAVLink payload.

@@ -39,11 +39,18 @@ alloc = ["mavspec/alloc"]
 # Enable Rust standard library
 std = ["alloc", "mavspec/std"]
 
+# Enable `common` MAVLink dialect
+common = []
+
 ###########################################################
 # Metadata
 ###########################################################
 [package.metadata.mavspec]
-messages = ["HEARTBEAT", "PROTOCOL_VERSION", "MAV_INSPECT_V1", "COMMAND_INT", "COMMAND_LONG"]
+messages = [
+    # MAVLink messages
+    "HEARTBEAT", "PROTOCOL_VERSION", "COMMAND_INT", "COMMAND_LONG",
+    # MAVSpec test messages
+    "MAV_INSPECT_V1", "DEBUG", "CLONE", "DEFAULT", "COPY", "FROM", "TRY_FROM", "INTO", "TRY_INTO", "1ST_CLASS_MESSAGE"]
 all_enums = false
 generate_tests = true
 

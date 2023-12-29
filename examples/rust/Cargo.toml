@@ -24,6 +24,10 @@ test = true
 # MAVSpec: enable `rust` feature to import Rust interfaces.
 mavspec = { path = "../../mavspec", default-features = false, features = ["rust"] }
 
+# Logging
+log = "0.4.20"
+env_logger = "0.10.1"
+
 # Serde support: we need to include both `serde` and `serde_arrays`.
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
 serde_arrays = { version = "0.1.0", default-features = false, optional = true }

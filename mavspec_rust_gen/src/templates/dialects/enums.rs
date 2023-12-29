@@ -90,12 +90,13 @@ use mavspec::rust::spec::bitflags::bitflags;
 bitflags! {
     #[allow(rustdoc::bare_urls)]
     #[allow(rustdoc::broken_intra_doc_links)]
+    #[allow(rustdoc::invalid_rust_codeblocks)]
     /// MAVLink bitmask `{{name}}`.
     ///
     {{#each description}}
     /// {{this}}
     {{/each}}
-    #[derive(Copy, Clone, Debug, Default)]
+    #[derive(core::marker::Copy, core::clone::Clone, core::fmt::Debug, core::default::Default)]
 {{#if params.serde}}
     #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 {{/if}}
@@ -116,12 +117,13 @@ use mavspec::rust::spec::MessageError;
 #[cfg(not(doctest))]
 #[allow(rustdoc::bare_urls)]
 #[allow(rustdoc::broken_intra_doc_links)]
+#[allow(rustdoc::invalid_rust_codeblocks)]
 /// MAVLink enum `{{name}}`.
 ///
 {{#each description}}
 /// {{this}}
 {{/each}}
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(core::marker::Copy, core::clone::Clone, core::fmt::Debug, core::default::Default)]
 #[repr({{to-rust-type inferred_type}})]
 {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
 pub enum {{to-enum-rust-name name}} {
@@ -136,7 +138,7 @@ pub enum {{to-enum-rust-name name}} {
 {{/each}}
 }
 
-impl TryFrom<{{to-rust-type inferred_type}}> for {{to-enum-rust-name name}} {
+impl core::convert::TryFrom<{{to-rust-type inferred_type}}> for {{to-enum-rust-name name}} {
     type Error = MessageError;
 
     fn try_from(value: {{to-rust-type inferred_type}}) -> Result<Self, MessageError> {
@@ -145,7 +147,7 @@ impl TryFrom<{{to-rust-type inferred_type}}> for {{to-enum-rust-name name}} {
 }
 
 impl {{to-enum-rust-name name}} {
-    /// Attempts to create [`{{to-enum-rust-name name}}`] variant from discriminant (raw value).
+    /// Attempts to create [`{{to-enum-rust-name name}}`](enum@self::{{to-enum-rust-name name}}) variant from discriminant (raw value).
     ///
     /// # Errors
     ///

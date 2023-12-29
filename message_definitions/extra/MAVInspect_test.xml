@@ -76,6 +76,60 @@
                 <description>Bitmask flag that starts with a numeric character</description>
             </entry>
         </enum>
+        <enum name="DEBUG">
+            <description>Enum to test collision with `Debug`.</description>
+            <entry name="DEBUG_DEBUG" value="0">
+                <description>Enum entry to test collision with `Debug`</description>
+            </entry>
+            <entry name="DEBUG_CLONE" value="1">
+                <description>Enum entry to test collision with `Clone`</description>
+            </entry>
+            <entry name="DEBUG_DEFAULT" value="2">
+                <description>Enum entry to test collision with `Default`</description>
+            </entry>
+        </enum>
+        <enum name="CLONE" bitmask="true">
+            <description>Bitmask to test collision with `Clone`.</description>
+            <entry name="CLONE_FLAG_1" value="1">
+                <description>First flag</description>
+            </entry>
+        </enum>
+        <enum name="COPY" bitmask="true">
+            <description>Bitmask to test collision with `Copy`.</description>
+            <entry name="COPY_FLAG_1" value="1">
+                <description>First flag</description>
+            </entry>
+        </enum>
+        <enum name="DEFAULT" bitmask="true">
+            <description>Bitmask to test collision with `Default`.</description>
+            <entry name="DEFAULT_FLAG_1" value="1">
+                <description>First flag</description>
+            </entry>
+        </enum>
+        <enum name="FROM">
+            <description>Bitmask to test collision with `From`.</description>
+            <entry name="FROM_FLAG_1" value="1">
+                <description>First flag</description>
+            </entry>
+        </enum>
+        <enum name="TRY_FROM">
+            <description>Bitmask to test collision with `TryFrom`.</description>
+            <entry name="TRY_FROM_FLAG_1" value="1">
+                <description>First flag</description>
+            </entry>
+        </enum>
+        <enum name="INTO">
+            <description>Bitmask to test collision with `Into`.</description>
+            <entry name="INTO_FLAG_1" value="1">
+                <description>First flag</description>
+            </entry>
+        </enum>
+        <enum name="TRY_INTO">
+            <description>Bitmask to test collision with `TryInto`.</description>
+            <entry name="TRY_INTO_FLAG_1" value="1">
+                <description>First flag</description>
+            </entry>
+        </enum>
     </enums>
     <messages>
         <message id="255" name="MAV_INSPECT_V1">
@@ -109,6 +163,49 @@
             <extensions/>
             <field type="uint8_t" name="extension_uint8">Extension with primitive type `uint8_t`.</field>
             <field type="uint16_t[4]" name="extension_uint16_4" enum="SMALL_ENUM">Extension with array type `uint16_t[4]`.</field>
+        </message>
+        <message id="254" name="DEBUG">
+            <description>MAVInspect message to test collision with `Debug`</description>
+            <field type="uint8_t" name="debug" enum="DEBUG">Field that refers to reserved `Debug` name.</field>
+            <field type="uint8_t" name="clone" enum="CLONE">Field that refers to reserved `Clone` name.</field>
+            <field type="uint8_t" name="copy" enum="COPY">Field that refers to reserved `Copy` name.</field>
+            <field type="uint8_t" name="default" enum="DEFAULT">Field that refers to reserved `Clone` name.</field>
+            <field type="uint8_t" name="from" enum="FROM">Field that refers to reserved `From` name.</field>
+            <field type="uint8_t" name="try_from" enum="TRY_FROM">Field that refers to reserved `TryFrom` name.</field>
+            <field type="uint8_t" name="into" enum="INTO">Field that refers to reserved `Into` name.</field>
+            <field type="uint8_t" name="try_into" enum="TRY_INTO">Field that refers to reserved `TryInto` name.</field>
+        </message>
+        <message id="253" name="CLONE">
+            <description>MAVInspect message to test collision with `Clone`</description>
+            <field type="uint8_t" name="clone" enum="CLONE">Field that refers to reserved `Clone` name.</field>
+        </message>
+        <message id="252" name="DEFAULT">
+            <description>MAVInspect message to test collision with `Clone`</description>
+            <field type="uint8_t" name="default" enum="DEFAULT">Field that refers to reserved `Clone` name.</field>
+        </message>
+        <message id="251" name="FROM">
+            <description>MAVInspect message to test collision with `From`</description>
+            <field type="uint8_t" name="from" enum="FROM">Field that refers to reserved `From` name.</field>
+        </message>
+        <message id="250" name="TRY_FROM">
+            <description>MAVInspect message to test collision with `TryFrom`</description>
+            <field type="uint8_t" name="try_from" enum="TRY_FROM">Field that refers to reserved `TryFrom` name.</field>
+        </message>
+        <message id="249" name="INTO">
+            <description>MAVInspect message to test collision with `Into`</description>
+            <field type="uint8_t" name="into" enum="INTO">Field that refers to reserved `Into` name.</field>
+        </message>
+        <message id="248" name="TRY_INTO">
+            <description>MAVInspect message to test collision with `TryInto`</description>
+            <field type="uint8_t" name="try_into" enum="TRY_INTO">Field that refers to reserved `TryInto` name.</field>
+        </message>
+        <message id="247" name="COPY">
+            <description>MAVInspect message to test collision with `Copy`</description>
+            <field type="uint8_t" name="copy" enum="COPY">Field that refers to reserved `Copy` name.</field>
+        </message>
+        <message id="246" name="1ST_CLASS_MESSAGE">
+            <description>MAVInspect message to test messages which starts from numeric character</description>
+            <field type="uint8_t" name="1st_class_citizen" enum="1ST_CLASS_CITIZEN">Field that starts from numeric character.</field>
         </message>
     </messages>
 </mavlink>

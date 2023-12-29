@@ -52,11 +52,20 @@ mod tests {
         assert_eq!(
             helper.messages().unwrap(),
             HashSet::from([
-                "HEARTBEAT",
+                "DEFAULT",
+                "1ST_CLASS_MESSAGE",
                 "PROTOCOL_VERSION",
+                "TRY_FROM",
+                "DEBUG",
                 "MAV_INSPECT_V1",
+                "INTO",
+                "CLONE",
+                "HEARTBEAT",
                 "COMMAND_INT",
-                "COMMAND_LONG"
+                "FROM",
+                "TRY_INTO",
+                "COPY",
+                "COMMAND_LONG",
             ])
         );
 

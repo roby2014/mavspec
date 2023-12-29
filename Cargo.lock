@@ -340,6 +340,8 @@ dependencies = [
 name = "mavspec_examples_rust"
 version = "0.0.0"
 dependencies = [
+ "env_logger",
+ "log",
  "mavspec",
  "serde",
  "serde_arrays",
