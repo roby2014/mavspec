@@ -7,6 +7,8 @@ variables:           # default variables
   CI_CARGO_PACKAGE: <UNKNOWN>
   # CI binaries directory
   CI_SCRIPTS_DIR: ./.gitlab-ci/bin
+  # CI Rust documentation features
+  CI_RUST_DOC_FEATURES: default
 
 # ---------------------------------------------------------
 #      Generate variables (requires git and cargo)

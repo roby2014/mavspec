@@ -10,6 +10,7 @@ stages:
 variables:
   DRY_CARGO_RELEASE: "false"
   CI_CARGO_PACKAGE: mavspec
+  CI_RUST_DOC_FEATURES: rust,rust_gen,serde,unstable
 
 # ---------------------------------------------------------
 #                          Test

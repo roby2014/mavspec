@@ -23,8 +23,10 @@
 #[cfg(feature = "rust")]
 pub mod rust {
     //! MAVSpec's code generation toolchain for Rust.
-    //!
-    //! Check [`gen`] module documentation to learn how to use code generator.
+    #![cfg_attr(
+        feature = "rust_gen",
+        doc = "\n\nCheck [`gen`] module documentation to learn about code generation specifics."
+    )]
 
     #[doc(inline)]
     pub use mavspec_rust_spec as spec;

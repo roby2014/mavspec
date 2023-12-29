@@ -19,8 +19,9 @@ use no_alloc_payload_container::PayloadContainer;
 
 /// MAVlink message payload.
 ///
-/// Encapsulates MAVLink payload. In `no_std` non-allocating targets it uses fixed-sized
-/// arrays of bytes. Otherwise payload is stored as a [`Vec`].
+/// Encapsulates MAVLink payload.
+/// In `no_std` non-allocating targets it uses fixed-sized
+/// arrays of bytes. Otherwise payload is stored on heap as a dynamically sized sequence.
 #[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(not(feature = "std"), derive(Debug))]
