@@ -3,7 +3,7 @@ MAVSpec
 
 A code-generator for [MAVLink](https://mavlink.io/en/).
 
-[🇺🇦](#a-note-on-the-war-in-ukraine)
+[🇺🇦](https://mavka.gitlab.io/home/a_note_on_the_war_in_ukraine/)
 [`repository`](https://gitlab.com/mavka/libs/mavspec)
 [`crates.io`](https://crates.io/crates/mavspec)
 [`API docs`](https://docs.rs/mavspec/latest/mavspec/)
@@ -244,39 +244,6 @@ that uses [gRPC](https://grpc.io) API.
 
 MAVLink is almost 15 years old, but the ecosystem around this protocol is still dynamic and developing. Some projects are
 stable and robust, while others are nice and feature-rich but incomplete.
-
-Acknowledgements
-----------------
-
-I am deeply grateful to the people helping build the Rust ecosystem. This project started as a learning exercise, and
-even though I had a hard time debugging my understanding of the Rust compiler, I've rarely done the same for the
-libraries written by other people.
-
-I've used images from [Flaticon](https://www.flaticon.com) to create a project avatar. They allow the use of their
-content freely under the condition of mentioning them on social networks. I hope that GitLab counts since we sort of
-socialize here.
-
-A Note on the War in Ukraine
-----------------------------
-
-This project was initiated and mainly written in Kyiv under the constant threat of missile strikes. As a fair witness,
-I must admit that the intensity of such strikes and the danger they pose to my life is incomparable to what my fellow
-citizens are facing in the southern and eastern parts of Ukraine. I don't want to focus on my experience of such events.
-After all, experience is overrated. I initially thought to put a link to a charity foundation I consider efficient and
-trustworthy, but something stopped me. Instead, I am offering to think about the order of things compatible with a
-decent way of life and the threat this soon-to-be ten-year war poses to such order.
-
-I've intentionally put this note here, almost at the very bottom, not to avoid accusations of sentimental manipulation.
-Rather opposite, it belongs to the place right above the license clause where I put things in order, deciding what to
-restrain and what to set free. In normal conditions, we pay little attention to the order of things that puts such
-decisions into effect. One may ground their confidence in the law but not bother themselves with thinking about what
-makes the law possible.
-
-The exercise I am offering, to put oneself into the position of a person responsible for the state of the World (because
-human beings either belong to the entire World or belong to nothing), if performed honestly, is probably less pleasant
-than an act of charity (I am doing a lot of charity and know for sure). Yet, at the same time, it gives us a common
-ground and a basis for prudent political action. At least, as far as we agree that both of us, the one who writes and
-the one who reads, are *equally* incompatible with the war, that is clearly right here.
 
 License
 -------

@@ -1,7 +1,7 @@
 [package]
 name = "mavspec"
 description = "A set of code generation utilities for MAVLink protocol."
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
 repository = "https://gitlab.com/mavka/libs/mavspec"
