@@ -1,13 +1,13 @@
 [package]
 name = "mavspec"
 description = "A set of code generation utilities for MAVLink protocol."
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
 repository = "https://gitlab.com/mavka/libs/mavspec"
 readme = "../README.md"
 license = "MIT OR Apache-2.0"
-homepage = "https://gitlab.com/mavka/libs/mavspec"
+homepage = "https://mavka.gitlab.io/home/projects/mavspec"
 keywords = ["MAVLink", "UAV", "drones", "parser"]
 categories = [
     "aerospace::protocols",
