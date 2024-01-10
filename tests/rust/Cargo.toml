@@ -46,9 +46,10 @@ common = []
 # Metadata
 ###########################################################
 [package.metadata.mavspec]
+microservices = ["HEARTBEAT", "COMMAND"]
 messages = [
     # MAVLink messages
-    "HEARTBEAT", "PROTOCOL_VERSION", "COMMAND_INT", "COMMAND_LONG",
+    "PROTOCOL_VERSION",
     # MAVSpec test messages
     "MAV_INSPECT_V1", "DEBUG", "CLONE", "DEFAULT", "COPY", "FROM", "TRY_FROM", "INTO", "TRY_INTO", "1ST_CLASS_MESSAGE"]
 all_enums = false

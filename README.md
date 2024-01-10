@@ -141,7 +141,7 @@ pub use mavlink::dialects;
 Check [`examples/rust`](examples/rust/README.md) for a slightly more elaborated example which uses Cargo features as flags for MAVLink
 dialect selection.
 
-### Rust naming conventions
+#### Rust naming conventions
 
 In `MAVSpec` we are trying to keep balance between names as they appear in MAVLink XML definitions and Rust naming
 conventions. In most situation we favor the Rust way unless it introduces confusions. In case we failed, and you are
@@ -163,6 +163,19 @@ of the naming rules:
 Check [`mavspec_examples_rust.rs`](examples/rust/src/bin/mavspec_examples_rust.rs) which shows how the last two cases of
 inconvenient names are handled (this is not something of high aesthetic value but in our defence we must say that all
 approaches we've considered looked equally ugly).
+
+### Fingerprints
+
+MAVInspect may skip code re-generation if dialects haven't changed. It uses 64-bit CRC fingerprint to monitor
+changes. Set `fingerprints` feature flag to enable this behavior.
+
+This feature is useful for reducing build time during development and CI runs. Make sure that your releases are
+clean and do not depend on fingerprints.
+
+### Unstable Features
+
+Unstable features are enabled by `unstable` feature flag. Such features are experimental and can be changed or
+excluded in future releases.
 
 CLI
 ---

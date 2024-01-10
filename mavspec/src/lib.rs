@@ -11,6 +11,19 @@
 //! # Rust
 //!
 //! Check [`rust`] module for details.
+//!
+//! # Fingerprints
+//!
+//! MAVInspect may skip code re-generation if dialects haven't changed. It uses 64-bit CRC fingerprint to monitor
+//! changes. Set `fingerprints` feature flag to enable this behavior.
+//!
+//! This feature is useful for reducing build time during development and CI runs. Make sure that your releases are
+//! clean and do not depend on fingerprints.
+//!
+//! # Unstable Features
+//!
+//! Unstable features are enabled by `unstable` feature flag. Such features are experimental and can be changed or
+//! excluded in future releases.
 
 #![warn(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]

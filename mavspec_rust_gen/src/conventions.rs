@@ -33,7 +33,7 @@ pub fn split_description(value: &str) -> Vec<String> {
     let mut pos = 0;
     let value = value.replace('\t', " ");
 
-    for (_, ch) in value.chars().enumerate() {
+    for ch in value.chars() {
         pos += 1;
         if pos >= MAX_COMMENT_LENGTH && ch == ' ' {
             pos = 0;
