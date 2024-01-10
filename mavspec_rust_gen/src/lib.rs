@@ -23,6 +23,7 @@
 //! ];
 //! // Output path
 //! let destination = "../tmp/mavlink";
+//! # let destination = "../tmp/mavlink/lib/default";
 //!
 //! // Generate rust bindings
 //! BuildHelper::builder(destination)
@@ -30,7 +31,7 @@
 //! #   .set_include_dialects(&["minimal"])
 //!     .generate()
 //!     .unwrap();
-//! # remove_dir_all("../tmp/mavlink").unwrap();
+//! # remove_dir_all(destination).unwrap_or_default();
 //! ```
 //!
 //! For better control over included dialects you may directly pass `Protocol` from
@@ -59,13 +60,14 @@
 //!
 //! // Output path
 //! let destination = "../tmp/mavlink";
+//! # let destination = "../tmp/mavlink/lib/from_protocol";
 //!
 //! // Generate rust bindings
 //! BuildHelper::builder(destination)
 //!     .set_protocol(protocol)
 //!     .generate()
 //!     .unwrap();
-//! # remove_dir_all("../tmp/mavlink").unwrap();
+//! # remove_dir_all(destination).unwrap_or_default();
 //! ```
 //!
 //! # Naming Conventions
@@ -89,6 +91,19 @@
 //!
 //! The last two cases of handling inconvenient names are not something of high aesthetic value but in our defence we
 //! must say that all approaches we've considered looked equally ugly.
+//!
+//! # Fingerprints
+//!
+//! MAVInspect may skip code re-generation if dialects haven't changed. It uses 64-bit CRC fingerprint to monitor
+//! changes. Set `fingerprints` feature flag to enable this behavior.
+//!
+//! This feature is useful for reducing build time during development and CI runs. Make sure that your releases are
+//! clean and do not depend on fingerprints.
+//!
+//! # Unstable Features
+//!
+//! Unstable features are enabled by `unstable` feature flag. Such features are experimental and can be changed or
+//! excluded in future releases.
 
 #![warn(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
@@ -104,4 +119,4 @@ mod templates;
 pub mod utils;
 
 mod build_helper;
-pub use build_helper::{BuildHelper, BuildHelperConf};
+pub use build_helper::{BuildHelper, BuildHelperBuilder};

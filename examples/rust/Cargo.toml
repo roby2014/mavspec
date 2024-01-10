@@ -68,8 +68,10 @@ standard = ["minimal"]
 # Metadata
 ###########################################################
 [package.metadata.mavspec]
+# MAVLink microservices to include
+microservices = ["HEARTBEAT", "COMMAND"]
 # Inclide only the following messages
-messages = ["HEARTBEAT", "PROTOCOL_VERSION", "MAV_INSPECT_V1", "COMMAND_INT", "COMMAND_LONG"]
+messages = ["PROTOCOL_VERSION", "MAV_INSPECT_V1"]
 # Include only enums relevant to specified messages (set to `true` to include all)
 all_enums = false
 # Generate tests

@@ -1,8 +1,14 @@
 mod tests {
-    use mavspec_rust_gen::BuildHelper;
     use std::collections::HashSet;
     use std::fs::remove_dir_all;
     use std::path::PathBuf;
+
+    use mavinspect::protocol::Microservices;
+    use mavinspect::Inspector;
+
+    use mavspec_rust_gen::BuildHelper;
+
+    const CARGO_MANIFEST_PATH: &str = "../tests/rust/Cargo.toml";
 
     fn xml_definition_paths() -> Vec<&'static str> {
         vec![
@@ -17,10 +23,11 @@ mod tests {
 
     #[test]
     fn generate_rust_from_protocol() {
-        use mavinspect::Inspector;
-        use mavspec_rust_gen::BuildHelper;
+        let out_path = out_path().join("from_protocol");
 
-        let out_path = out_path();
+        if let Err(err) = remove_dir_all(&out_path) {
+            log::debug!("Can't delete temporary directory '{out_path:?}': {err:?}. Proceed.");
+        }
 
         let protocol = Inspector::builder()
             .set_sources(&xml_definition_paths())
@@ -36,14 +43,20 @@ mod tests {
             .generate()
             .unwrap();
 
-        remove_dir_all(&out_path).unwrap();
+        remove_dir_all(out_path).unwrap();
     }
 
     #[test]
     fn generate_rust_from_manifest() {
-        let helper = BuildHelper::builder("../tmp/mavlink")
+        let out_path = out_path().join("from_manifest");
+
+        if let Err(err) = remove_dir_all(&out_path) {
+            log::debug!("Can't delete temporary directory '{out_path:?}': {err:?}. Proceed.");
+        }
+
+        let helper = BuildHelper::builder(&out_path)
             .set_sources(&xml_definition_paths())
-            .set_manifest_path("../tests/rust/Cargo.toml")
+            .set_manifest_path(CARGO_MANIFEST_PATH)
             .build()
             .unwrap();
 
@@ -60,15 +73,21 @@ mod tests {
                 "MAV_INSPECT_V1",
                 "INTO",
                 "CLONE",
-                "HEARTBEAT",
-                "COMMAND_INT",
                 "FROM",
                 "TRY_INTO",
                 "COPY",
-                "COMMAND_LONG",
             ])
         );
+        assert!(helper
+            .microservices()
+            .unwrap()
+            .contains(Microservices::HEARTBEAT));
+        assert!(helper
+            .microservices()
+            .unwrap()
+            .contains(Microservices::COMMAND));
 
         helper.generate().unwrap();
+        remove_dir_all(out_path).unwrap();
     }
 }

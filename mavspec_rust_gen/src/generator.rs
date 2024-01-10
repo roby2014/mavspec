@@ -1,9 +1,15 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::ffi::OsStr;
+#[cfg(feature = "fingerprints")]
+use std::fs::read_to_string;
 use std::fs::{create_dir_all, File};
+#[cfg(feature = "fingerprints")]
+use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Arc;
 
+#[cfg(feature = "fingerprints")]
+use base64::{engine::general_purpose, Engine as _};
 use handlebars::Handlebars;
 use serde::Serialize;
 
@@ -20,8 +26,6 @@ use super::templates;
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct GeneratorParams {
     pub serde: bool,
-    pub messages: Option<HashSet<String>>,
-    pub all_enums: bool,
     pub generate_tests: bool,
 }
 
@@ -38,12 +42,6 @@ pub(crate) struct DialectSpec<'a> {
 
 impl<'a> DialectSpec<'a> {
     pub(crate) fn new(dialect: &'a Dialect, params: &'a GeneratorParams) -> Self {
-        let dialect: Dialect = if let Some(messages) = &params.messages {
-            dialect.with_filtered_messages(messages, !params.all_enums)
-        } else {
-            dialect.clone()
-        };
-
         Self {
             name: dialect.name().to_string(),
             version: dialect.version(),
@@ -100,21 +98,45 @@ impl<'a> Generator<'a> {
     pub fn generate(&self) -> anyhow::Result<()> {
         log::info!("Generating Rust code from MAVLink protocol.");
 
-        if let Some(messages) = &self.params.messages {
-            log::warn!(
-                "Message filtering is enabled. Messages to be generated: {:?}",
-                messages
-            );
+        #[cfg(feature = "fingerprints")]
+        if !self.fingerprint_has_updated()? {
+            log::info!("Fingerprint hasn't changed. Skipping.");
+            return Ok(());
         }
 
         self.generate_root_module()?;
         self.generate_dialects()?;
+
+        #[cfg(feature = "fingerprints")]
+        self.generate_fingerprint()?;
 
         log::info!(
             "Generation results: {}",
             self.path.canonicalize().unwrap().to_str().unwrap()
         );
 
+        Ok(())
+    }
+
+    #[cfg(feature = "fingerprints")]
+    fn fingerprint(&self) -> String {
+        general_purpose::STANDARD_NO_PAD.encode(self.protocol.fingerprint().to_le_bytes())
+    }
+
+    #[cfg(feature = "fingerprints")]
+    fn fingerprint_has_updated(&self) -> anyhow::Result<bool> {
+        if self.fingerprint_path().exists() {
+            let existing_fingerprint = read_to_string(self.fingerprint_path())?;
+            return Ok(existing_fingerprint != self.fingerprint());
+        }
+
+        Ok(true)
+    }
+
+    #[cfg(feature = "fingerprints")]
+    fn generate_fingerprint(&self) -> anyhow::Result<()> {
+        let mut file = File::create(self.fingerprint_path())?;
+        file.write_all(self.fingerprint().as_bytes())?;
         Ok(())
     }
 
@@ -283,6 +305,11 @@ impl<'a> Generator<'a> {
         )?;
 
         Ok(reg)
+    }
+
+    #[cfg(feature = "fingerprints")]
+    fn fingerprint_path(&self) -> PathBuf {
+        self.path.join(".fingerprint")
     }
 
     fn root_module_file_path(&self, filename: &str) -> PathBuf {

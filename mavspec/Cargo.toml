@@ -49,6 +49,8 @@ mavspec_rust_spec = { version = "0.1.0-alpha8", path = "../mavspec_rust_spec", o
 default = []
 ## Enables unstable API features.
 unstable = ["mavspec_rust_gen/unstable", "mavspec_rust_spec/unstable"]
+## Use protocol CRC-fingerprints to avoid re-generating files
+fingerprints = ["mavspec_rust_gen/fingerprints"]
 
 ## Enable serde support
 serde = ["mavspec_rust_spec/serde"]
