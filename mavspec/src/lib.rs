@@ -42,6 +42,8 @@ pub mod rust {
     )]
 
     #[doc(inline)]
+    pub use mavspec_rust_derive as derive;
+    #[doc(inline)]
     pub use mavspec_rust_spec as spec;
 
     #[cfg(feature = "rust_gen")]

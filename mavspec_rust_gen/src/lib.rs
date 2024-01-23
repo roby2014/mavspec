@@ -112,11 +112,12 @@
     html_favicon_url = "https://gitlab.com/mavka/libs/mavspec/-/raw/main/avatar.png?ref_type=heads"
 )]
 
-mod conventions;
-mod generator;
-mod helpers;
-mod templates;
-pub mod utils;
-
 mod build_helper;
 pub use build_helper::{BuildHelper, BuildHelperBuilder};
+
+pub mod utils;
+
+pub(crate) mod conventions;
+pub(crate) mod generator;
+pub(crate) mod specs;
+pub(crate) mod templates;
