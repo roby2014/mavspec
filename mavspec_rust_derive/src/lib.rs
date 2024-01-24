@@ -27,7 +27,7 @@ pub(crate) mod message;
 /// ```rust
 /// use mavspec::rust::derive::Message;
 ///
-/// #[derive(Clone, Debug, Default, Message)]
+/// #[derive(Clone, Debug, Message)]
 /// #[message_id(255)] // Specify message ID
 /// #[crc_extra(32)]   // Set CRC_EXTRA byte
 /// struct CustomMessage {
@@ -63,7 +63,7 @@ pub(crate) mod message;
 ///     OptionC = 2,
 /// }
 ///
-/// #[derive(Clone, Debug, Default, Message)]
+/// #[derive(Clone, Debug, Message)]
 /// #[message_id(255)]
 /// #[crc_extra(32)]
 /// struct CustomMessage {
@@ -107,7 +107,7 @@ pub(crate) mod message;
 ///     }
 /// }
 ///
-/// #[derive(Clone, Debug, Default, Message)]
+/// #[derive(Clone, Debug, Message)]
 /// #[message_id(255)]
 /// #[crc_extra(32)]
 /// struct CustomMessage {

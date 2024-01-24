@@ -1,7 +1,11 @@
-use crate::conventions::{enum_bitmask_entry_name, enum_entry_name, enum_mod_name, enum_rust_name};
+use crate::conventions::{
+    dialect_mod_name, enum_bitmask_entry_name, enum_entry_name, enum_mod_name, enum_rust_name,
+};
 use quote::{format_ident, quote};
 
-use crate::specs::dialects::dialect::enums::{EnumImplModuleSpec, EnumsRootModuleSpec};
+use crate::specs::dialects::dialect::enums::{
+    EnumImplModuleSpec, EnumInheritedModuleSpec, EnumsRootModuleSpec,
+};
 use crate::specs::Spec;
 use crate::templates::helpers::make_serde_derive_annotation;
 
@@ -116,24 +120,7 @@ fn make_enum(spec: &EnumImplModuleSpec) -> proc_macro2::TokenStream {
             }
         });
 
-        let impl_leading_doc_comment = format!(
-            "Attempts to create [`{enum_ident}`](enum@self::{enum_ident}) variant from discriminant (raw value)."
-        );
-
-        let enum_match_arms = spec.entries().iter().map(|entry| {
-            let entry_ident = format_ident!("{}", enum_entry_name(entry.name_stripped().into()));
-            let entry_value = entry.value_expr();
-
-            quote! {
-                #entry_value => Self::#entry_ident,
-            }
-        });
-
-        let enum_name_str = spec.name();
-
         quote! {
-            use mavspec::rust::spec::MessageError;
-
             #[cfg(not(doctest))]
             #[allow(rustdoc::bare_urls)]
             #[allow(rustdoc::broken_intra_doc_links)]
@@ -141,6 +128,7 @@ fn make_enum(spec: &EnumImplModuleSpec) -> proc_macro2::TokenStream {
             #[doc = #leading_doc_comment]
             ///
             #(#description_doc_comments)*
+            #[derive(mavspec::rust::derive::Enum)]
             #[derive(core::marker::Copy, core::clone::Clone, core::fmt::Debug, core::default::Default)]
             #[repr(#enum_inferred_type)]
             #derive_serde
@@ -148,33 +136,30 @@ fn make_enum(spec: &EnumImplModuleSpec) -> proc_macro2::TokenStream {
                 #[default]
                 #(#enum_variants)*
             }
-
-            impl core::convert::TryFrom<#enum_inferred_type> for #enum_ident {
-                type Error = MessageError;
-
-                fn try_from(value: #enum_inferred_type) -> Result<Self, MessageError> {
-                    Self::try_from_discriminant(value)
-                }
-            }
-
-            impl #enum_ident {
-                #[doc = #impl_leading_doc_comment]
-                ///
-                /// # Errors
-                ///
-                /// * Returns [`MessageError::InvalidEnumValue`] if there is no enum variant corresponding to discriminant `value`.
-                pub fn try_from_discriminant(value: #enum_inferred_type) -> Result<Self, MessageError> {
-                    Ok(match value {
-                        #(#enum_match_arms)*
-                        _ => {
-                            return Err(MessageError::InvalidEnumValue {
-                                enum_name: #enum_name_str,
-                                value: value.into(),
-                            })
-                        }
-                    })
-                }
-            }
         }
     }
+}
+
+pub(crate) fn enum_inherited_module(spec: &EnumInheritedModuleSpec) -> syn::File {
+    let module_doc_comment = format!(
+        " MAVLink enum `{}` inherited from `{}` dialect.",
+        spec.name(),
+        spec.original_dialect_name()
+    );
+
+    let enum_ident = format_ident!("{}", enum_rust_name(spec.name().into()));
+    let dialect_mod_ident =
+        format_ident!("{}", dialect_mod_name(spec.original_dialect_name().into()));
+    let enum_mod_ident = format_ident!("{}", enum_mod_name(spec.name().into()));
+    let enum_doc_comment = format!(" Originally defined in [`{dialect_mod_ident}::enums::{enum_mod_ident}`](dialect::enums::{enum_ident})");
+
+    syn::parse2(quote! {
+        #![doc = #module_doc_comment]
+
+        use super::super::super::#dialect_mod_ident as dialect;
+
+        #[doc = #enum_doc_comment]
+        pub type #enum_ident = dialect::enums::#enum_mod_ident::#enum_ident;
+    })
+    .unwrap()
 }

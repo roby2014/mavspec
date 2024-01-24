@@ -31,18 +31,21 @@ enum MyEnum {
     OptionE = 4,
 }
 
-#[derive(Clone, Debug, Default, Message)]
+#[derive(Clone, Debug, Message)]
 #[message_id(40)]
 #[crc_extra(32)]
 struct MyMessage {
     scalar_i16: i16,
     array_u16_5: [u16; FIVE],
+    array_u8_40: [u16; 40],
 
     #[base_type(u8)]
     enum_scalar_u8: MyEnum,
 
     #[base_type(u8)]
     enum_array_u8_4: [MyEnum; 4],
+    #[base_type(u8)]
+    enum_array_u8_40: [MyEnum; 40],
 
     #[base_type(u16)]
     #[repr_type(u8)]
@@ -116,7 +119,7 @@ fn encode_decode() {
         .encode(mavspec::rust::spec::MavLinkVersion::V2)
         .unwrap();
 
-    let decoded_message = MyMessage::try_from(payload).unwrap();
+    let decoded_message = MyMessage::try_from(&payload).unwrap();
     log::info!("Decoded message: {decoded_message:#?}");
 }
 

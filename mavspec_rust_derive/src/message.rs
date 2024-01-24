@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use quote::{quote, TokenStreamExt};
+use quote::{format_ident, quote, TokenStreamExt};
 
 use crate::errors::{Error, MessageError};
 use crate::field_types::FieldType;
@@ -55,11 +55,15 @@ impl Message {
         let impl_message_spec = self.impl_message_spec();
         let impl_try_from_payload = self.impl_try_from_payload();
         let impl_into_payload = self.impl_into_payload();
+        let impl_default = self.impl_default();
+        let impl_message_impl = self.impl_message_impl();
 
         quote! {
             #impl_message_spec
             #impl_try_from_payload
             #impl_into_payload
+            #impl_message_impl
+            #impl_default
         }
     }
 
@@ -115,10 +119,10 @@ impl Message {
         let decode_fn_v2 = self.decode_fn_v2();
 
         quote! {
-            impl TryFrom<mavspec::rust::spec::Payload> for #ident {
+            impl TryFrom<&mavspec::rust::spec::Payload> for #ident {
                 type Error = mavspec::rust::spec::MessageError;
 
-                fn try_from(value: mavspec::rust::spec::Payload) -> Result<Self, Self::Error> {
+                fn try_from(value: &mavspec::rust::spec::Payload) -> Result<Self, Self::Error> {
                     use mavspec::rust::spec::tbytes::{TBytesReader, TBytesReaderFor};
 
                     #decode_fn_v1
@@ -155,6 +159,35 @@ impl Message {
                     }
                 }
             }
+        }
+    }
+
+    fn impl_default(&self) -> proc_macro2::TokenStream {
+        let ident = self.ident();
+        let field_defaults = self.fields_v2().map(|field| {
+            let ident = field.ident();
+            let default_value = field.default_value();
+
+            quote! {
+                #ident: #default_value,
+            }
+        });
+
+        quote! {
+            impl core::default::Default for #ident {
+                fn default() -> Self {
+                    Self {
+                        #(#field_defaults)*
+                    }
+                }
+            }
+        }
+    }
+
+    fn impl_message_impl(&self) -> proc_macro2::TokenStream {
+        let ident = self.ident();
+        quote! {
+            impl mavspec::rust::spec::MessageImpl for #ident {}
         }
     }
 
@@ -251,8 +284,9 @@ impl Message {
 
         for field in self.fields_ext() {
             let ident = field.ident();
+            let default_value = field.default_value();
             fields.push(quote! {
-               #ident: Default::default()
+               #ident: #default_value
             });
         }
 
@@ -290,10 +324,11 @@ impl Message {
                 Some(custom_type) => {
                     let base_type = scalar.to_token_stream();
                     let raw_value_converter = field.decode_raw_value_converter();
+                    let default_value = field.default_value();
                     quote! {
                         #field_ident: {
                             let raw_values: [#base_type; #len] = reader.read_array()?;
-                            let mut values: [#custom_type; #len] = Default::default();
+                            let mut values: [#custom_type; #len] = #default_value;
                             for i in 0..#len {
                                 let raw_value = raw_values[i];
                                 values[i] = #raw_value_converter;
@@ -317,6 +352,7 @@ impl Message {
         if self.message_id.supports_mavlink_1() {
             self.encode_fn(
                 quote!(encode_v1),
+                format_ident!("V1"),
                 self.payload_size_v1(),
                 self.encode_fields_v1(),
             )
@@ -336,6 +372,7 @@ impl Message {
     fn encode_fn_v2(&self) -> proc_macro2::TokenStream {
         self.encode_fn(
             quote!(encode_v2),
+            format_ident!("V2"),
             self.payload_size_v2(),
             self.encode_fields_v2(),
         )
@@ -344,6 +381,7 @@ impl Message {
     fn encode_fn(
         &self,
         name: proc_macro2::TokenStream,
+        version: syn::Ident,
         payload_size: proc_macro2::TokenStream,
         encode_fields: impl Iterator<Item = proc_macro2::TokenStream>,
     ) -> proc_macro2::TokenStream {
@@ -362,7 +400,7 @@ impl Message {
                 let payload = mavspec::rust::spec::Payload::new(
                     #message_id,
                     buf.as_slice(),
-                    mavspec::rust::spec::MavLinkVersion::V2,
+                    mavspec::rust::spec::MavLinkVersion::#version,
                 );
                 Ok(payload)
             }

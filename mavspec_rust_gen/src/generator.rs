@@ -10,10 +10,12 @@ use std::sync::Arc;
 use base64::{engine::general_purpose, Engine as _};
 use serde::Serialize;
 
-use mavinspect::protocol::Protocol;
+use mavinspect::protocol::{Dialect, Enum, Protocol};
 
 use crate::conventions;
-use crate::specs::dialects::dialect::enums::{EnumImplModuleSpec, EnumsRootModuleSpec};
+use crate::specs::dialects::dialect::enums::{
+    EnumImplModuleSpec, EnumInheritedModuleSpec, EnumsRootModuleSpec,
+};
 use crate::specs::dialects::dialect::messages::{
     MessageImplModuleSpec, MessageInheritedModuleSpec, MessagesRootModuleSpec,
 };
@@ -162,9 +164,22 @@ impl Generator {
 
         for mav_enum in dialect_spec.enums().values() {
             let mut file = File::create(self.enum_file(dialect_spec.name(), mav_enum.name()))?;
-            let content = prettyplease::unparse(&templates::dialects::dialect::enums::enum_module(
-                &EnumImplModuleSpec::new(mav_enum, &self.params),
-            ));
+
+            let content = if let Some(inherited_from_dialect) =
+                self.enum_inherited_from(mav_enum, dialect_spec.name())
+            {
+                prettyplease::unparse(&templates::dialects::dialect::enums::enum_inherited_module(
+                    &EnumInheritedModuleSpec::new(
+                        mav_enum,
+                        inherited_from_dialect.name(),
+                        &self.params,
+                    ),
+                ))
+            } else {
+                prettyplease::unparse(&templates::dialects::dialect::enums::enum_module(
+                    &EnumImplModuleSpec::new(mav_enum, &self.params),
+                ))
+            };
 
             file.write_all(content.as_bytes())?;
             log::trace!(
@@ -287,5 +302,26 @@ impl Generator {
     fn message_file(&self, dialect_name: &str, message_name: &str) -> PathBuf {
         self.messages_dir(dialect_name)
             .join(conventions::message_file_name(message_name.to_string()))
+    }
+
+    fn enum_inherited_from(&self, mav_enum: &Enum, dialect_name: &str) -> Option<&Dialect> {
+        for defined_in_dialect_name in mav_enum.defined_in() {
+            let defined_in_dialect = self
+                .protocol
+                .dialects()
+                .get(
+                    mavinspect::utils::dialect_canonical_name(defined_in_dialect_name.as_str())
+                        .as_str(),
+                )
+                .unwrap();
+            if defined_in_dialect_name == dialect_name {
+                continue;
+            }
+            let original_enum = defined_in_dialect.enums().get(mav_enum.name()).unwrap();
+            if original_enum.fingerprint() == mav_enum.fingerprint() {
+                return Some(defined_in_dialect);
+            }
+        }
+        None
     }
 }

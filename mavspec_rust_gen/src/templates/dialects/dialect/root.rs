@@ -1,6 +1,4 @@
-use crate::conventions::{
-    message_mod_name, message_raw_struct_name, message_struct_name, messages_enum_entry_name,
-};
+use crate::conventions::{message_mod_name, message_struct_name, messages_enum_entry_name};
 use quote::{format_ident, quote};
 
 use crate::specs::dialects::dialect::DialectModuleSpec;
@@ -32,23 +30,6 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             #messages_enum_entry_name(messages::#message_struct_name),
         }
     });
-    let messages_raw_enum_comment = format!(
-        "Enum containing all raw messages within `{}` dialect.",
-        specs.name()
-    );
-    let messages_raw_variants = specs.messages().values().map(|msg| {
-        let comment = format!("Raw MAVLink message `{}`.", msg.name());
-        let messages_enum_entry_name =
-            format_ident!("{}", messages_enum_entry_name(msg.name().into()));
-        let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
-        let message_raw_struct_name =
-            format_ident!("{}", message_raw_struct_name(msg.name().into()));
-
-        quote! {
-            #[doc = #comment]
-            #messages_enum_entry_name(messages::#message_mod_name::#message_raw_struct_name),
-        }
-    });
     let message_info_arms = specs.messages().values().map(|msg| {
         let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
 
@@ -70,35 +51,12 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             }
         }
     });
-    let decode_raw_arms = specs.messages().values().map(|msg| {
-        let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
-        let messages_enum_entry_name =
-            format_ident!("{}", messages_enum_entry_name(msg.name().into()));
-        let message_raw_struct_name =
-            format_ident!("{}", message_raw_struct_name(msg.name().into()));
-
-        quote! {
-            messages::#message_mod_name::MESSAGE_ID => {
-                MessageRaw::#messages_enum_entry_name(
-                    messages::#message_mod_name::#message_raw_struct_name::try_from(payload)?
-                )
-            }
-        }
-    });
     let encode_arms = specs.messages().values().map(|msg| {
         let messages_enum_entry_name =
             format_ident!("{}", messages_enum_entry_name(msg.name().into()));
 
         quote! {
             Message::#messages_enum_entry_name(message) => message.encode(version)?,
-        }
-    });
-    let encode_raw_arms = specs.messages().values().map(|msg| {
-        let messages_enum_entry_name =
-            format_ident!("{}", messages_enum_entry_name(msg.name().into()));
-
-        quote! {
-            MessageRaw::#messages_enum_entry_name(raw_message) => raw_message.encode(version)?,
         }
     });
     let tests = if specs.params().generate_tests {
@@ -244,24 +202,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             #(#messages_variants)*
         }
 
-        #[doc = #messages_raw_enum_comment]
-        #[derive(core::clone::Clone, core::fmt::Debug)]
-        // {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
-        #[allow(clippy::large_enum_variant)]
-        pub enum MessageRaw {
-            #(#messages_raw_variants)*
-        }
-
         impl core::convert::TryFrom<&Payload> for Message {
-            type Error = MessageError;
-
-            /// Decodes message from MAVLink payload.
-            fn try_from(value: &Payload) -> Result<Self, Self::Error> {
-                Self::decode(value)
-            }
-        }
-
-        impl core::convert::TryFrom<&Payload> for MessageRaw {
             type Error = MessageError;
 
             /// Decodes message from MAVLink payload.
@@ -272,16 +213,6 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
 
         impl IntoPayload for Message {
             /// Encodes message into MAVLink payload.
-            fn encode(
-                &self,
-                version: MavLinkVersion,
-            ) -> Result<Payload, MessageError> {
-                self.encode(version)
-            }
-        }
-
-        impl IntoPayload for MessageRaw {
-            /// Encodes raw message into MAVLink payload.
             fn encode(
                 &self,
                 version: MavLinkVersion,
@@ -301,20 +232,6 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             /// Encodes message to MAVLink payload.
             pub fn encode(&self, version: MavLinkVersion) -> Result<Payload, MessageError> {
                 encode(self, version)
-            }
-        }
-
-        impl MessageRaw {
-            /// Decodes raw message from MAVLink payload.
-            pub fn decode(
-                payload: &Payload,
-            ) -> Result<Self, MessageError> {
-                decode_raw(payload)
-            }
-
-            /// Encodes raw message to MAVLink payload.
-            pub fn encode(&self, version: MavLinkVersion) -> Result<Payload, MessageError> {
-                encode_raw(self, version)
             }
         }
 
@@ -344,25 +261,10 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             })
         }
 
-        /// Decodes [`MessageRaw`] from [`Payload`].
-        pub fn decode_raw(payload: &Payload) -> Result<MessageRaw, MessageError> {
-            Ok(match payload.id() {
-                #(#decode_raw_arms)*
-                id => return Err(MessageError::UnsupportedMessageId(id)),
-            })
-        }
-
         /// Encodes [`Message`] into [`Payload`].
         pub fn encode(msg: &Message, version: MavLinkVersion) -> Result<Payload, MessageError> {
             Ok(match msg {
                 #(#encode_arms)*
-            })
-        }
-
-        /// Encodes [`MessageRaw`] into [`Payload`].
-        pub fn encode_raw(msg: &MessageRaw, version: MavLinkVersion) -> Result<Payload, MessageError> {
-            Ok(match msg {
-                #(#encode_raw_arms)*
             })
         }
 

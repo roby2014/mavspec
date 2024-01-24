@@ -13,6 +13,7 @@ pub(crate) struct Field {
     repr_type: Option<ScalarType>,
     is_bitmask: bool,
     is_extension: bool,
+    default_value: proc_macro2::TokenStream,
 }
 
 impl Display for Field {
@@ -62,6 +63,13 @@ impl Field {
 
         let (field_type, custom_type) = Self::derive_field_type(value.ty, base_type.as_ref())?;
 
+        let default_value = match &field_type {
+            FieldType::Scalar(_) => quote! { core::default::Default::default() },
+            FieldType::Array(_, len) => {
+                quote! { [core::default::Default::default(); #len] }
+            }
+        };
+
         Ok(Self {
             ident,
             field_type,
@@ -69,6 +77,7 @@ impl Field {
             repr_type,
             is_bitmask,
             is_extension,
+            default_value,
         })
     }
 
@@ -128,6 +137,10 @@ impl Field {
                 (value as #repr_type) as #base_type
             }
         }
+    }
+
+    pub(crate) fn default_value(&self) -> &proc_macro2::TokenStream {
+        &self.default_value
     }
 
     fn has_attr(attrs: &[syn::Attribute], name: &str) -> bool {

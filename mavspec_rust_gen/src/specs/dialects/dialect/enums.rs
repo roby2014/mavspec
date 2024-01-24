@@ -141,3 +141,37 @@ impl<'a> EnumEntrySpec<'a> {
         self.description.as_slice()
     }
 }
+
+pub(crate) struct EnumInheritedModuleSpec<'a> {
+    mav_enum: &'a Enum,
+    original_dialect_name: &'a str,
+    params: &'a GeneratorParams,
+}
+
+impl<'a> EnumInheritedModuleSpec<'a> {
+    pub(crate) fn new(
+        mav_enum: &'a Enum,
+        original_dialect_name: &'a str,
+        params: &'a GeneratorParams,
+    ) -> Self {
+        Self {
+            mav_enum,
+            original_dialect_name,
+            params,
+        }
+    }
+
+    pub(crate) fn name(&self) -> &str {
+        self.mav_enum.name()
+    }
+
+    pub(crate) fn original_dialect_name(&self) -> &str {
+        self.original_dialect_name
+    }
+}
+
+impl<'a> Spec for EnumInheritedModuleSpec<'a> {
+    fn params(&self) -> &GeneratorParams {
+        self.params
+    }
+}

@@ -102,7 +102,7 @@ impl Enum {
         }
 
         quote! {
-            impl TryFrom<#repr> for #ident {
+            impl core::convert::TryFrom<#repr> for #ident {
                 type Error = mavspec::rust::spec::MessageError;
 
                 fn try_from(value: #repr) -> Result<Self, mavspec::rust::spec::MessageError> {

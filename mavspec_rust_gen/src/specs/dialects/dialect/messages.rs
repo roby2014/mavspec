@@ -124,26 +124,6 @@ impl<'a> MessageImplModuleSpec<'a> {
         self.is_v1_compatible
     }
 
-    pub(crate) fn fields_v1(&self) -> &[FieldSpec] {
-        self.fields_v1.as_slice()
-    }
-
-    pub(crate) fn payload_v1_size(&self) -> usize {
-        self.payload_v2_size
-    }
-
-    pub(crate) fn fields_v2(&self) -> &[FieldSpec] {
-        self.fields_v2.as_slice()
-    }
-
-    pub(crate) fn payload_v2_size(&self) -> usize {
-        self.payload_v2_size
-    }
-
-    pub(crate) fn has_extension_fields(&self) -> bool {
-        self.has_extension_fields
-    }
-
     pub(crate) fn crc_extra(&self) -> u8 {
         self.crc_extra
     }
@@ -160,7 +140,7 @@ pub struct FieldSpec {
     enum_type: MavType,
     is_array: bool,
     array_length: usize,
-    cast_enum: bool,
+    requires_enum_casting: bool,
     requires_serde_arrays: bool,
 }
 
@@ -188,7 +168,8 @@ impl FieldSpec {
                 spec.enum_name = field_enum.name().into();
                 spec.enum_type = field_enum.inferred_type();
                 spec.is_bitmask = field_enum.bitmask();
-                spec.cast_enum = field_enum.inferred_type() < *value.r#type().base_type()
+                spec.requires_enum_casting = field_enum.inferred_type()
+                    < *value.r#type().base_type()
                     || field_enum.inferred_type() != *value.r#type().base_type();
             }
         }
@@ -242,8 +223,8 @@ impl FieldSpec {
         self.array_length
     }
 
-    pub(crate) fn cast_enum(&self) -> bool {
-        self.cast_enum
+    pub(crate) fn requires_enum_casting(&self) -> bool {
+        self.requires_enum_casting
     }
 
     pub(crate) fn requires_serde_arrays(&self) -> bool {
@@ -282,9 +263,5 @@ impl<'a> MessageInheritedModuleSpec<'a> {
 
     pub(crate) fn message_name(&self) -> &str {
         self.message_name
-    }
-
-    pub(crate) fn is_v1_compatible(&self) -> bool {
-        self.is_v1_compatible
     }
 }

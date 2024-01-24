@@ -1,5 +1,3 @@
-use mavinspect::protocol::MavType;
-
 // See: https://doc.rust-lang.org/reference/keywords.html
 const RUST_RESERVED_KEYWORDS: [&str; 50] = [
     "abstract", "as", "async", "await", "become", "box", "break", "const", "continue", "crate",
@@ -8,6 +6,7 @@ const RUST_RESERVED_KEYWORDS: [&str; 50] = [
     "return", "self", "Self", "static", "struct", "super", "trait", "true", "type", "typeof",
     "virtual", "unsafe", "unsized", "use", "where", "while", "yield",
 ];
+const RUST_RESERVED_IDENTIFIERS: [&str; 1] = ["TryFrom"];
 
 pub const MAX_COMMENT_LENGTH: usize = 80;
 pub const NUMERIC_IDENTIFIER_PREFIX: &str = "_";
@@ -19,7 +18,9 @@ pub fn dialect_mod_name(dialect_name: String) -> String {
 }
 
 pub fn valid_rust_name(name: String) -> String {
-    if RUST_RESERVED_KEYWORDS.contains(&name.as_str()) {
+    if RUST_RESERVED_KEYWORDS.contains(&name.as_str())
+        || RUST_RESERVED_IDENTIFIERS.contains(&name.as_str())
+    {
         return format!("{name}{}", RUST_KEYWORD_POSTFIX);
     }
 
@@ -89,34 +90,7 @@ pub fn message_struct_name(message_name: &str) -> String {
     valid_rust_name(heck::AsUpperCamelCase(message_name).to_string())
 }
 
-pub fn message_raw_struct_name(message_name: &str) -> String {
-    valid_rust_name(format!("{}Raw", message_struct_name(message_name)))
-}
-
 pub fn rust_var_name(var_name: String) -> String {
     let var_name = heck::AsSnakeCase(var_name).to_string();
     valid_rust_name(var_name)
-}
-
-pub fn rust_default_value(mav_type: MavType) -> String {
-    match mav_type {
-        MavType::Array(inner, length) => {
-            format!("[0{}; {}]", inner.rust_type(), length)
-        }
-        _ => format!("0{}", mav_type.rust_type()),
-    }
-}
-
-pub fn t_bytes_read_fn(mav_type: MavType) -> String {
-    match mav_type {
-        MavType::Array(_, _) => "read_array".to_string(),
-        _ => "read".to_string(),
-    }
-}
-
-pub fn t_bytes_write_fn(mav_type: MavType) -> String {
-    match mav_type {
-        MavType::Array(_, _) => "write_array".to_string(),
-        _ => "write".to_string(),
-    }
 }
