@@ -20,7 +20,6 @@ impl<'a> DialectsRootModuleSpec<'a> {
         Self {
             module_names: protocol
                 .dialects()
-                .values()
                 .map(|dialect| dialect_mod_name(dialect.name().into()))
                 .collect(),
             params,

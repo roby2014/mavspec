@@ -13,7 +13,7 @@ use crate::templates::helpers::make_serde_derive_annotation;
 pub(crate) fn messages_root_module(spec: &MessagesRootModuleSpec) -> syn::File {
     let module_doc_comment = format!(" MAVLink messages of `{}` dialect.", spec.dialect_name());
 
-    let message_modules_and_imports = spec.messages().values().map(|msg| {
+    let message_modules_and_imports = spec.messages().iter().map(|msg| {
         let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
         let message_struct_name = format_ident!("{}", message_struct_name(msg.name().into()));
         quote! {

@@ -7,7 +7,7 @@ use std::sync::Arc;
 extern crate cargo_manifest;
 use cargo_manifest::{Manifest, Value};
 use mavinspect::parser::InspectorBuilder;
-use mavinspect::protocol::{Microservices, Protocol};
+use mavinspect::protocol::{Filter, Microservices, Protocol};
 use mavinspect::Inspector;
 
 use crate::generator::{Generator, GeneratorParams};
@@ -38,7 +38,7 @@ use crate::generator::{Generator, GeneratorParams};
 ///     // Explicitly exclude the following dialects
 ///     .set_exclude_dialects(&["ardupilotmega"])
 ///     // Include only entities from the following MAVLink microservices
-///     .set_microservices(Microservices::HEARTBEAT | Microservices::COMMAND)
+///     .set_microservices(&["HEARTBEAT", "COMMAND"])
 ///     // Explicitly add messages
 ///     .set_messages(&["PROTOCOL_VERSION"])
 ///     .generate()
@@ -52,10 +52,11 @@ pub struct BuildHelper {
     manifest_path: Option<PathBuf>,
     include_dialects: Option<HashSet<String>>,
     exclude_dialects: Option<HashSet<String>>,
-    messages: Option<HashSet<String>>,
+    messages: Option<Vec<String>>,
+    enums: Option<Vec<String>>,
+    commands: Option<Vec<String>>,
     protocol: Option<Arc<Protocol>>,
     microservices: Option<Microservices>,
-    all_enums: Option<bool>,
     serde: bool,
     generate_tests: Option<bool>,
 }
@@ -81,16 +82,7 @@ impl BuildHelper {
             log::debug!("Error while cleaning output directory: {err:?}");
         }
 
-        let protocol = if let Some(protocol) = &self.protocol {
-            protocol.clone()
-        } else {
-            let inspector_builder = self.make_mavlink_inspector_builder();
-
-            let mut protocol = inspector_builder.build()?.parse()?;
-            self.retain_protocol_entities(&mut protocol);
-
-            Arc::new(protocol)
-        };
+        let protocol = self.load_filtered_protocol()?;
 
         Generator::new(
             protocol,
@@ -125,15 +117,17 @@ impl BuildHelper {
     /// [package.metadata.mavspec]
     /// microservices = ["HEARTBEAT", "MISSION", "COMMAND"]
     /// messages = ["PROTOCOL_VERSION", "MAV_INSPECT_V1", "PING"]
-    /// all_enums = false
+    /// enums = ["STORAGE_STATUS", "GIMBAL_*"]
+    /// commands = ["MAV_CMD_DO_CHANGE_SPEED", "MAV_CMD_DO_SET_ROI*"]
     /// generate_tests = false
     /// ```
     ///
     /// If [`Self::manifest_path`] is set, then the following parameters will be populated from keys in `Cargo.toml`:
     ///
-    /// * [`Self::messages`] from `messages` key.
     /// * [`Self::microservices`] from `microservices` key.
-    /// * [`Self::all_enums`] from `all_enums` key.
+    /// * [`Self::messages`] from `messages` key.
+    /// * [`Self::enums`] from `enums` key.
+    /// * [`Self::commands`] from `commands` key.
     /// * [`Self::generate_tests`] from `generate_tests` key.
     ///
     /// Note that if set explicitly, these parameters has precedence over keys from manifest.
@@ -165,10 +159,30 @@ impl BuildHelper {
     ///
     /// If [`Self::microservices`] are set, then the `messages` will be included in addition to those defined by
     /// microservices specifications.
-    pub fn messages(&self) -> Option<HashSet<&str>> {
+    pub fn messages(&self) -> Option<Vec<&str>> {
         self.messages
             .as_ref()
-            .map(|messages| messages.iter().map(|dialect| dialect.as_str()).collect())
+            .map(|messages| messages.iter().map(|msg| msg.as_str()).collect())
+    }
+
+    /// If set, then defines the list of MAVLink enums to generate.
+    ///
+    /// If [`Self::microservices`] are set, then the `enums` will be included in addition to those defined by
+    /// microservices specifications.
+    pub fn enums(&self) -> Option<Vec<&str>> {
+        self.enums
+            .as_ref()
+            .map(|enums| enums.iter().map(|msg| msg.as_str()).collect())
+    }
+
+    /// If set, then defines the list of MAVLink commands to generate.
+    ///
+    /// If [`Self::microservices`] are set, then the `commands` will be included in addition to those defined by
+    /// microservices specifications.
+    pub fn commands(&self) -> Option<Vec<&str>> {
+        self.commands
+            .as_ref()
+            .map(|commands| commands.iter().map(|msg| msg.as_str()).collect())
     }
 
     /// If set, then defines MAVLink [microservices](https://mavlink.io/en/services/) to be generated.
@@ -186,11 +200,6 @@ impl BuildHelper {
         }
     }
 
-    /// Whether only enums required for specified messages will be generated.
-    pub fn all_enums(&self) -> bool {
-        self.all_enums.unwrap_or(false)
-    }
-
     /// [Serde](https://serde.rs/) support flag for generated entities.
     pub fn serde(&self) -> bool {
         self.serde
@@ -201,6 +210,19 @@ impl BuildHelper {
     /// If set to `true`, then tests will be generated.
     pub fn generate_tests(&self) -> bool {
         self.generate_tests.unwrap_or(false)
+    }
+
+    fn load_filtered_protocol(&self) -> anyhow::Result<Arc<Protocol>> {
+        Ok(if let Some(protocol) = &self.protocol {
+            protocol.clone()
+        } else {
+            let inspector_builder = self.make_mavlink_inspector_builder();
+
+            let mut protocol = inspector_builder.build()?.parse()?;
+            self.retain_protocol_entities(&mut protocol);
+
+            Arc::new(protocol)
+        })
     }
 
     fn make_mavlink_inspector_builder(&self) -> InspectorBuilder {
@@ -228,18 +250,21 @@ impl BuildHelper {
     }
 
     fn retain_protocol_entities(&self, protocol: &mut Protocol) {
-        let all_enums = self.all_enums.unwrap_or(false);
-
+        let mut filters = Filter::new();
         if let Some(microservices) = &self.microservices {
-            let messages = self
-                .messages
-                .clone()
-                .map(|msgs| msgs.iter().cloned().collect::<Vec<String>>())
-                .unwrap_or_default();
-            protocol.retain_microservices(*microservices, &messages, !all_enums);
-        } else if let Some(messages) = &self.messages {
-            protocol.retain_messages(messages, !all_enums);
+            filters = filters.with_microservices(*microservices);
         }
+        if let Some(messages) = &self.messages {
+            filters = filters.with_messages(messages);
+        }
+        if let Some(enums) = &self.enums {
+            filters = filters.with_enums(enums);
+        }
+        if let Some(commands) = &self.commands {
+            filters = filters.with_commands(commands);
+        }
+
+        protocol.retain(&filters);
     }
 
     fn apply_manifest_config(&mut self) -> anyhow::Result<()> {
@@ -260,11 +285,9 @@ impl BuildHelper {
 
     fn apply_manifest_config_spec(&mut self, spec: &Value) {
         self.apply_manifest_config_messages(spec);
+        self.apply_manifest_config_enums(spec);
+        self.apply_manifest_config_commands(spec);
         self.apply_manifest_config_microservices(spec);
-
-        if let Some(Value::Boolean(all)) = spec.get("all_enums") {
-            self.all_enums = Some(*all);
-        }
 
         if let Some(Value::Boolean(generate_tests)) = spec.get("generate_tests") {
             self.generate_tests = Some(*generate_tests);
@@ -274,7 +297,27 @@ impl BuildHelper {
     fn apply_manifest_config_messages(&mut self, spec: &Value) {
         if let Some(Value::Array(msgs)) = spec.get("messages") {
             if self.messages.is_none() {
-                self.messages = Some(HashSet::from_iter(
+                self.messages = Some(Vec::from_iter(
+                    msgs.iter().map(|v| v.to_string().replace('"', "")),
+                ));
+            }
+        }
+    }
+
+    fn apply_manifest_config_enums(&mut self, spec: &Value) {
+        if let Some(Value::Array(msgs)) = spec.get("enums") {
+            if self.enums.is_none() {
+                self.enums = Some(Vec::from_iter(
+                    msgs.iter().map(|v| v.to_string().replace('"', "")),
+                ));
+            }
+        }
+    }
+
+    fn apply_manifest_config_commands(&mut self, spec: &Value) {
+        if let Some(Value::Array(msgs)) = spec.get("commands") {
+            if self.commands.is_none() {
+                self.commands = Some(Vec::from_iter(
                     msgs.iter().map(|v| v.to_string().replace('"', "")),
                 ));
             }
@@ -329,8 +372,10 @@ impl BuildHelperBuilder {
     ///
     /// * [`Self::set_include_dialects`],
     /// * [`Self::set_exclude_dialects`],
+    /// * [`Self::set_microservices`],
     /// * [`Self::set_messages`],
-    /// * [`Self::set_all_enums`],
+    /// * [`Self::set_enums`],
+    /// * [`Self::set_commands`],
     /// * [`Self::set_manifest_path`].
     pub fn set_sources<T>(&mut self, sources: &[T]) -> &mut Self
     where
@@ -357,9 +402,10 @@ impl BuildHelperBuilder {
     ///
     /// The following parameters have precedence over configuration defined in Cargo manifest:
     ///
-    /// * [`Self::set_messages`] replaces `messages` key.
     /// * [`Self::set_microservices`] replaces `microservices` key.
-    /// * [`Self::set_all_enums`] replaces `all_enums` key.
+    /// * [`Self::set_messages`] replaces `messages` key.
+    /// * [`Self::set_enums`] replaces `enums` key.
+    /// * [`Self::set_commands`] replaces `commands` key.
     /// * [`Self::set_generate_tests`] replaces `generate_tests` key.
     pub fn set_manifest_path<T: ?Sized + AsRef<OsStr>>(&mut self, manifest_path: &T) -> &mut Self {
         self.0.manifest_path = Some(PathBuf::from(manifest_path));
@@ -399,27 +445,46 @@ impl BuildHelperBuilder {
     /// If [`Self::set_microservices`] are set, then the `messages` will be included in addition to those defined by
     /// microservices specifications.
     pub fn set_messages<T: ToString>(&mut self, messages: &[T]) -> &mut Self {
-        self.0.messages = Some(HashSet::from_iter(messages.iter().map(|s| s.to_string())));
+        self.0.messages = Some(Vec::from_iter(messages.iter().map(|s| s.to_string())));
+        self
+    }
+
+    /// Defines which enums will be generated.
+    ///
+    /// Overrides `enums` configuration key defined by [`Self::set_manifest_path`].
+    ///
+    /// If [`Self::set_microservices`] are set, then the `enums` will be included in addition to those defined by
+    /// microservices specifications.
+    pub fn set_enums<T: ToString>(&mut self, enums: &[T]) -> &mut Self {
+        self.0.enums = Some(Vec::from_iter(enums.iter().map(|s| s.to_string())));
+        self
+    }
+
+    /// Defines which commands will be generated.
+    ///
+    /// Overrides `commands` configuration key defined by [`Self::set_manifest_path`].
+    ///
+    /// If [`Self::set_microservices`] are set, then the `commands` will be included in addition to those defined by
+    /// microservices specifications.
+    pub fn set_commands<T: ToString>(&mut self, commands: &[T]) -> &mut Self {
+        self.0.commands = Some(Vec::from_iter(commands.iter().map(|s| s.to_string())));
         self
     }
 
     /// Defines which MAVLink [microservices](https://mavlink.io/en/services/) will be generated.
     ///
+    /// The list of available microservices and their names matches [`Microservices`] flags of MAVInspect.
+    ///
     /// Overrides `microservices` configuration key defined by [`Self::set_manifest_path`].
     ///
     /// All messages defined by [`Self::set_messages`] will be included regardless of microservices specifications.
-    pub fn set_microservices(&mut self, microservices: Microservices) -> &mut Self {
-        self.0.microservices = Some(microservices);
-        self
-    }
+    pub fn set_microservices<T: ToString>(&mut self, microservices: &[T]) -> &mut Self {
+        let mut microservices_ = Microservices::default();
+        for microservice in microservices {
+            microservices_ |= Microservices::from_string(microservice.to_string())
+        }
 
-    /// Defines whether only enums required for specified messages will be generated.
-    ///
-    /// Overrides `all_enums` configuration flag set by [`Self::set_manifest_path`].
-    ///
-    /// Does not have effect if message filtering is not enabled.
-    pub fn set_all_enums(&mut self, all_enums: bool) -> &mut Self {
-        self.0.all_enums = Some(all_enums);
+        self.0.microservices = Some(microservices_);
         self
     }
 
@@ -439,7 +504,8 @@ impl BuildHelperBuilder {
     /// * [`Self::set_include_dialects`],
     /// * [`Self::set_exclude_dialects`],
     /// * [`Self::set_messages`],
-    /// * [`Self::set_all_enums`],
+    /// * [`Self::set_enums`],
+    /// * [`Self::set_commands`],
     /// * [`Self::set_manifest_path`].
     pub fn set_protocol(&mut self, protocol: Protocol) -> &mut Self {
         self.0.protocol = Some(Arc::new(protocol));
@@ -466,7 +532,8 @@ mod tests {
 
     #[test]
     fn build_helper_basic() {
-        BuildHelper::builder(&Path::new("../tmp/mavlink"))
+        let out_path = "../tmp/mavlink/helper_basics";
+        BuildHelper::builder(Path::new(out_path))
             .set_sources(&[
                 "../message_definitions/standard",
                 "../message_definitions/extra",
@@ -475,7 +542,7 @@ mod tests {
             .generate()
             .unwrap();
 
-        remove_dir_all("../tmp/mavlink").unwrap();
+        remove_dir_all(out_path).unwrap();
     }
 
     #[test]
@@ -509,5 +576,57 @@ mod tests {
         // Accepts `PathBuf`
         BuildHelper::builder("../tmp/mavlink")
             .set_sources(&[Path::new("../message_definitions").join("extra")]);
+    }
+
+    #[test]
+    fn build_helper_protocol_filtering() {
+        let out_path = "../tmp/mavlink/protocol_filtering";
+        let protocol = BuildHelper::builder(Path::new(out_path))
+            .set_sources(&[
+                "../message_definitions/standard",
+                "../message_definitions/extra",
+            ])
+            .set_microservices(&["HEARTBEAT", "FTP"])
+            .set_messages(&["PROTOCOL_VERSION", "MAV_INSPECT_V1"])
+            .set_commands(&["MAV_CMD_DO_CHANGE_SPEED", "MAV_CMD_DO_SET_ROI*"])
+            .set_enums(&["STORAGE_STATUS", "GIMBAL_*"])
+            .set_include_dialects(&["minimal", "standard", "common", "mav_inspect_test"])
+            .build()
+            .unwrap()
+            .load_filtered_protocol()
+            .unwrap();
+
+        let dialect = protocol.get_dialect_by_canonical_name("common").unwrap();
+
+        // `MAV_CMD` enum should be present
+        assert!(dialect.contains_enum_with_name("MAV_CMD"));
+        let mav_cmd = dialect.get_enum_by_name("MAV_CMD").unwrap();
+
+        // These messages are required by command protocol
+        assert!(dialect.contains_message_with_name("COMMAND_LONG"));
+        assert!(dialect.contains_message_with_name("COMMAND_INT"));
+        assert!(dialect.contains_message_with_name("COMMAND_ACK"));
+        assert!(dialect.contains_message_with_name("COMMAND_CANCEL"));
+
+        // This enum is required by command protocol
+        assert!(dialect.contains_enum_with_name("MAV_FRAME"));
+
+        // This enum is required by `MAV_CMD_DO_CHANGE_SPEED` command
+        assert!(dialect.contains_enum_with_name("SPEED_TYPE"));
+        // These enums are required by `MAV_CMD_DO_SET_ROI*` commands
+        assert!(dialect.contains_enum_with_name("MAV_ROI"));
+
+        // These commands were explicitly requested
+        assert!(mav_cmd.has_entry_with_name("MAV_CMD_DO_CHANGE_SPEED"));
+        assert!(mav_cmd.has_entry_with_name("MAV_CMD_DO_SET_ROI"));
+        assert!(mav_cmd.has_entry_with_name("MAV_CMD_DO_SET_ROI_LOCATION"));
+        assert!(mav_cmd.has_entry_with_name("MAV_CMD_DO_SET_ROI_NONE"));
+        /* and others */
+
+        // These commands should not be present
+        assert!(!mav_cmd.has_entry_with_name("MAV_CMD_DO_INVERTED_FLIGHT"));
+        assert!(!mav_cmd.has_entry_with_name("MAV_CMD_DO_GRIPPER"));
+        assert!(!mav_cmd.has_entry_with_name("MAV_CMD_PREFLIGHT_CALIBRATION"));
+        /* and others */
     }
 }

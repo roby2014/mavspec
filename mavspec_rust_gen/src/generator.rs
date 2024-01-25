@@ -120,7 +120,7 @@ impl Generator {
         file.write_all(content.as_bytes())?;
         log::debug!("Generated: 'dialects' root module.");
 
-        for dialect in self.protocol.dialects().values() {
+        for dialect in self.protocol.dialects() {
             let dialect_spec = DialectModuleSpec::new(dialect, &self.params);
             self.generate_dialect(&dialect_spec)?;
         }
@@ -153,7 +153,7 @@ impl Generator {
         let mut file = File::create(self.enums_mod_rs(dialect_spec.name()))?;
         let content =
             prettyplease::unparse(&templates::dialects::dialect::enums::enums_root_module(
-                &EnumsRootModuleSpec::new(dialect_spec.name(), dialect_spec.enums(), &self.params),
+                &EnumsRootModuleSpec::new(dialect_spec, &self.params),
             ));
 
         file.write_all(content.as_bytes())?;
@@ -162,7 +162,7 @@ impl Generator {
             dialect_spec.name()
         );
 
-        for mav_enum in dialect_spec.enums().values() {
+        for mav_enum in dialect_spec.enums() {
             let mut file = File::create(self.enum_file(dialect_spec.name(), mav_enum.name()))?;
 
             let content = if let Some(inherited_from_dialect) =
@@ -208,7 +208,7 @@ impl Generator {
             dialect_spec.name()
         );
 
-        for message in dialect_spec.messages().values() {
+        for message in dialect_spec.messages() {
             let mut file = File::create(self.message_file(dialect_spec.name(), message.name()))?;
 
             match message.defined_in() {
@@ -308,16 +308,19 @@ impl Generator {
         for defined_in_dialect_name in mav_enum.defined_in() {
             let defined_in_dialect = self
                 .protocol
-                .dialects()
-                .get(
-                    mavinspect::utils::dialect_canonical_name(defined_in_dialect_name.as_str())
-                        .as_str(),
-                )
+                .get_dialect_by_name(defined_in_dialect_name.as_str())
                 .unwrap();
             if defined_in_dialect_name == dialect_name {
                 continue;
             }
-            let original_enum = defined_in_dialect.enums().get(mav_enum.name()).unwrap();
+
+            let original_enum = defined_in_dialect.get_enum_by_name(mav_enum.name());
+            let original_enum = if let Some(original_enum) = original_enum {
+                original_enum
+            } else {
+                continue;
+            };
+
             if original_enum.fingerprint() == mav_enum.fingerprint() {
                 return Some(defined_in_dialect);
             }

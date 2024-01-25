@@ -19,7 +19,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         "Enum containing all messages within `{}` dialect.",
         specs.name()
     );
-    let messages_variants = specs.messages().values().map(|msg| {
+    let messages_variants = specs.messages().iter().map(|msg| {
         let comment = format!("MAVLink message `{}`.", msg.name());
         let messages_enum_entry_name =
             format_ident!("{}", messages_enum_entry_name(msg.name().into()));
@@ -30,14 +30,14 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             #messages_enum_entry_name(messages::#message_struct_name),
         }
     });
-    let message_info_arms = specs.messages().values().map(|msg| {
+    let message_info_arms = specs.messages().iter().map(|msg| {
         let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
 
         quote! {
             messages::#message_mod_name::MESSAGE_ID => &messages::#message_mod_name::MESSAGE_INFO,
         }
     });
-    let decode_arms = specs.messages().values().map(|msg| {
+    let decode_arms = specs.messages().iter().map(|msg| {
         let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
         let messages_enum_entry_name =
             format_ident!("{}", messages_enum_entry_name(msg.name().into()));
@@ -51,7 +51,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             }
         }
     });
-    let encode_arms = specs.messages().values().map(|msg| {
+    let encode_arms = specs.messages().iter().map(|msg| {
         let messages_enum_entry_name =
             format_ident!("{}", messages_enum_entry_name(msg.name().into()));
 
@@ -60,7 +60,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         }
     });
     let tests = if specs.params().generate_tests {
-        let ids = specs.messages().values().map(|msg| {
+        let ids = specs.messages().iter().map(|msg| {
             let id = msg.id();
             quote! {
                 #id

@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use mavinspect::protocol::{MavType, Message, MessageField, MessageId};
+use mavinspect::protocol::{MavType, Message, MessageField};
 use quote::format_ident;
 use serde::Serialize;
 
@@ -13,7 +11,7 @@ use crate::specs::Spec;
 #[derive(Clone, Debug, Serialize)]
 pub(crate) struct MessagesRootModuleSpec<'a> {
     dialect_name: &'a str,
-    messages: &'a HashMap<MessageId, Message>,
+    messages: &'a [&'a Message],
     params: &'a GeneratorParams,
 }
 
@@ -36,7 +34,7 @@ impl<'a> MessagesRootModuleSpec<'a> {
         self.dialect_name
     }
 
-    pub(crate) fn messages(&self) -> &HashMap<MessageId, Message> {
+    pub(crate) fn messages(&self) -> &[&Message] {
         self.messages
     }
 }
@@ -74,7 +72,10 @@ impl<'a> MessageImplModuleSpec<'a> {
             id: message.id(),
             name: message.name(),
             description: split_description(message.description()),
-            fields: FieldSpec::from_mavinspect_fields(message.fields(), dialect_spec),
+            fields: FieldSpec::from_mavinspect_fields(
+                message.fields().iter().collect::<Vec<_>>().as_slice(),
+                dialect_spec,
+            ),
             // `MAVLink 1`
             is_v1_compatible: message.is_v1_compatible(),
             fields_v1: FieldSpec::from_mavinspect_fields(
@@ -163,7 +164,7 @@ impl FieldSpec {
         }
 
         if let Some(enum_name) = value.r#enum() {
-            if let Some(field_enum) = dialect_spec.enums().get(enum_name) {
+            if let Some(field_enum) = dialect_spec.get_enum_by_name(enum_name) {
                 spec.is_enum = true;
                 spec.enum_name = field_enum.name().into();
                 spec.enum_type = field_enum.inferred_type();
@@ -178,7 +179,7 @@ impl FieldSpec {
     }
 
     fn from_mavinspect_fields(
-        fields: &[MessageField],
+        fields: &[&MessageField],
         dialect_spec: &DialectModuleSpec,
     ) -> Vec<FieldSpec> {
         fields

@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use mavinspect::protocol::{Dialect, DialectId, DialectVersion, Enum, Message, MessageId};
+use mavinspect::protocol::{Dialect, DialectId, DialectVersion, Enum, Message};
 use serde::Serialize;
 
 use crate::generator::GeneratorParams;
@@ -12,8 +10,8 @@ pub(crate) struct DialectModuleSpec<'a> {
     name: &'a str,
     version: Option<DialectVersion>,
     dialect_id: Option<DialectId>,
-    messages: &'a HashMap<MessageId, Message>,
-    enums: &'a HashMap<String, Enum>,
+    messages: Vec<&'a Message>,
+    enums: Vec<&'a Enum>,
     params: &'a GeneratorParams,
 }
 
@@ -29,8 +27,8 @@ impl<'a> DialectModuleSpec<'a> {
             name: dialect.name(),
             version: dialect.version(),
             dialect_id: dialect.dialect(),
-            messages: dialect.messages(),
-            enums: dialect.enums(),
+            messages: Vec::from_iter(dialect.messages().into_iter()),
+            enums: Vec::from_iter(dialect.enums().into_iter()),
             params,
         }
     }
@@ -39,12 +37,12 @@ impl<'a> DialectModuleSpec<'a> {
         self.name
     }
 
-    pub(crate) fn messages(&self) -> &HashMap<MessageId, Message> {
-        self.messages
+    pub(crate) fn messages(&self) -> &[&Message] {
+        self.messages.as_slice()
     }
 
-    pub(crate) fn enums(&self) -> &HashMap<String, Enum> {
-        self.enums
+    pub(crate) fn enums(&self) -> &[&Enum] {
+        self.enums.as_slice()
     }
 
     pub(crate) fn dialect_id(&self) -> Option<DialectId> {
@@ -53,5 +51,14 @@ impl<'a> DialectModuleSpec<'a> {
 
     pub(crate) fn version(&self) -> Option<DialectVersion> {
         self.version
+    }
+
+    pub(crate) fn get_enum_by_name(&self, name: &str) -> Option<&Enum> {
+        for &mav_enum in &self.enums {
+            if mav_enum.name() == name {
+                return Some(mav_enum);
+            }
+        }
+        None
     }
 }

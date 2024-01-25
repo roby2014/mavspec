@@ -10,9 +10,9 @@ use crate::specs::Spec;
 use crate::templates::helpers::make_serde_derive_annotation;
 
 pub(crate) fn enums_root_module(spec: &EnumsRootModuleSpec) -> syn::File {
-    let module_doc_comment = format!("MAVLink enums of `{}` dialect.", spec.dialect_name());
+    let module_doc_comment = format!(" MAVLink enums of `{}` dialect.", spec.dialect_name());
 
-    let enum_modules_and_imports = spec.enums().values().map(|enm| {
+    let enum_modules_and_imports = spec.enums().iter().map(|enm| {
         let enum_mod_name = format_ident!("{}", enum_mod_name(enm.name().into()));
         let enum_rust_name = format_ident!("{}", enum_rust_name(enm.name().into()));
         quote! {
@@ -30,7 +30,7 @@ pub(crate) fn enums_root_module(spec: &EnumsRootModuleSpec) -> syn::File {
 }
 
 pub(crate) fn enum_module(spec: &EnumImplModuleSpec) -> syn::File {
-    let module_doc_comment = format!("MAVLink `{}` enum implementation.", spec.name());
+    let module_doc_comment = format!(" MAVLink `{}` enum implementation.", spec.name());
 
     let bitmask_impl = make_bitmask_enum(spec);
     let enum_impl = make_enum(spec);
@@ -45,7 +45,7 @@ pub(crate) fn enum_module(spec: &EnumImplModuleSpec) -> syn::File {
 }
 
 fn make_bitmask_enum(spec: &EnumImplModuleSpec) -> proc_macro2::TokenStream {
-    let leading_doc_comment = format!("MAVLink bitmask enum `{}`.", spec.name());
+    let leading_doc_comment = format!(" MAVLink bitmask enum `{}`.", spec.name());
     let description_doc_comments = spec.description().iter().map(|line| {
         quote! { #[doc = #line] }
     });
@@ -96,7 +96,7 @@ fn make_enum(spec: &EnumImplModuleSpec) -> proc_macro2::TokenStream {
     if spec.is_bitmask() {
         quote!()
     } else {
-        let leading_doc_comment = format!("MAVLink enum `{}`.", spec.name());
+        let leading_doc_comment = format!(" MAVLink enum `{}`.", spec.name());
         let description_doc_comments = spec.description().iter().map(|line| {
             quote! { #[doc = #line] }
         });
@@ -105,7 +105,7 @@ fn make_enum(spec: &EnumImplModuleSpec) -> proc_macro2::TokenStream {
         let enum_inferred_type = format_ident!("{}", spec.inferred_type().rust_type());
 
         let enum_variants = spec.entries().iter().map(|entry| {
-            let name_doc_comment = format!("MAVLink enum entry `{}`.", entry.name());
+            let name_doc_comment = format!(" MAVLink enum entry `{}`.", entry.name());
             let description_doc_comments = entry.description().iter().map(|line| {
                 quote! { #[doc = #line] }
             });

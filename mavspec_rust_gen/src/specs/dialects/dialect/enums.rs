@@ -1,15 +1,15 @@
 use mavinspect::protocol::{Enum, EnumEntry, MavType};
 use serde::Serialize;
-use std::collections::HashMap;
 
 use crate::conventions::split_description;
 use crate::generator::GeneratorParams;
+use crate::specs::dialects::dialect::DialectModuleSpec;
 use crate::specs::Spec;
 
 /// Input for enums root module template.
 pub(crate) struct EnumsRootModuleSpec<'a> {
     dialect_name: &'a str,
-    enums: &'a HashMap<String, Enum>,
+    enums: &'a [&'a Enum],
     params: &'a GeneratorParams,
 }
 
@@ -20,14 +20,10 @@ impl<'a> Spec for EnumsRootModuleSpec<'a> {
 }
 
 impl<'a> EnumsRootModuleSpec<'a> {
-    pub(crate) fn new(
-        dialect_name: &'a str,
-        enums: &'a HashMap<String, Enum>,
-        params: &'a GeneratorParams,
-    ) -> Self {
+    pub(crate) fn new(dialect_spec: &'a DialectModuleSpec, params: &'a GeneratorParams) -> Self {
         Self {
-            dialect_name,
-            enums,
+            dialect_name: dialect_spec.name(),
+            enums: dialect_spec.enums(),
             params,
         }
     }
@@ -36,7 +32,7 @@ impl<'a> EnumsRootModuleSpec<'a> {
         self.dialect_name
     }
 
-    pub(crate) fn enums(&self) -> &HashMap<String, Enum> {
+    pub(crate) fn enums(&self) -> &[&Enum] {
         self.enums
     }
 }
@@ -64,7 +60,7 @@ impl<'a> EnumImplModuleSpec<'a> {
     pub(crate) fn new(mav_enum: &'a Enum, params: &'a GeneratorParams) -> Self {
         let mut entries: Vec<EnumEntrySpec> = mav_enum
             .entries()
-            .values()
+            .iter()
             .map(EnumEntrySpec::from_enum_entry)
             .collect();
         entries.sort_by_key(|entry| entry.value);
