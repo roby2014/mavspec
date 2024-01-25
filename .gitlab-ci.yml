@@ -48,6 +48,7 @@ release:publish:crates:deps:
       - CI_CARGO_PACKAGE:
           - "mavspec_rust_gen"
           - "mavspec_rust_spec"
+          - "mavspec_rust_derive"
 
 release:publish:crates:mavspec:
   extends: .release:publish:crates  # from: local: "/.gitlab-ci/release.gitlab-ci.yml"
