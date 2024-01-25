@@ -6,7 +6,7 @@ Procedural macros for [MAVSpec](https://gitlab.com/mavka/libs/mavspec)'s Rust co
 <span style="font-size:24px">[🇺🇦](https://mavka.gitlab.io/home/a_note_on_the_war_in_ukraine/)</span>
 [![`repository`](https://img.shields.io/gitlab/pipeline-status/mavka/libs/mavspec.svg?branch=main&label=repository)](https://gitlab.com/mavka/libs/mavspec)
 [![`crates.io`](https://img.shields.io/crates/v/mavspec.svg)](https://crates.io/crates/mavspec)
-[![`docs.rs`](https://img.shields.io/docsrs/mavspec.svg?label=docs.rs)](https://docs.rs/mavinspect/latest/mavspec/)
+[![`docs.rs`](https://img.shields.io/docsrs/mavspec.svg?label=docs.rs)](https://docs.rs/mavspec/latest/mavspec/)
 [![`issues`](https://img.shields.io/gitlab/issues/open/mavka/libs/mavspec.svg)](https://gitlab.com/mavka/libs/mavspec/-/issues/)
 
 License

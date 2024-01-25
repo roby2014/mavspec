@@ -6,7 +6,7 @@ A code-generator for [MAVLink](https://mavlink.io/en/).
 <span style="font-size:24px">[🇺🇦](https://mavka.gitlab.io/home/a_note_on_the_war_in_ukraine/)</span>
 [![`repository`](https://img.shields.io/gitlab/pipeline-status/mavka/libs/mavspec.svg?branch=main&label=repository)](https://gitlab.com/mavka/libs/mavspec)
 [![`crates.io`](https://img.shields.io/crates/v/mavspec.svg)](https://crates.io/crates/mavspec)
-[![`docs.rs`](https://img.shields.io/docsrs/mavspec.svg?label=docs.rs)](https://docs.rs/mavinspect/latest/mavspec/)
+[![`docs.rs`](https://img.shields.io/docsrs/mavspec.svg?label=docs.rs)](https://docs.rs/mavspec/latest/mavspec/)
 [![`issues`](https://img.shields.io/gitlab/issues/open/mavka/libs/mavspec.svg)](https://gitlab.com/mavka/libs/mavspec/-/issues/)
 
 MAVLink is a lightweight open protocol for communicating between drones, onboard components and ground control stations.
@@ -225,7 +225,7 @@ Roadmap
 API is considered relatively stable but certain advanced features are yet to be developed. However, most of these
 features are nice to have, rather than something necessary to consider this library complete.
 
-Milestone [`v1`](https://gitlab.com/mavka/libs/mavinspect/-/milestones/1) contains features considered necessary to
+Milestone [`v1`](https://gitlab.com/mavka/libs/mavspec/-/milestones/1) contains features considered necessary to
 reach stable version `1.0.0`. Most of these features are related to Rust code generator.
 
 Other code generators (will form a basis for other [Mavka](https://mavka.gitlab.io/home/) projects):
@@ -236,8 +236,8 @@ Other code generators (will form a basis for other [Mavka](https://mavka.gitlab.
 - [`gRPC`](https://gitlab.com/mavka/libs/mavspec/-/milestones/3) milestone is reserved for
   [Protobuf](https://protobuf.dev) and [gRPC](https://grpc.io) bindings.
 
-[Propositions](https://gitlab.com/mavka/spec/libs/mavinspect/-/issues) and
-[pull-requests](https://gitlab.com/mavka/spec/libs/mavinspect/-/merge_requests) are welcomed.
+[Propositions](https://gitlab.com/mavka/spec/libs/mavspec/-/issues) and
+[pull-requests](https://gitlab.com/mavka/spec/libs/mavspec/-/merge_requests) are welcomed.
 
 Other MAVLink Tools
 -------------------
