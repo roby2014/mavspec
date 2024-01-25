@@ -1,7 +1,7 @@
 MAVSpec: Rust Specification
 ===========================
 
-Core interfaces for [MAVSpec](https://gitlab.com/mavka/libs/mavinspect)'s Rust code generation toolchain. Supports
+Core interfaces for [MAVSpec](https://gitlab.com/mavka/libs/mavspec)'s Rust code generation toolchain. Supports
 `no-std` (including `no-alloc`) targets. Provides optional [Serde](https://serde.rs) support.
 
 [`repository`](https://gitlab.com/mavka/libs/mavspec)

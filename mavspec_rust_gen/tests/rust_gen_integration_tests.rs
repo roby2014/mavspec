@@ -8,7 +8,8 @@ mod tests {
 
     use mavspec_rust_gen::BuildHelper;
 
-    const CARGO_MANIFEST_PATH: &str = "../tests/rust/Cargo.toml";
+    const CARGO_MANIFEST_PATH_TESTS: &str = "../tests/rust/Cargo.toml";
+    const CARGO_MANIFEST_PATH_EXAMPLES: &str = "../examples/rust/Cargo.toml";
 
     fn xml_definition_paths() -> Vec<&'static str> {
         vec![
@@ -56,14 +57,13 @@ mod tests {
 
         let helper = BuildHelper::builder(&out_path)
             .set_sources(&xml_definition_paths())
-            .set_manifest_path(CARGO_MANIFEST_PATH)
+            .set_manifest_path(CARGO_MANIFEST_PATH_TESTS)
             .build()
             .unwrap();
 
         assert!(helper.generate_tests());
-        assert!(!helper.all_enums());
         assert_eq!(
-            helper.messages().unwrap(),
+            HashSet::from_iter(helper.messages().unwrap().iter().copied()),
             HashSet::from([
                 "DEFAULT",
                 "1ST_CLASS_MESSAGE",
@@ -88,6 +88,24 @@ mod tests {
             .contains(Microservices::COMMAND));
 
         helper.generate().unwrap();
+        remove_dir_all(out_path).unwrap();
+    }
+
+    #[test]
+    fn test_examples_rust_generation() {
+        let out_path = out_path().join("examples_rust_generation");
+        let included_dialects = vec!["MAVInspect_test".to_string()];
+        let sources = xml_definition_paths();
+        let serde_feature_enabled = true;
+
+        BuildHelper::builder(&out_path)
+            .set_sources(&sources)
+            .set_manifest_path(CARGO_MANIFEST_PATH_EXAMPLES)
+            .set_include_dialects(&included_dialects)
+            .set_serde(serde_feature_enabled)
+            .generate()
+            .unwrap();
+
         remove_dir_all(out_path).unwrap();
     }
 }

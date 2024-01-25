@@ -52,7 +52,6 @@ messages = [
     "PROTOCOL_VERSION",
     # MAVSpec test messages
     "MAV_INSPECT_V1", "DEBUG", "CLONE", "DEFAULT", "COPY", "FROM", "TRY_FROM", "INTO", "TRY_INTO", "1ST_CLASS_MESSAGE"]
-all_enums = false
 generate_tests = true
 
 [package.metadata.cargo-machete]

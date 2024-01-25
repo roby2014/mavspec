@@ -34,15 +34,40 @@ mod cli {
             /// Enable Serde support.
             #[arg(short = 's', long, default_value_t = false)]
             serde: bool,
+            /// Microservices to generate.
+            ///
+            /// This option will filter out irrelevant messages, enums, and enum entries.
+            ///
+            /// It is possible to add additional enums, messages, and commands via `--enums`, `--messages`, and
+            /// `--commands` respectively.
+            #[arg(short = 'M', long, value_parser, num_args = 1.., value_delimiter = DELIMITER)]
+            microservices: Option<Vec<String>>,
             /// Messages to generate.
             ///
-            /// By default only enums required for these messages will be generated. If you want all enums, use
-            /// `--all-enums` flag.
-            #[arg(short = 'M', long, value_parser, num_args = 1.., value_delimiter = DELIMITER)]
+            /// These commands will be added to whatever commands are required by microservices specified by
+            /// `--microservices`.
+            ///
+            /// This option will filter out irrelevant enums.
+            ///
+            /// Postfix wildcards are accepted (i.e. `PREFIX_*`).
+            #[arg(short = 'm', long, value_parser, num_args = 1.., value_delimiter = DELIMITER)]
             messages: Option<Vec<String>>,
-            /// Include all enums regardless of specified messages.
-            #[arg(short = 'a', long, default_value_t = false)]
-            all_enums: bool,
+            /// Enums to generate.
+            ///
+            /// Postfix wildcards are accepted (i.e. `PREFIX_*`).
+            #[arg(short = 'e', long, value_parser, num_args = 1.., value_delimiter = DELIMITER)]
+            enums: Option<Vec<String>>,
+            /// Commands to generate.
+            ///
+            /// These commands will be added to whatever commands are required by microservices specified by
+            /// `--microservices`.
+            ///
+            /// This option will filter out irrelevant enums and enum entries (particularly of `MAV_CMD` enum). If set,
+            /// it will enable messages relevant for command protocol.
+            ///
+            /// Postfix wildcards are accepted (i.e. `PREFIX_*`).
+            #[arg(short = 'c', long, value_parser, num_args = 1.., value_delimiter = DELIMITER)]
+            commands: Option<Vec<String>>,
             /// Generate tests.
             #[arg(short = 't', long, default_value_t = false)]
             generate_tests: bool,
@@ -74,21 +99,33 @@ mod process {
                     #[cfg(feature = "rust")]
                     Commands::Rust {
                         serde,
+                        microservices,
                         messages,
-                        all_enums,
+                        enums,
+                        commands,
                         generate_tests,
                     } => {
                         log::info!("Writing Rust bindings to output path: {:?}", out_path);
 
-                        let mut conf = mavspec::rust::gen::BuildHelper::builder(&out_path);
+                        let mut builder = mavspec::rust::gen::BuildHelper::builder(&out_path);
 
-                        if let Some(messages) = messages {
-                            conf.set_messages(messages);
+                        if let Some(microservices) = microservices {
+                            builder.set_microservices(microservices);
                         };
+                        if let Some(messages) = messages {
+                            builder.set_messages(messages);
+                        };
+                        if let Some(enums) = enums {
+                            builder.set_enums(enums);
+                        };
+                        if let Some(commands) = commands {
+                            builder.set_commands(commands);
+                        };
+
                         let sources: Vec<&str> = cli.src.iter().map(|s| s.as_str()).collect();
 
-                        conf.set_sources(&sources)
-                            .set_all_enums(*all_enums)
+                        builder
+                            .set_sources(&sources)
                             .set_serde(*serde)
                             .set_generate_tests(*generate_tests)
                             .generate()

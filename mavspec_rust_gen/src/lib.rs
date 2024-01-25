@@ -1,11 +1,12 @@
 //! # Rust bindings generator for MAVSpec
 //!
-//! [`repository`](https://gitlab.com/mavka/libs/mavspec) |
-//! [`crates.io`](https://crates.io/crates/mavspec) |
-//! [`API docs`](https://docs.rs/mavspec/latest/mavspec/rust/gen) |
-//! [`issues`](https://gitlab.com/mavka/libs/mavspec/-/issues)
+//! <span style="font-size:24px">[🇺🇦](https://mavka.gitlab.io/home/a_note_on_the_war_in_ukraine/)</span>
+//! [![`repository`](https://img.shields.io/gitlab/pipeline-status/mavka/libs/mavspec.svg?branch=main&label=repository)](https://gitlab.com/mavka/libs/mavspec)
+//! [![`crates.io`](https://img.shields.io/crates/v/mavspec.svg)](https://crates.io/crates/mavspec)
+//! [![`docs.rs`](https://img.shields.io/docsrs/mavspec.svg?label=docs.rs)](https://docs.rs/mavinspect/latest/mavspec/)
+//! [![`issues`](https://img.shields.io/gitlab/issues/open/mavka/libs/mavspec.svg)](https://gitlab.com/mavka/libs/mavspec/-/issues/)
 //!
-//! This module contains Rust bindings for [MAVSpec](https://gitlab.com/mavka/libs/mavinspect), a code generation
+//! This module contains Rust bindings for [MAVSpec](https://gitlab.com/mavka/libs/mavspec), a code generation
 //! toolchain for [MAVLink](https://mavlink.io/en/) protocol.
 //!
 //! # Usage
@@ -112,11 +113,12 @@
     html_favicon_url = "https://gitlab.com/mavka/libs/mavspec/-/raw/main/avatar.png?ref_type=heads"
 )]
 
-mod conventions;
-mod generator;
-mod helpers;
-mod templates;
-pub mod utils;
-
 mod build_helper;
 pub use build_helper::{BuildHelper, BuildHelperBuilder};
+
+pub mod utils;
+
+pub(crate) mod conventions;
+pub(crate) mod generator;
+pub(crate) mod specs;
+pub(crate) mod templates;

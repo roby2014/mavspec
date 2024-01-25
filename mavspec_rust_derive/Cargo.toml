@@ -1,6 +1,6 @@
 [package]
-name = "mavspec_rust_gen"
-description = "Rust code generation module for MAVSpec."
+name = "mavspec_rust_derive"
+description = "Procedural macros for MAVSpec's Rust code generation toolchain."
 version = "0.2.0"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
@@ -8,7 +8,7 @@ repository = "https://gitlab.com/mavka/libs/mavspec"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 homepage = "https://mavka.gitlab.io/home/projects/mavspec"
-keywords = ["MAVLink", "UAV", "drones", "parser", "code-generator"]
+keywords = ["MAVLink", "UAV", "drones"]
 categories = [
     "aerospace::protocols",
     "aerospace::drones",
@@ -19,48 +19,33 @@ categories = [
 resolver = "2"
 
 [lib]
-name = "mavspec_rust_gen"
+proc-macro = true
+name = "mavspec_rust_derive"
 path = "src/lib.rs"
+
+[[example]]
+name = "mavspec_rust_derive_example"
+test = true
 
 ###########################################################
 # Dependencies
 ###########################################################
 [dependencies]
-anyhow = "1.0.75"
-base64 = "0.21.5"
-cargo-manifest = "0.13.0"
 heck = "0.5.0-rc.1"
-log = "0.4.20"
-mavinspect = { version = "0.2.2", features = ["serde"] }
-serde = { version = "1.0.193", features = ["derive"] }
-serde_json = "1.0.108"
-
-# AST tools
-prettyplease = "0.2.16"
 proc-macro2 = "1.0.76"
 syn = "2.0.48"
 quote = "1.0.35"
+thiserror = "1.0.56"
 
 [dev-dependencies]
-mavspec = { path = "../mavspec", default-features = false, features = ["rust_gen"] }
-
-###########################################################
-# Features
-###########################################################
-[features]
-## Default features.
-default = []
-## Enables unstable API features.
-unstable = []
-## Use protocol CRC-fingerprints to avoid re-generating files
-fingerprints = []
+bitflags = "2.4.2"
+env_logger = "0.11.0"
+log = "0.4.20"
+mavspec = { path = "../mavspec", features = ["rust"] }
 
 ###########################################################
 # Metadata
 ###########################################################
 [package.metadata.docs.rs]
 # Features to include into `docs.rs` documentation
-features = ["unstable"]
-
-[package.metadata.cargo-machete]
-ignored = ["serde_json"]
+features = []

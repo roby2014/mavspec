@@ -29,7 +29,7 @@ fn main() {
     let included_dialects = {
         let mut included_dialects: Vec<String> = vec!["MAVInspect_test".to_string()];
 
-        let dialects = vec!["common", "MAVInspect_test"];
+        let dialects = vec!["common", "minimal", "standard"];
         for dialect in dialects {
             let feature_name =
                 mavspec::rust::gen::utils::dialect_module_name(dialect).to_ascii_uppercase();

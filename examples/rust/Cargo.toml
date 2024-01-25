@@ -26,7 +26,7 @@ mavspec = { path = "../../mavspec", default-features = false, features = ["rust"
 
 # Logging
 log = "0.4.20"
-env_logger = "0.10.1"
+env_logger = "0.11.0"
 
 # Serde support: we need to include both `serde` and `serde_arrays`.
 serde = { version = "1.0.193", default-features = false, features = ["derive"], optional = true }
@@ -69,14 +69,15 @@ standard = ["minimal"]
 ###########################################################
 [package.metadata.mavspec]
 # MAVLink microservices to include
-microservices = ["HEARTBEAT", "COMMAND"]
-# Inclide only the following messages
+microservices = ["HEARTBEAT", "FTP"]
+# Inclide only the following messages (in addition to those required by `microservices`)
 messages = ["PROTOCOL_VERSION", "MAV_INSPECT_V1"]
-# Include only enums relevant to specified messages (set to `true` to include all)
-all_enums = false
+# Inclide only the following commands (in addition to those required by `microservices`)
+commands = ["MAV_CMD_DO_CHANGE_SPEED", "MAV_CMD_DO_SET_ROI*"]
+# Inclide only the following enums (in addition to those required by `microservices` and `commands`)
+enums = ["STORAGE_STATUS", "GIMBAL_*"]
 # Generate tests
 generate_tests = true
 
 [package.metadata.cargo-machete]
 ignored = ["mavspec", "serde", "serde_arrays"]
-

@@ -1,5 +1,5 @@
 mod tests {
-    use mavspec::rust::spec::{MavLinkVersion, MessageSpec};
+    use mavspec::rust::spec::{IntoPayload, MavLinkVersion, MessageSpec};
 
     #[test]
     fn dialect_is_present() {
