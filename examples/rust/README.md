@@ -28,13 +28,15 @@ Configuration
 -------------
 
 Dialects are generated in [`build.rs`](build.rs). MAVSpec [`BuildeHelper`](../../mavspec_rust_gen/src/build_helper.rs)
-scans package [`Cargo.toml`](Cargo.toml) for metadata and generates only specified `messages`. The `all_enums` key is
-responsible for enabling all enums regardless of which messages are generated.
+scans package [`Cargo.toml`](Cargo.toml) for metadata and generates only specified MAVLink entities.
 
 ```toml
 [package.metadata.mavspec]
-messages = ["HEARTBEAT", "PROTOCOL_VERSION", "MAV_INSPECT_V1", "COMMAND_INT", "COMMAND_LONG"]
-all_enums = false
+microservices = ["HEARTBEAT", "MISSION"]
+messages = ["PROTOCOL_VERSION", "MAV_INSPECT_V1", "PING"]
+enums = ["STORAGE_STATUS", "GIMBAL_*"]
+commands = ["MAV_CMD_DO_CHANGE_SPEED", "MAV_CMD_DO_SET_ROI*"]
+generate_tests = false
 ```
 
 Caveats

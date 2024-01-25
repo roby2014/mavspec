@@ -392,13 +392,12 @@ impl BuildHelperBuilder {
     ///
     /// ```toml
     /// [package.metadata.mavspec]
-    /// microservices = ["HEARTBEAT", "MISSION", "COMMAND"]
+    /// microservices = ["HEARTBEAT", "MISSION"]
     /// messages = ["PROTOCOL_VERSION", "MAV_INSPECT_V1", "PING"]
-    /// all_enums = false
+    /// enums = ["STORAGE_STATUS", "GIMBAL_*"]
+    /// commands = ["MAV_CMD_DO_CHANGE_SPEED", "MAV_CMD_DO_SET_ROI*"]
     /// generate_tests = false
     /// ```
-    ///
-    /// The `all_enums` key defines whether only enums required for specified messages will be generated.
     ///
     /// The following parameters have precedence over configuration defined in Cargo manifest:
     ///
