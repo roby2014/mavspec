@@ -6,7 +6,7 @@ use crate::specs::Spec;
 
 pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
     let leading_module_comment = format!("# MAVLink dialect `{}`", specs.name());
-    let dialect_name_quoted = format!("`\"{}\"", specs.name());
+    let dialect_name_quoted = specs.name();
     let dialect_id = match specs.dialect_id() {
         None => quote! { None },
         Some(id) => quote! { Some(#id) },
@@ -16,11 +16,11 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         Some(version) => quote! { Some(#version) },
     };
     let messages_enum_comment = format!(
-        "Enum containing all messages within `{}` dialect.",
+        " Enum containing all messages within `{}` dialect.",
         specs.name()
     );
     let messages_variants = specs.messages().iter().map(|msg| {
-        let comment = format!("MAVLink message `{}`.", msg.name());
+        let comment = format!(" MAVLink message `{}`.", msg.name());
         let messages_enum_entry_name =
             format_ident!("{}", messages_enum_entry_name(msg.name().into()));
         let message_struct_name = format_ident!("{}", message_struct_name(msg.name().into()));
@@ -52,8 +52,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         }
     });
     let encode_arms = specs.messages().iter().map(|msg| {
-        let messages_enum_entry_name =
-            format_ident!("{}", messages_enum_entry_name(msg.name().into()));
+        let messages_enum_entry_name = format_ident!("{}", messages_enum_entry_name(msg.name()));
 
         quote! {
             Message::#messages_enum_entry_name(message) => message.encode(version)?,
@@ -86,6 +85,15 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         }
     } else {
         quote!()
+    };
+
+    let allow_unreachable = quote! {
+        #[allow(unreachable_patterns)]
+        #[allow(unreachable_code)]
+    };
+
+    let allow_unused_variables = quote! {
+        #[allow(unused_variables)]
     };
 
     syn::parse2(quote! {
@@ -247,6 +255,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         ///
         /// See [`DialectSpec::message_info`].
         pub fn message_info(id: MessageId) -> Result<&'static dyn MessageSpec, MessageError> {
+            #allow_unreachable
             Ok(match id {
                 #(#message_info_arms)*
                 _ => return Err(MessageError::UnsupportedMessageId(id)),
@@ -255,6 +264,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
 
         /// Decodes [`Message`] from [`Payload`].
         pub fn decode(payload: &Payload) -> Result<Message, MessageError> {
+            #allow_unreachable
             Ok(match payload.id() {
                 #(#decode_arms)*
                 id => return Err(MessageError::UnsupportedMessageId(id)),
@@ -262,9 +272,12 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         }
 
         /// Encodes [`Message`] into [`Payload`].
+        #allow_unused_variables
         pub fn encode(msg: &Message, version: MavLinkVersion) -> Result<Payload, MessageError> {
+            #allow_unreachable
             Ok(match msg {
                 #(#encode_arms)*
+                _ => return Err(MessageError::UnsupportedMessage)
             })
         }
 

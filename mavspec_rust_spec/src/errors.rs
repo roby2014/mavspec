@@ -16,6 +16,8 @@ pub enum MessageError {
     },
     /// MAVLink message with specified ID is not supported.
     UnsupportedMessageId(u32),
+    /// Message is not supported.
+    UnsupportedMessage,
     /// Invalid size of the provided payload.
     InvalidPayloadSize {
         /// Actual payload size in bytes.

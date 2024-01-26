@@ -220,9 +220,9 @@ checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 
 [[package]]
 name = "mavinspect"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec6f584251a155ff7c94d878e951b875d73753e1696b8f96e7c1a764b6c78994"
+checksum = "1bc6a85c51fd878561b2688e915b6a22c770193c254aebff6f5a774a212051e4"
 dependencies = [
  "bitflags",
  "crc-any",
@@ -236,7 +236,7 @@ dependencies = [
 
 [[package]]
 name = "mavspec"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -260,7 +260,7 @@ dependencies = [
 
 [[package]]
 name = "mavspec_rust_derive"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "bitflags",
  "env_logger",
@@ -275,7 +275,7 @@ dependencies = [
 
 [[package]]
 name = "mavspec_rust_gen"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "base64",
@@ -294,7 +294,7 @@ dependencies = [
 
 [[package]]
 name = "mavspec_rust_spec"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "bitflags",
  "serde",
