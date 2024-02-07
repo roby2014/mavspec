@@ -7,18 +7,22 @@ use crate::specs::Spec;
 pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
     let leading_module_comment = format!("# MAVLink dialect `{}`", specs.name());
     let dialect_name_quoted = specs.name();
+
     let dialect_id = match specs.dialect_id() {
         None => quote! { None },
         Some(id) => quote! { Some(#id) },
     };
+
     let dialect_version = match specs.version() {
         None => quote! { None },
         Some(version) => quote! { Some(#version) },
     };
+
     let messages_enum_comment = format!(
         " Enum containing all messages within `{}` dialect.",
         specs.name()
     );
+
     let messages_variants = specs.messages().iter().map(|msg| {
         let comment = format!(" MAVLink message `{}`.", msg.name());
         let messages_enum_entry_name =
@@ -30,6 +34,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             #messages_enum_entry_name(messages::#message_struct_name),
         }
     });
+
     let message_info_arms = specs.messages().iter().map(|msg| {
         let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
 
@@ -37,11 +42,39 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             messages::#message_mod_name::MESSAGE_ID => &messages::#message_mod_name::MESSAGE_INFO,
         }
     });
+
+    let message_spec_id_arms = specs.messages().iter().map(|msg| {
+        let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
+        let messages_enum_entry_name = format_ident!("{}", messages_enum_entry_name(msg.name()));
+
+        quote! {
+            Message::#messages_enum_entry_name(_) => messages::#message_mod_name::MESSAGE_ID,
+        }
+    });
+
+    let message_spec_msmv_arms = specs.messages().iter().map(|msg| {
+        let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
+        let messages_enum_entry_name = format_ident!("{}", messages_enum_entry_name(msg.name()));
+
+        quote! {
+            Message::#messages_enum_entry_name(_) =>
+                messages::#message_mod_name::MESSAGE_INFO.min_supported_mavlink_version(),
+        }
+    });
+
+    let message_spec_crc_extra_arms = specs.messages().iter().map(|msg| {
+        let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
+        let messages_enum_entry_name = format_ident!("{}", messages_enum_entry_name(msg.name()));
+
+        quote! {
+            Message::#messages_enum_entry_name(_) => messages::#message_mod_name::CRC_EXTRA,
+        }
+    });
+
     let decode_arms = specs.messages().iter().map(|msg| {
         let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
-        let messages_enum_entry_name =
-            format_ident!("{}", messages_enum_entry_name(msg.name().into()));
-        let message_struct_name = format_ident!("{}", message_struct_name(msg.name().into()));
+        let messages_enum_entry_name = format_ident!("{}", messages_enum_entry_name(msg.name()));
+        let message_struct_name = format_ident!("{}", message_struct_name(msg.name()));
 
         quote! {
             messages::#message_mod_name::MESSAGE_ID => {
@@ -51,6 +84,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             }
         }
     });
+
     let encode_arms = specs.messages().iter().map(|msg| {
         let messages_enum_entry_name = format_ident!("{}", messages_enum_entry_name(msg.name()));
 
@@ -58,6 +92,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             Message::#messages_enum_entry_name(message) => message.encode(version)?,
         }
     });
+
     let tests = if specs.params().generate_tests {
         let ids = specs.messages().iter().map(|msg| {
             let id = msg.id();
@@ -100,10 +135,10 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         #![doc = #leading_module_comment]
 
         use mavspec::rust::spec::{
-            IntoPayload, DialectSpec, Payload, MessageSpec,
+            DialectImpl, DialectMessage, DialectSpec, IntoPayload, Payload, MessageSpec,
             MavLinkVersion, MessageError,
         };
-        use mavspec::rust::spec::types::{MessageId, DialectId, DialectVersion};
+        use mavspec::rust::spec::types::{CrcExtra, MessageId, DialectId, DialectVersion};
 
         // MAVLink messages.
         pub mod messages;
@@ -125,7 +160,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         /// [`Dialect`] specification.
         ///
         /// See: [`DialectModuleSpec`].
-        const SPEC: Dialect = Dialect {};
+        const DIALECT: Dialect = Dialect {};
 
         /// Dialect specification.
         ///
@@ -202,6 +237,11 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             }
         }
 
+        impl DialectImpl for Dialect {
+            /// Container type for MAVLink message.
+            type Message = Message;
+        }
+
         #[doc = #messages_enum_comment]
         #[derive(core::clone::Clone, core::fmt::Debug)]
         // {{#if params.serde}}#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]{{/if}}
@@ -229,8 +269,46 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             }
         }
 
+        impl DialectMessage for Message {
+            #[inline]
+            /// Decode [`Message`] from [`Payload`].
+            fn decode(payload: &Payload) -> Result<Self, MessageError> {
+                Self::decode(payload)
+            }
+        }
+
+        impl MessageSpec for Message {
+            /// MAVLink message ID.
+            ///
+            /// See [`MessageSpec::id`] for details.
+            fn id(&self) -> MessageId {
+                match self {
+                    #(#message_spec_id_arms)*
+                }
+            }
+
+            /// Minimum supported MAVLink protocol version.
+            ///
+            /// See [`MessageSpec::min_supported_mavlink_version`] for details.
+            fn min_supported_mavlink_version(&self) -> MavLinkVersion {
+                match self {
+                    #(#message_spec_msmv_arms)*
+                }
+            }
+
+            /// Message `EXTRA_CRC` calculated from message XML definition.
+            ///
+            /// See [`MessageSpec::crc_extra`] for details.
+            fn crc_extra(&self) -> CrcExtra {
+                match self {
+                    #(#message_spec_crc_extra_arms)*
+                }
+            }
+        }
+
         impl Message {
             /// Decodes message from MAVLink payload.
+            #[inline]
             pub fn decode(
                 payload: &Payload,
             ) -> Result<Self, MessageError> {
@@ -238,6 +316,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             }
 
             /// Encodes message to MAVLink payload.
+            #[inline]
             pub fn encode(&self, version: MavLinkVersion) -> Result<Payload, MessageError> {
                 encode(self, version)
             }
@@ -245,10 +324,18 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
 
         /// Dialect specification.
         ///
-        /// Returns the current dialect specification as [`DialectSpec`] trait object.
+        /// Returns the current dialect as [`DialectSpec`] trait object.
         #[inline]
         pub const fn spec() -> &'static dyn DialectSpec {
-            &SPEC
+            &DIALECT
+        }
+
+        /// Dialect implementation.
+        ///
+        /// Returns the current dialect as [`DialectImpl`] trait object.
+        #[inline]
+        pub const fn dialect() -> &'static dyn DialectImpl<Message = Message> {
+            &DIALECT
         }
 
         /// Retrieve message specification by its `id`.

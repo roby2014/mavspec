@@ -1,4 +1,5 @@
 use bitflags::bitflags;
+
 use mavspec::rust::spec::IntoPayload;
 
 use mavspec::rust::derive::{Enum, Message};
@@ -6,9 +7,11 @@ use mavspec::rust::derive::{Enum, Message};
 const ONE: u8 = 1;
 const FIVE: usize = 5;
 
+#[derive(Clone, Copy, Debug, Default, serde::Serialize, serde::Deserialize)]
+struct MyFlags(u8);
+
 bitflags! {
-    #[derive(Clone, Copy, Debug, Default)]
-    struct MyFlags: u8 {
+    impl MyFlags: u8 {
         const FLAG_8 = 1;
         const FLAG_7 = 1 << 1;
         const FLAG_6 = 1 << 2;
@@ -21,7 +24,7 @@ bitflags! {
 }
 
 #[repr(u8)]
-#[derive(Copy, Clone, Debug, Default, Enum)]
+#[derive(Copy, Clone, Debug, Default, Enum, serde::Serialize, serde::Deserialize)]
 enum MyEnum {
     #[default]
     OptionA = 0,
@@ -31,12 +34,13 @@ enum MyEnum {
     OptionE = 4,
 }
 
-#[derive(Clone, Debug, Message)]
+#[derive(Clone, Debug, Message, serde::Serialize, serde::Deserialize)]
 #[message_id(40)]
 #[crc_extra(32)]
 struct MyMessage {
     scalar_i16: i16,
     array_u16_5: [u16; FIVE],
+    #[serde(with = "serde_arrays")]
     array_u8_40: [u16; 40],
 
     #[base_type(u8)]
@@ -45,6 +49,7 @@ struct MyMessage {
     #[base_type(u8)]
     enum_array_u8_4: [MyEnum; 4],
     #[base_type(u8)]
+    #[serde(with = "serde_arrays")]
     enum_array_u8_40: [MyEnum; 40],
 
     #[base_type(u16)]
@@ -118,6 +123,7 @@ fn encode_decode() {
     let payload = message
         .encode(mavspec::rust::spec::MavLinkVersion::V2)
         .unwrap();
+    log::info!("Payload: {payload:?}");
 
     let decoded_message = MyMessage::try_from(&payload).unwrap();
     log::info!("Decoded message: {decoded_message:#?}");

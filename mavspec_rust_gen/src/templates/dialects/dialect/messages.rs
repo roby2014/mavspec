@@ -158,6 +158,12 @@ pub(crate) fn message_module(spec: &MessageImplModuleSpec) -> syn::File {
             #(#message_fields)*
         }
 
+        impl core::convert::From<#message_struct_ident> for super::super::Message {
+            fn from(value: #message_struct_ident) -> Self {
+                Self::#message_struct_ident(value)
+            }
+        }
+
         #tests
     })
     .unwrap()
@@ -238,12 +244,15 @@ pub(crate) fn inherited_message_module(spec: &MessageInheritedModuleSpec) -> syn
         #![doc = #module_doc_comment]
 
         use mavspec::rust::spec::MessageInfo;
+        use mavspec::rust::spec::types::{CrcExtra, MessageId};
 
         use super::super::super::#dialect_mod_ident as dialect;
 
-        /// Message ID
-        pub(crate) const MESSAGE_ID: u32 = dialect::messages::#message_mod_ident::MESSAGE_ID;
-        /// Message info
+        /// Message ID.
+        pub(crate) const MESSAGE_ID: MessageId = dialect::messages::#message_mod_ident::MESSAGE_ID;
+        /// `CRC_EXTRA` calculated from message XML definition.
+        pub(crate) const CRC_EXTRA: CrcExtra = dialect::messages::#message_mod_ident::CRC_EXTRA;
+        /// Generic message info that contains all message metadata.
         pub(crate) const MESSAGE_INFO: MessageInfo =
             dialect::messages::#message_mod_ident::MESSAGE_INFO;
 

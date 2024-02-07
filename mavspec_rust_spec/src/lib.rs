@@ -66,10 +66,10 @@ pub use errors::MessageError;
 
 pub mod types;
 #[doc(inline)]
-pub use types::MavLinkVersion;
+pub use types::{MavLinkProtocolVersion, MavLinkV1, MavLinkV2, MavLinkVersion};
 
 pub mod consts;
 
 mod dialect;
 #[doc(inline)]
-pub use dialect::DialectSpec;
+pub use dialect::{DialectImpl, DialectMessage, DialectSpec};

@@ -73,16 +73,18 @@ fn make_bitmask_enum(spec: &EnumImplModuleSpec) -> proc_macro2::TokenStream {
         quote! {
             use mavspec::rust::spec::bitflags::bitflags;
 
+            #[allow(rustdoc::bare_urls)]
+            #[allow(rustdoc::broken_intra_doc_links)]
+            #[allow(rustdoc::invalid_rust_codeblocks)]
+            #[doc = #leading_doc_comment]
+            ///
+            #(#description_doc_comments)*
+            #[derive(core::marker::Copy, core::clone::Clone, core::fmt::Debug, core::default::Default)]
+            #derive_serde
+            pub struct #enum_ident(#enum_inferred_type);
+
             bitflags! {
-                #[allow(rustdoc::bare_urls)]
-                #[allow(rustdoc::broken_intra_doc_links)]
-                #[allow(rustdoc::invalid_rust_codeblocks)]
-                #[doc = #leading_doc_comment]
-                ///
-                #(#description_doc_comments)*
-                #[derive(core::marker::Copy, core::clone::Clone, core::fmt::Debug, core::default::Default)]
-                #derive_serde
-                pub struct #enum_ident: #enum_inferred_type {
+                impl #enum_ident: #enum_inferred_type {
                     #(#entry_consts)*
                 }
             }

@@ -34,3 +34,36 @@ pub enum MavLinkVersion {
     /// `MAVLink 2` protocol version.
     V2,
 }
+
+/// MAVLink protocol version trait.
+pub trait MavLinkProtocolVersion {
+    /// Version of MAVLink protocol.
+    fn version(&self) -> MavLinkVersion;
+}
+
+impl MavLinkProtocolVersion for MavLinkVersion {
+    #[inline]
+    fn version(&self) -> MavLinkVersion {
+        *self
+    }
+}
+
+/// `MAVLink 1` protocol version marker.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct MavLinkV1();
+
+/// `MAVLink 2` protocol version marker.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct MavLinkV2();
+
+impl MavLinkProtocolVersion for MavLinkV1 {
+    fn version(&self) -> MavLinkVersion {
+        MavLinkVersion::V1
+    }
+}
+
+impl MavLinkProtocolVersion for MavLinkV2 {
+    fn version(&self) -> MavLinkVersion {
+        MavLinkVersion::V2
+    }
+}

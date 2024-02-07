@@ -21,7 +21,7 @@ use no_alloc_payload_container::PayloadContainer;
 ///
 /// Encapsulates MAVLink payload.
 /// In `no_std` non-allocating targets it uses fixed-sized
-/// arrays of bytes. Otherwise payload is stored on heap as a dynamically sized sequence.
+/// arrays of bytes. Otherwise, payload is stored on heap as a dynamically sized sequence.
 #[derive(Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(not(feature = "std"), derive(Debug))]
@@ -56,12 +56,19 @@ impl Debug for Payload {
     /// This is important for `no_std` implementations where `payload` has fixed size of
     /// [`PAYLOAD_MAX_SIZE`] bytes.
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let payload = &self.payload[0..min(self.payload.len(), self.length)];
-        write!(
-            f,
-            "Payload{{ id: {}, payload: {:?}, max_size: {}, version: {:?} }}",
-            self.id, payload, self.length, self.version
-        )
+        let payload = match self.version {
+            MavLinkVersion::V1 => &self.payload[0..min(self.payload.len(), self.length)],
+            MavLinkVersion::V2 => {
+                &self.payload[0..min(self.payload.len(), Self::truncated_length(&self.payload))]
+            }
+        };
+
+        f.debug_struct("payload")
+            .field("id", &self.id)
+            .field("payload", &payload)
+            .field("length", &self.length)
+            .field("version", &self.version)
+            .finish()
     }
 }
 
