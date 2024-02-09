@@ -25,9 +25,8 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
 
     let messages_variants = specs.messages().iter().map(|msg| {
         let comment = format!(" MAVLink message `{}`.", msg.name());
-        let messages_enum_entry_name =
-            format_ident!("{}", messages_enum_entry_name(msg.name().into()));
-        let message_struct_name = format_ident!("{}", message_struct_name(msg.name().into()));
+        let messages_enum_entry_name = format_ident!("{}", messages_enum_entry_name(msg.name()));
+        let message_struct_name = format_ident!("{}", message_struct_name(msg.name()));
 
         quote! {
             #[doc = #comment]

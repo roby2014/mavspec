@@ -288,7 +288,7 @@ impl Generator {
 
     fn enum_file(&self, dialect_name: &str, enum_name: &str) -> PathBuf {
         self.enums_dir(dialect_name)
-            .join(conventions::enum_file_name(enum_name.to_string()))
+            .join(conventions::enum_file_name(enum_name))
     }
 
     fn messages_dir(&self, dialect_name: &str) -> PathBuf {
@@ -301,7 +301,7 @@ impl Generator {
 
     fn message_file(&self, dialect_name: &str, message_name: &str) -> PathBuf {
         self.messages_dir(dialect_name)
-            .join(conventions::message_file_name(message_name.to_string()))
+            .join(conventions::message_file_name(message_name))
     }
 
     fn enum_inherited_from(&self, mav_enum: &Enum, dialect_name: &str) -> Option<&Dialect> {

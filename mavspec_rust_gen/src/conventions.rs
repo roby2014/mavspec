@@ -17,17 +17,15 @@ pub fn dialect_mod_name(dialect_name: String) -> String {
     heck::AsSnakeCase(dialect_name).to_string()
 }
 
-pub fn valid_rust_name(name: String) -> String {
-    if RUST_RESERVED_KEYWORDS.contains(&name.as_str())
-        || RUST_RESERVED_IDENTIFIERS.contains(&name.as_str())
-    {
+pub fn valid_rust_name(name: &str) -> String {
+    if RUST_RESERVED_KEYWORDS.contains(&name) || RUST_RESERVED_IDENTIFIERS.contains(&name) {
         return format!("{name}{}", RUST_KEYWORD_POSTFIX);
     }
 
     let name = if name.is_empty() {
         EMPTY_IDENT_REPLACEMENT.to_string()
     } else {
-        name
+        name.into()
     };
 
     match name.chars().next() {
@@ -54,31 +52,31 @@ pub fn split_description(value: &str) -> Vec<String> {
     result.split('\n').map(|s| s.to_string()).collect()
 }
 
-pub fn enum_rust_name(enum_name: String) -> String {
-    valid_rust_name(heck::AsUpperCamelCase(enum_name).to_string())
+pub fn enum_rust_name(enum_name: &str) -> String {
+    valid_rust_name(heck::AsUpperCamelCase(enum_name).to_string().as_str())
 }
 
-pub fn enum_mod_name(enum_name: String) -> String {
-    valid_rust_name(heck::AsSnakeCase(enum_name).to_string())
+pub fn enum_mod_name(enum_name: &str) -> String {
+    valid_rust_name(heck::AsSnakeCase(enum_name).to_string().as_str())
 }
 
-pub fn enum_file_name(message_name: String) -> String {
+pub fn enum_file_name(message_name: &str) -> String {
     format!("{}.rs", enum_mod_name(message_name))
 }
 
-pub fn enum_entry_name(entry_name: String) -> String {
-    valid_rust_name(heck::AsUpperCamelCase(entry_name).to_string())
+pub fn enum_entry_name(entry_name: &str) -> String {
+    valid_rust_name(heck::AsUpperCamelCase(entry_name).to_string().as_str())
 }
 
-pub fn enum_bitmask_entry_name(entry_name: String) -> String {
+pub fn enum_bitmask_entry_name(entry_name: &str) -> String {
     valid_rust_name(entry_name)
 }
 
-pub fn message_mod_name(message_name: String) -> String {
-    valid_rust_name(heck::AsSnakeCase(message_name).to_string())
+pub fn message_mod_name(message_name: &str) -> String {
+    valid_rust_name(heck::AsSnakeCase(message_name).to_string().as_str())
 }
 
-pub fn message_file_name(message_name: String) -> String {
+pub fn message_file_name(message_name: &str) -> String {
     format!("{}.rs", message_mod_name(message_name))
 }
 
@@ -87,10 +85,9 @@ pub fn messages_enum_entry_name(message_name: &str) -> String {
 }
 
 pub fn message_struct_name(message_name: &str) -> String {
-    valid_rust_name(heck::AsUpperCamelCase(message_name).to_string())
+    valid_rust_name(heck::AsUpperCamelCase(message_name).to_string().as_str())
 }
 
-pub fn rust_var_name(var_name: String) -> String {
-    let var_name = heck::AsSnakeCase(var_name).to_string();
-    valid_rust_name(var_name)
+pub fn rust_var_name(var_name: &str) -> String {
+    valid_rust_name(heck::AsSnakeCase(var_name).to_string().as_str())
 }
