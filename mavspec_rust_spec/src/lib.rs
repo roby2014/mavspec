@@ -66,7 +66,7 @@ pub use errors::MessageError;
 
 pub mod types;
 #[doc(inline)]
-pub use types::{MavLinkProtocolVersion, MavLinkV1, MavLinkV2, MavLinkVersion};
+pub use types::MavLinkVersion;
 
 pub mod consts;
 
