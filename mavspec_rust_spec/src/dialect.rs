@@ -52,6 +52,6 @@ pub trait DialectImpl: DialectSpec {
 ///
 /// [`DialectMessage`] is an enum, where variants are all possible messages of a dialect.
 pub trait DialectMessage: MessageSpec + IntoPayload + Sized + Sync + Send {
-    /// Decode [`Message`](Self::Message) from [`Payload`].
+    /// Decode dialect message from [`Payload`].
     fn decode(payload: &Payload) -> Result<Self, MessageError>;
 }
