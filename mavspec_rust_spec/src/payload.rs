@@ -119,14 +119,36 @@ impl Payload {
         self.version
     }
 
-    /// Maximum length in bytes of the available payload.
+    /// Payload size in bytes.
+    ///
+    /// Note that for `MAVLink 2` payloads trailing zero bytes are truncated.  
     ///
     /// See [`Payload::bytes`].
     pub fn length(&self) -> u8 {
         self.length as u8
     }
 
-    /// Calculate size of a slice without trailing zeros.
+    /// Upgrade payload to `MAVLink 2` protocol version in-place.
+    ///
+    /// The reverse procedure is not possible since `MAVLink 2` payload may contain extra fields
+    /// and its trailing zero bytes are truncated.
+    ///
+    /// To replace an existing payload by value, use [`Payload::upgraded`].
+    pub fn upgrade(&mut self) {
+        self.version = MavLinkVersion::V2;
+        self.length = Self::truncated_length(self.bytes());
+    }
+
+    /// Upgrade protocol version to `MAVLink 2` replacing payload by value.
+    ///
+    /// The reverse procedure is not possible since `MAVLink 2` payload may contain extra fields
+    /// and its trailing zero bytes are truncated.
+    ///
+    /// To upgrade payload in-place, use [`Payload::upgrade`].
+    pub fn upgraded(self) -> Self {
+        Self::new(self.id, self.bytes(), MavLinkVersion::V2)
+    }
+
     fn truncated_length(slice: &[u8]) -> usize {
         let n: usize = slice.len();
         // Assume that all elements are zeros
@@ -143,7 +165,6 @@ impl Payload {
         num_non_zero
     }
 
-    /// Creates [`PayloadContainer`] populated with values from slice.
     fn container_from_slice(value: &[u8], max_size: usize) -> PayloadContainer {
         // Truncate value up to maximum possible length
         let value: &[u8] = if value.len() > max_size {
@@ -177,7 +198,6 @@ impl Payload {
         payload
     }
 
-    /// Creates [`PayloadContainer`] populated with default values.
     fn container_default() -> PayloadContainer {
         PayloadContainer::default()
     }
@@ -232,7 +252,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn new() {
+    fn new_payload() {
         // Small initial payload
         let payload = Payload::new(0, &[1, 2, 3, 4, 5, 6u8], MavLinkVersion::V1);
         assert_eq!(payload.length(), 6);
