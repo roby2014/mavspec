@@ -46,6 +46,7 @@ impl<'a> MessagesRootModuleSpec<'a> {
 pub struct MessageImplModuleSpec<'a> {
     id: u32,
     name: &'a str,
+    dialect_name: &'a str,
     description: Vec<String>,
     fields: Vec<FieldSpec>,
     is_v1_compatible: bool,
@@ -71,6 +72,7 @@ impl<'a> MessageImplModuleSpec<'a> {
         Self {
             id: message.id(),
             name: message.name(),
+            dialect_name: dialect_spec.name(),
             description: split_description(message.description()),
             fields: FieldSpec::from_mavinspect_fields(
                 message.fields().iter().collect::<Vec<_>>().as_slice(),
@@ -107,6 +109,10 @@ impl<'a> MessageImplModuleSpec<'a> {
 
     pub(crate) fn name(&self) -> &str {
         self.name
+    }
+
+    pub(crate) fn dialect_name(&self) -> &str {
+        self.dialect_name
     }
 
     pub(crate) fn ident(&self) -> syn::Ident {

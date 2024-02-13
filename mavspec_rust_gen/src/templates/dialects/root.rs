@@ -1,3 +1,4 @@
+use crate::conventions::dialect_enum_name;
 use quote::{format_ident, quote};
 
 use crate::specs::dialects::DialectsRootModuleSpec;
@@ -12,6 +13,16 @@ pub fn dialects_root_module(spec: &DialectsRootModuleSpec) -> syn::File {
         }
     });
 
+    let dialect_enum_imports = spec.module_names().iter().map(|name| {
+        let module_name = format_ident!("{}", name);
+        let dialect_enum_ident = format_ident!("{}", dialect_enum_name(name));
+
+        quote! {
+            #[doc(inline)]
+            pub use #module_name::#dialect_enum_ident;
+        }
+    });
+
     syn::parse2(quote! {
         #![warn(missing_docs)]
         #![deny(rustdoc::broken_intra_doc_links)]
@@ -22,6 +33,8 @@ pub fn dialects_root_module(spec: &DialectsRootModuleSpec) -> syn::File {
         //! Each dialect is packaged into a module with corresponding (`snake_cased`) name.
 
         #(#dialect_modules)*
+
+        #(#dialect_enum_imports)*
     })
     .unwrap()
 }

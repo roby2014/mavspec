@@ -17,6 +17,10 @@ pub fn dialect_mod_name(dialect_name: String) -> String {
     heck::AsSnakeCase(dialect_name).to_string()
 }
 
+pub fn dialect_enum_name(dialect_name: &str) -> String {
+    heck::AsUpperCamelCase(dialect_name).to_string()
+}
+
 pub fn valid_rust_name(name: &str) -> String {
     if RUST_RESERVED_KEYWORDS.contains(&name) || RUST_RESERVED_IDENTIFIERS.contains(&name) {
         return format!("{name}{}", RUST_KEYWORD_POSTFIX);

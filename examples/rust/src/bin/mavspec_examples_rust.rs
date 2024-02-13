@@ -31,7 +31,7 @@ pub fn play_with_dialects() {
         log::info!("Payload for `Heartbeat` message: {payload:?}");
 
         let decoded_message = dialect::dialect().decode(&payload).unwrap();
-        if let dialect::Message::Heartbeat(message) = decoded_message {
+        if let dialect::Minimal::Heartbeat(message) = decoded_message {
             log::info!("`Heartbeat` message decoded from payload: {message:#?}");
         }
     }
@@ -65,7 +65,7 @@ pub fn play_with_dialects() {
         log::info!("Payload for `CommandInt` message: {payload:?}");
 
         let decoded_message = dialect::dialect().decode(&payload).unwrap();
-        if let dialect::Message::CommandInt(message) = decoded_message {
+        if let dialect::Common::CommandInt(message) = decoded_message {
             log::info!("`CommandInt` message decoded from payload: {message:#?}");
         }
     }
@@ -104,7 +104,7 @@ pub fn play_with_dialects() {
         log::info!("Payload for `MavInspectV1` message: {payload:?}");
 
         let decoded_message = dialect::dialect().decode(&payload).unwrap();
-        if let dialect::Message::MavInspectV1(message) = decoded_message {
+        if let dialect::MavInspectTest::MavInspectV1(message) = decoded_message {
             log::info!("`MavInspectV1` message decoded from payload: {message:#?}");
         }
     }

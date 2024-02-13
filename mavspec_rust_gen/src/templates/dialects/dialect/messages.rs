@@ -1,7 +1,8 @@
 use quote::{format_ident, quote};
 
 use crate::conventions::{
-    dialect_mod_name, enum_rust_name, message_mod_name, message_struct_name, rust_var_name,
+    dialect_enum_name, dialect_mod_name, enum_rust_name, message_mod_name, message_struct_name,
+    rust_var_name,
 };
 use crate::specs::dialects::dialect::messages::{
     MessageImplModuleSpec, MessageInheritedModuleSpec, MessagesRootModuleSpec,
@@ -32,6 +33,7 @@ pub(crate) fn messages_root_module(spec: &MessagesRootModuleSpec) -> syn::File {
 
 pub(crate) fn message_module(spec: &MessageImplModuleSpec) -> syn::File {
     let module_doc_comment = format!(" # MAVLink `{}` message implementation.", spec.name());
+    let dialect_enum_ident = format_ident!("{}", dialect_enum_name(spec.dialect_name()));
     let message_id: syn::LitInt = syn::parse_str(format!("{}", spec.id()).as_str()).unwrap();
     let crc_extra: syn::LitInt = syn::parse_str(format!("{}", spec.crc_extra()).as_str()).unwrap();
     let message_leading_doc_comment = format!(" MAVLink `{}` message.", spec.name());
@@ -158,7 +160,7 @@ pub(crate) fn message_module(spec: &MessageImplModuleSpec) -> syn::File {
             #(#message_fields)*
         }
 
-        impl core::convert::From<#message_struct_ident> for super::super::Message {
+        impl core::convert::From<#message_struct_ident> for super::super::#dialect_enum_ident {
             fn from(value: #message_struct_ident) -> Self {
                 Self::#message_struct_ident(value)
             }
