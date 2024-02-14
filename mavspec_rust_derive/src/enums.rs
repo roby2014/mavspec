@@ -103,15 +103,14 @@ impl Enum {
 
         quote! {
             impl core::convert::TryFrom<#repr> for #ident {
-                type Error = mavspec::rust::spec::MessageError;
+                type Error = mavspec::rust::spec::SpecError;
 
-                fn try_from(value: #repr) -> Result<Self, mavspec::rust::spec::MessageError> {
+                fn try_from(value: #repr) -> Result<Self, mavspec::rust::spec::SpecError> {
                     Ok(match value {
                         #(#variants,)*
                         _ => {
-                            return Err(mavspec::rust::spec::MessageError::InvalidEnumValue {
+                            return Err(mavspec::rust::spec::SpecError::InvalidEnumValue {
                                 enum_name: #name,
-                                value: value.into(),
                             })
                         }
                     })

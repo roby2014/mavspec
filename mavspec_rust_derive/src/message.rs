@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 
 use quote::{format_ident, quote, TokenStreamExt};
 
-use crate::errors::{Error, MessageError};
+use crate::errors::{Error, SpecError};
 use crate::field_types::FieldType;
 use crate::message_attributes::{CrcExtra, MessageId};
 use crate::message_field::Field;
@@ -37,7 +37,7 @@ impl Message {
                     fields.push(Field::try_from(field.clone())?);
                 }
             }
-            _ => return Err(MessageError::NotAStruct.into()),
+            _ => return Err(SpecError::NotAStruct.into()),
         }
 
         let mut ordered_fields = fields;
@@ -120,7 +120,7 @@ impl Message {
 
         quote! {
             impl TryFrom<&mavspec::rust::spec::Payload> for #ident {
-                type Error = mavspec::rust::spec::MessageError;
+                type Error = mavspec::rust::spec::SpecError;
 
                 fn try_from(value: &mavspec::rust::spec::Payload) -> Result<Self, Self::Error> {
                     use mavspec::rust::spec::tbytes::{TBytesReader, TBytesReaderFor};
@@ -147,7 +147,7 @@ impl Message {
                 fn encode(
                     &self,
                     version: mavspec::rust::spec::MavLinkVersion,
-                ) -> Result<mavspec::rust::spec::Payload, mavspec::rust::spec::MessageError> {
+                ) -> Result<mavspec::rust::spec::Payload, mavspec::rust::spec::SpecError> {
                     use mavspec::rust::spec::tbytes::{TBytesWriter, TBytesWriterFor};
 
                     #encode_fn_v1
@@ -205,7 +205,7 @@ impl Message {
             quote! {
                 #[inline]
                 fn decode_v1 #signature {
-                    Err(mavspec::rust::spec::MessageError::UnsupportedMavLinkVersion{
+                    Err(mavspec::rust::spec::SpecError::UnsupportedMavLinkVersion{
                         actual: mavspec::rust::spec::MavLinkVersion::V1,
                         minimal: mavspec::rust::spec::MavLinkVersion::V2,
                     })
@@ -227,7 +227,7 @@ impl Message {
     fn decode_fn_signature(&self) -> proc_macro2::TokenStream {
         let ident = self.ident();
         quote! {
-            (payload: &[u8]) -> Result<#ident, mavspec::rust::spec::MessageError>
+            (payload: &[u8]) -> Result<#ident, mavspec::rust::spec::SpecError>
         }
     }
 
@@ -262,10 +262,10 @@ impl Message {
         match payload_type {
             PayloadType::Strict => quote! {
                 if payload.len() != PAYLOAD_SIZE {
-                    return Err(mavspec::rust::spec::MessageError::InvalidPayloadSize {
+                    return Err(mavspec::rust::spec::PayloadError::InvalidV1PayloadSize {
                         actual: payload.len(),
                         expected: PAYLOAD_SIZE,
-                    });
+                    }.into());
                 }
                 let reader = TBytesReader::from(payload);
             },
@@ -344,7 +344,7 @@ impl Message {
     fn encode_fn_signature(&self) -> proc_macro2::TokenStream {
         let ident = self.ident();
         quote! {
-            (message: &#ident) -> Result<mavspec::rust::spec::Payload, mavspec::rust::spec::MessageError>
+            (message: &#ident) -> Result<mavspec::rust::spec::Payload, mavspec::rust::spec::SpecError>
         }
     }
 
@@ -360,7 +360,7 @@ impl Message {
             let signature = self.encode_fn_signature();
             quote! {
                 fn encode_v1 #signature {
-                    Err(mavspec::rust::spec::MessageError::UnsupportedMavLinkVersion{
+                    Err(mavspec::rust::spec::SpecError::UnsupportedMavLinkVersion{
                         actual: mavspec::rust::spec::MavLinkVersion::V1,
                         minimal: mavspec::rust::spec::MavLinkVersion::V2,
                     })
@@ -496,7 +496,7 @@ impl Message {
 mod tests {
     use quote::quote;
 
-    use crate::errors::{Error, MessageError};
+    use crate::errors::{Error, SpecError};
     use crate::field_types::ScalarType;
 
     use super::*;
@@ -569,7 +569,7 @@ mod tests {
         .unwrap();
         assert!(matches!(
             Message::try_from(input),
-            Err(Error::Message(MessageError::NotAStruct))
+            Err(Error::Message(SpecError::NotAStruct))
         ));
     }
 

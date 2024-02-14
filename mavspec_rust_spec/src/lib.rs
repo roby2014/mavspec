@@ -39,7 +39,7 @@
 //!
 //! # Errors
 //!
-//! All fallible functions and methods return [`MessageError`] on failure.
+//! All fallible functions and methods return [`SpecError`] on failure.
 
 #![warn(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
@@ -62,7 +62,7 @@ pub use payload::{IntoPayload, Payload};
 
 mod errors;
 #[doc(inline)]
-pub use errors::MessageError;
+pub use errors::{PayloadError, SpecError};
 
 pub mod types;
 #[doc(inline)]

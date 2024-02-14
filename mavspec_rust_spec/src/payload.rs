@@ -9,7 +9,7 @@ use core::cmp::min;
 use std::fmt::{Debug, Formatter};
 
 use crate::consts::PAYLOAD_MAX_SIZE;
-use crate::errors::MessageError;
+use crate::errors::SpecError;
 use crate::types::{MavLinkVersion, MessageId};
 
 #[cfg(feature = "alloc")]
@@ -211,9 +211,9 @@ pub trait IntoPayload {
     ///
     /// # Errors
     ///
-    /// * Returns [`MessageError::UnsupportedMavLinkVersion`] if specified
+    /// * Returns [`SpecError::UnsupportedMavLinkVersion`] if specified
     /// MAVLink `version` is not supported.
-    fn encode(&self, version: MavLinkVersion) -> Result<Payload, MessageError>;
+    fn encode(&self, version: MavLinkVersion) -> Result<Payload, SpecError>;
 }
 
 #[cfg(not(feature = "alloc"))]

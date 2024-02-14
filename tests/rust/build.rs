@@ -6,7 +6,7 @@ use mavspec::rust::gen::BuildHelper;
 
 /// Updates git submodules.
 ///
-/// It step is specific to MAVSpec repository structure.
+/// This step is specific to MAVSpec repository structure.
 fn update_git_submodules() {
     let src_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
 

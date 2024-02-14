@@ -11,7 +11,7 @@ pub(crate) enum Error {
     #[error(transparent)]
     Field(#[from] FieldError),
     #[error(transparent)]
-    Message(#[from] MessageError),
+    Message(#[from] SpecError),
     #[error(transparent)]
     Enum(#[from] EnumError),
 }
@@ -72,7 +72,7 @@ pub(crate) enum FieldError {
 }
 
 #[derive(Debug, Clone, thiserror::Error)]
-pub(crate) enum MessageError {
+pub(crate) enum SpecError {
     #[error("`Message` can be derived only from structs")]
     NotAStruct,
 }

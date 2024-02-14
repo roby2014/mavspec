@@ -139,7 +139,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
 
         use mavspec::rust::spec::{
             DialectImpl, DialectMessage, DialectSpec, IntoPayload, Payload, MessageSpec,
-            MavLinkVersion, MessageError,
+            MavLinkVersion, SpecError,
         };
         use mavspec::rust::spec::types::{CrcExtra, MessageId, DialectId, DialectVersion};
 
@@ -201,7 +201,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             ///
             /// See [`DialectModuleSpec::message_info`].
             #[inline]
-            pub fn message_info(id: MessageId) -> Result<&'static dyn MessageSpec, MessageError> {
+            pub fn message_info(id: MessageId) -> Result<&'static dyn MessageSpec, SpecError> {
                 message_info(id)
             }
         }
@@ -235,7 +235,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             ///
             /// See [`DialectModuleSpec::message_info`].
             #[inline]
-            fn message_info(&self, id: MessageId) -> Result<&dyn MessageSpec, MessageError> {
+            fn message_info(&self, id: MessageId) -> Result<&dyn MessageSpec, SpecError> {
                 Self::message_info(id)
             }
         }
@@ -254,10 +254,10 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         }
 
         /// Alias for enum containing all dialect messages.
-        pub type #dialect_enum_ident = Message;
+        pub type Message = #dialect_enum_ident;
 
         impl core::convert::TryFrom<&Payload> for #dialect_enum_ident {
-            type Error = MessageError;
+            type Error = SpecError;
 
             /// Decodes message from MAVLink payload.
             fn try_from(value: &Payload) -> Result<Self, Self::Error> {
@@ -270,7 +270,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             fn encode(
                 &self,
                 version: MavLinkVersion,
-            ) -> Result<Payload, MessageError> {
+            ) -> Result<Payload, SpecError> {
                 self.encode(version)
             }
         }
@@ -278,7 +278,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         impl DialectMessage for #dialect_enum_ident {
             #[inline]
             /// Decode message from [`Payload`].
-            fn decode(payload: &Payload) -> Result<Self, MessageError> {
+            fn decode(payload: &Payload) -> Result<Self, SpecError> {
                 Self::decode(payload)
             }
         }
@@ -317,13 +317,13 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             #[inline]
             pub fn decode(
                 payload: &Payload,
-            ) -> Result<Self, MessageError> {
+            ) -> Result<Self, SpecError> {
                 decode(payload)
             }
 
             /// Encodes message to MAVLink payload.
             #[inline]
-            pub fn encode(&self, version: MavLinkVersion) -> Result<Payload, MessageError> {
+            pub fn encode(&self, version: MavLinkVersion) -> Result<Payload, SpecError> {
                 encode(self, version)
             }
         }
@@ -347,30 +347,28 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         /// Retrieve message specification by its `id`.
         ///
         /// See [`DialectSpec::message_info`].
-        pub fn message_info(id: MessageId) -> Result<&'static dyn MessageSpec, MessageError> {
+        pub fn message_info(id: MessageId) -> Result<&'static dyn MessageSpec, SpecError> {
             #allow_unreachable
             Ok(match id {
                 #(#message_info_arms)*
-                _ => return Err(MessageError::UnsupportedMessageId(id)),
+                _ => return Err(SpecError::NotInDialect(id)),
             })
         }
 
         /// Decodes message from [`Payload`].
-        pub fn decode(payload: &Payload) -> Result<#dialect_enum_ident, MessageError> {
+        pub fn decode(payload: &Payload) -> Result<#dialect_enum_ident, SpecError> {
             #allow_unreachable
             Ok(match payload.id() {
                 #(#decode_arms)*
-                id => return Err(MessageError::UnsupportedMessageId(id)),
+                id => return Err(SpecError::NotInDialect(id)),
             })
         }
 
         /// Encodes message into [`Payload`].
         #allow_unused_variables
-        pub fn encode(msg: &#dialect_enum_ident, version: MavLinkVersion) -> Result<Payload, MessageError> {
-            #allow_unreachable
+        pub fn encode(msg: &#dialect_enum_ident, version: MavLinkVersion) -> Result<Payload, SpecError> {
             Ok(match msg {
                 #(#encode_arms)*
-                _ => return Err(MessageError::UnsupportedMessage)
             })
         }
 

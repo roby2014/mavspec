@@ -19,6 +19,7 @@ pub fn dialects_root_module(spec: &DialectsRootModuleSpec) -> syn::File {
 
         quote! {
             #[doc(inline)]
+            #[cfg(not(doctest))]
             pub use #module_name::#dialect_enum_ident;
         }
     });
