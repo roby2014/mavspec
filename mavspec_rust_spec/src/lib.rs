@@ -23,7 +23,7 @@
 //!
 //! [`MessageSpec`] trait should be implemented by objects which carry information about a message.
 //!
-//! [`MessageImpl`] trait corresponds to a concrete message implementation which both are [`MessageSpec`] and
+//! [`Message`] trait corresponds to a concrete message implementation which both are [`MessageSpec`] and
 //! [`IntoPayload`].
 //!
 //! # Dialect
@@ -54,7 +54,7 @@ pub use tbytes;
 
 pub mod message;
 #[doc(inline)]
-pub use message::{MessageImpl, MessageInfo, MessageSpec};
+pub use message::{Message, MessageInfo, MessageSpec};
 
 pub mod payload;
 #[doc(inline)]

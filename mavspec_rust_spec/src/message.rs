@@ -43,7 +43,7 @@ pub trait MessageSpec {
 ///
 /// Concrete MAVLink message that knows its specs through [`MessageSpec`] and allows to decode itself into
 /// [`Payload`](crate::payload::Payload) via [`IntoPayload`].
-pub trait MessageImpl: MessageSpec + IntoPayload {}
+pub trait Message: MessageSpec + IntoPayload {}
 
 /// Generic information about MAVLink message.
 ///

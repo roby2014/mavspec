@@ -187,7 +187,7 @@ impl Message {
     fn impl_message_impl(&self) -> proc_macro2::TokenStream {
         let ident = self.ident();
         quote! {
-            impl mavspec::rust::spec::MessageImpl for #ident {}
+            impl mavspec::rust::spec::Message for #ident {}
         }
     }
 
