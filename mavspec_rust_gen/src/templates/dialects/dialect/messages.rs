@@ -15,8 +15,8 @@ pub(crate) fn messages_root_module(spec: &MessagesRootModuleSpec) -> syn::File {
     let module_doc_comment = format!(" MAVLink messages of `{}` dialect.", spec.dialect_name());
 
     let message_modules_and_imports = spec.messages().iter().map(|msg| {
-        let message_mod_name = format_ident!("{}", message_mod_name(msg.name().into()));
-        let message_struct_name = format_ident!("{}", message_struct_name(msg.name().into()));
+        let message_mod_name = format_ident!("{}", message_mod_name(msg.name()));
+        let message_struct_name = format_ident!("{}", message_struct_name(msg.name()));
         quote! {
             pub mod #message_mod_name;
             pub use #message_mod_name::#message_struct_name;
@@ -61,10 +61,10 @@ pub(crate) fn message_module(spec: &MessageImplModuleSpec) -> syn::File {
         } else {
             quote!()
         };
-        let field_ident = format_ident!("{}", rust_var_name(field.name().into()));
+        let field_ident = format_ident!("{}", rust_var_name(field.name()));
         let field_rust_type: syn::Type =
             syn::parse_str(field.r#type().rust_type().as_str()).unwrap();
-        let enum_ident = format_ident!("{}", enum_rust_name(field.enum_name().into()));
+        let enum_ident = format_ident!("{}", enum_rust_name(field.enum_name()));
         let array_length = field.array_length();
 
         let field_base_type: syn::Type =
@@ -234,7 +234,7 @@ pub(crate) fn inherited_message_module(spec: &MessageInheritedModuleSpec) -> syn
     );
 
     let dialect_mod_ident = format_ident!("{}", &dialect_mod_name);
-    let message_mod_ident = format_ident!("{}", message_mod_name(spec.message_name().into()));
+    let message_mod_ident = format_ident!("{}", message_mod_name(spec.message_name()));
 
     let message_struct_ident = format_ident!("{}", message_struct_name(spec.message_name()));
 

@@ -27,8 +27,8 @@ impl<'a> DialectModuleSpec<'a> {
             name: dialect.name(),
             version: dialect.version(),
             dialect_id: dialect.dialect(),
-            messages: Vec::from_iter(dialect.messages().into_iter()),
-            enums: Vec::from_iter(dialect.enums().into_iter()),
+            messages: Vec::from_iter(dialect.messages()),
+            enums: Vec::from_iter(dialect.enums()),
             params,
         }
     }
@@ -54,11 +54,9 @@ impl<'a> DialectModuleSpec<'a> {
     }
 
     pub(crate) fn get_enum_by_name(&self, name: &str) -> Option<&Enum> {
-        for &mav_enum in &self.enums {
-            if mav_enum.name() == name {
-                return Some(mav_enum);
-            }
-        }
-        None
+        self.enums
+            .iter()
+            .find(|&&mav_enum| mav_enum.name() == name)
+            .copied()
     }
 }

@@ -13,8 +13,8 @@ pub(crate) fn enums_root_module(spec: &EnumsRootModuleSpec) -> syn::File {
     let module_doc_comment = format!(" MAVLink enums of `{}` dialect.", spec.dialect_name());
 
     let enum_modules_and_imports = spec.enums().iter().map(|enm| {
-        let enum_mod_name = format_ident!("{}", enum_mod_name(enm.name().into()));
-        let enum_rust_name = format_ident!("{}", enum_rust_name(enm.name().into()));
+        let enum_mod_name = format_ident!("{}", enum_mod_name(enm.name()));
+        let enum_rust_name = format_ident!("{}", enum_rust_name(enm.name()));
         quote! {
             pub mod #enum_mod_name;
             pub use #enum_mod_name::#enum_rust_name;
@@ -50,7 +50,7 @@ fn make_bitmask_enum(spec: &EnumImplModuleSpec) -> proc_macro2::TokenStream {
         quote! { #[doc = #line] }
     });
     let derive_serde = make_serde_derive_annotation(spec.params().serde);
-    let enum_ident = format_ident!("{}", enum_rust_name(spec.name().into()));
+    let enum_ident = format_ident!("{}", enum_rust_name(spec.name()));
     let enum_inferred_type = format_ident!("{}", spec.inferred_type().rust_type());
 
     let entry_consts = spec.entries().iter().map(|entry| {
@@ -58,7 +58,7 @@ fn make_bitmask_enum(spec: &EnumImplModuleSpec) -> proc_macro2::TokenStream {
         let description_doc_comments = entry.description().iter().map(|line| {
             quote! { #[doc = #line] }
         });
-        let flag_ident = format_ident!("{}", enum_bitmask_entry_name(entry.name_stripped().into()));
+        let flag_ident = format_ident!("{}", enum_bitmask_entry_name(entry.name_stripped()));
         let flag_value = entry.value_expr();
 
         quote! {
@@ -103,7 +103,7 @@ fn make_enum(spec: &EnumImplModuleSpec) -> proc_macro2::TokenStream {
             quote! { #[doc = #line] }
         });
         let derive_serde = make_serde_derive_annotation(spec.params().serde);
-        let enum_ident = format_ident!("{}", enum_rust_name(spec.name().into()));
+        let enum_ident = format_ident!("{}", enum_rust_name(spec.name()));
         let enum_inferred_type = format_ident!("{}", spec.inferred_type().rust_type());
 
         let enum_variants = spec.entries().iter().map(|entry| {
@@ -111,7 +111,7 @@ fn make_enum(spec: &EnumImplModuleSpec) -> proc_macro2::TokenStream {
             let description_doc_comments = entry.description().iter().map(|line| {
                 quote! { #[doc = #line] }
             });
-            let entry_ident = format_ident!("{}", enum_entry_name(entry.name_stripped().into()));
+            let entry_ident = format_ident!("{}", enum_entry_name(entry.name_stripped()));
             let entry_value = entry.value_expr();
 
             quote! {
@@ -149,10 +149,10 @@ pub(crate) fn enum_inherited_module(spec: &EnumInheritedModuleSpec) -> syn::File
         spec.original_dialect_name()
     );
 
-    let enum_ident = format_ident!("{}", enum_rust_name(spec.name().into()));
+    let enum_ident = format_ident!("{}", enum_rust_name(spec.name()));
     let dialect_mod_ident =
         format_ident!("{}", dialect_mod_name(spec.original_dialect_name().into()));
-    let enum_mod_ident = format_ident!("{}", enum_mod_name(spec.name().into()));
+    let enum_mod_ident = format_ident!("{}", enum_mod_name(spec.name()));
     let enum_doc_comment = format!(" Originally defined in [`{dialect_mod_ident}::enums::{enum_mod_ident}`](dialect::enums::{enum_ident})");
 
     syn::parse2(quote! {
