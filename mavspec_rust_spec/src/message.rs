@@ -85,7 +85,7 @@ impl MessageInfo {
     /// Default constructor.
     ///
     /// Sets `min_supported_mavlink_version` to [`MavLinkVersion::V2`] if message `id` greater
-    /// than [`u8::MAX`]. The latter means it can't be fitted into `MAVLink 1` packet. Otherwise
+    /// than [`u8::MAX`]. The latter means it can't be fitted into `MAVLink 1` packet. Otherwise,
     /// sets to [`MavLinkVersion::V1`].
     pub const fn new(id: MessageId, crc_extra: CrcExtra) -> Self {
         // Force `MAVLink 2` as minimum protocol version if `id` can't be represented as `u8`

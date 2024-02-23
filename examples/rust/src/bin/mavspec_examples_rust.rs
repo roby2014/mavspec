@@ -12,6 +12,7 @@ pub fn play_with_dialects() {
     #[cfg(feature = "minimal")]
     {
         use dialect::enums::{MavAutopilot, MavModeFlag, MavState, MavType};
+        use mavspec::rust::spec::{Dialect, IntoPayload};
         use mavspec_examples_rust::dialects::minimal as dialect;
 
         let message = dialect::messages::Heartbeat {
@@ -20,17 +21,15 @@ pub fn play_with_dialects() {
             base_mode: MavModeFlag::TEST_ENABLED | MavModeFlag::MANUAL_INPUT_ENABLED,
             custom_mode: 0,
             system_status: MavState::Active,
-            mavlink_version: dialect::spec().version().unwrap(),
+            mavlink_version: dialect::Minimal::version().unwrap(),
         };
 
         log::info!("{message:#?}");
 
-        let payload = dialect::dialect()
-            .encode(&message.into(), MavLinkVersion::V2)
-            .unwrap();
+        let payload = dialect::Minimal::encode(&message.into(), MavLinkVersion::V2).unwrap();
         log::info!("Payload for `Heartbeat` message: {payload:?}");
 
-        let decoded_message = dialect::dialect().decode(&payload).unwrap();
+        let decoded_message = dialect::Minimal::decode(&payload).unwrap();
         if let dialect::Minimal::Heartbeat(message) = decoded_message {
             log::info!("`Heartbeat` message decoded from payload: {message:#?}");
         }
@@ -39,6 +38,7 @@ pub fn play_with_dialects() {
     #[cfg(feature = "common")]
     {
         use dialect::enums::{MavCmd, MavFrame, SpeedType};
+        use mavspec::rust::spec::{Dialect, IntoPayload};
         use mavspec_examples_rust::dialects::common as dialect;
 
         let message = dialect::messages::CommandInt {
@@ -59,12 +59,10 @@ pub fn play_with_dialects() {
 
         log::info!("{message:#?}");
 
-        let payload = dialect::dialect()
-            .encode(&message.into(), MavLinkVersion::V2)
-            .unwrap();
+        let payload = dialect::Common::encode(&message.into(), MavLinkVersion::V2).unwrap();
         log::info!("Payload for `CommandInt` message: {payload:?}");
 
-        let decoded_message = dialect::dialect().decode(&payload).unwrap();
+        let decoded_message = dialect::Common::decode(&payload).unwrap();
         if let dialect::Common::CommandInt(message) = decoded_message {
             log::info!("`CommandInt` message decoded from payload: {message:#?}");
         }
@@ -73,6 +71,7 @@ pub fn play_with_dialects() {
     #[cfg(feature = "mav_inspect_test")]
     {
         use dialect::enums::{SmallBitmask, SmallEnum, _1stClassCitizen, _2ndChanceFlags};
+        use mavspec::rust::spec::{Dialect, IntoPayload};
         use mavspec_examples_rust::dialects::mav_inspect_test as dialect;
 
         let message = dialect::messages::MavInspectV1 {
@@ -98,12 +97,10 @@ pub fn play_with_dialects() {
 
         log::info!("{message:#?}");
 
-        let payload = dialect::dialect()
-            .encode(&message.into(), MavLinkVersion::V2)
-            .unwrap();
+        let payload = dialect::MavInspectTest::encode(&message.into(), MavLinkVersion::V2).unwrap();
         log::info!("Payload for `MavInspectV1` message: {payload:?}");
 
-        let decoded_message = dialect::dialect().decode(&payload).unwrap();
+        let decoded_message = dialect::MavInspectTest::decode(&payload).unwrap();
         if let dialect::MavInspectTest::MavInspectV1(message) = decoded_message {
             log::info!("`MavInspectV1` message decoded from payload: {message:#?}");
         }
