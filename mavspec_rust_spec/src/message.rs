@@ -56,28 +56,19 @@ pub struct MessageInfo {
 }
 
 impl MessageSpec for MessageInfo {
-    /// MAVLink message ID.
-    ///
-    /// See: [`MessageSpec::id`].
-    #[inline]
+    #[inline(always)]
     fn id(&self) -> MessageId {
-        self.id
+        self.id()
     }
 
-    /// Minimum supported MAVLink protocol version.
-    ///
-    /// See: [`MessageSpec::min_supported_mavlink_version`].
-    #[inline]
+    #[inline(always)]
     fn min_supported_mavlink_version(&self) -> MavLinkVersion {
-        self.min_supported_mavlink_version
+        self.min_supported_mavlink_version()
     }
 
-    /// Message `EXTRA_CRC` calculated from message XML definition.
-    ///
-    /// See: [`MessageSpec::crc_extra`].
-    #[inline]
+    #[inline(always)]
     fn crc_extra(&self) -> CrcExtra {
-        self.crc_extra
+        self.crc_extra()
     }
 }
 
@@ -100,5 +91,29 @@ impl MessageInfo {
             min_supported_mavlink_version,
             crc_extra,
         }
+    }
+
+    /// MAVLink message ID.
+    ///
+    /// See: [`MessageSpec::id`].
+    #[inline]
+    pub fn id(&self) -> MessageId {
+        self.id
+    }
+
+    /// Minimum supported MAVLink protocol version.
+    ///
+    /// See: [`MessageSpec::min_supported_mavlink_version`].
+    #[inline]
+    pub fn min_supported_mavlink_version(&self) -> MavLinkVersion {
+        self.min_supported_mavlink_version
+    }
+
+    /// Message `EXTRA_CRC` calculated from message XML definition.
+    ///
+    /// See: [`MessageSpec::crc_extra`].
+    #[inline]
+    pub fn crc_extra(&self) -> CrcExtra {
+        self.crc_extra
     }
 }

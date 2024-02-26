@@ -52,6 +52,7 @@ impl Message {
     }
 
     pub(crate) fn to_token_stream(&self) -> proc_macro2::TokenStream {
+        let impl_message = self.impl_message();
         let impl_message_spec = self.impl_message_spec();
         let impl_try_from_payload = self.impl_try_from_payload();
         let impl_into_payload = self.impl_into_payload();
@@ -59,6 +60,7 @@ impl Message {
         let impl_message_impl = self.impl_message_impl();
 
         quote! {
+            #impl_message
             #impl_message_spec
             #impl_try_from_payload
             #impl_into_payload
@@ -85,6 +87,25 @@ impl Message {
         self.ordered_fields
             .iter()
             .filter(|field| field.is_extension())
+    }
+
+    fn impl_message(&self) -> proc_macro2::TokenStream {
+        let ident = self.ident();
+        let message_id = self.message_id().literal();
+        let crc_extra = self.crc_extra().literal();
+
+        quote! {
+            impl #ident {
+                /// Returns specification for this message.
+                #[inline]
+                pub const fn spec() -> mavspec::rust::spec::MessageInfo {
+                    mavspec::rust::spec::MessageInfo::new(
+                        #message_id,
+                        #crc_extra
+                    )
+                }
+            }
+        }
     }
 
     fn impl_message_spec(&self) -> proc_macro2::TokenStream {
