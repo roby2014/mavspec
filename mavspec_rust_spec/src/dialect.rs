@@ -30,11 +30,3 @@ pub trait Dialect: MessageSpec + IntoPayload + Sized + Sync + Send {
     /// Decode [`Message`](Self::Message) from [`Payload`].
     fn decode(payload: &Payload) -> Result<Self, SpecError>;
 }
-
-// /// Interface for a generic dialect message.
-// ///
-// /// [`DialectMessage`] is an enum, where variants are all possible messages of a dialect.
-// pub trait DialectMessage: MessageSpec + IntoPayload + Sized + Sync + Send {
-//     /// Decode dialect message from [`Payload`].
-//     fn from_payload(payload: &Payload) -> Result<Self, SpecError>;
-// }
