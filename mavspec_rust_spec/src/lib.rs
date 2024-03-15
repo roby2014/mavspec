@@ -72,4 +72,4 @@ pub mod consts;
 
 mod dialect;
 #[doc(inline)]
-pub use dialect::Dialect;
+pub use dialect::{Dialect, DialectSpec};

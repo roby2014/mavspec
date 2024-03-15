@@ -25,6 +25,17 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         specs.name()
     );
 
+    let message_spec_const_ident = format_ident!("__MAVSPEC__MESSAGES");
+    let messages_count = specs.messages().len();
+
+    let messages_specs = specs.messages().iter().map(|msg| {
+        let msg_id = msg.id();
+        let crc_extra = msg.crc_extra();
+        quote! {
+            MessageInfo::new(#msg_id, #crc_extra)
+        }
+    });
+
     let messages_variants = specs.messages().iter().map(|msg| {
         let comment = format!(" MAVLink message `{}`.", msg.name());
         let messages_enum_entry_name = format_ident!("{}", messages_enum_entry_name(msg.name()));
@@ -134,7 +145,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         #![doc = #leading_module_comment]
 
         use mavspec::rust::spec::{
-            Dialect, IntoPayload, Payload, MessageSpec,
+            Dialect, DialectSpec, MessageInfo, IntoPayload, Payload, MessageSpec,
             MavLinkVersion, SpecError,
         };
         use mavspec::rust::spec::types::{CrcExtra, MessageId, DialectId, DialectVersion};
@@ -143,6 +154,8 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         pub mod messages;
         // MAVLink enums.
         pub mod enums;
+
+        const #message_spec_const_ident: [MessageInfo; #messages_count] = [#(#messages_specs,)*];
 
         #[doc = #messages_enum_comment]
         #[derive(core::clone::Clone, core::fmt::Debug)]
@@ -187,6 +200,16 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
                     #(#decode_arms)*
                     id => return Err(SpecError::NotInDialect(id)),
                 })
+            }
+
+            /// Dialect specification.
+            fn spec() -> DialectSpec {
+                DialectSpec::new(
+                    #dialect_name_quoted,
+                    #dialect_id,
+                    #dialect_version,
+                    &#message_spec_const_ident
+                )
             }
         }
 

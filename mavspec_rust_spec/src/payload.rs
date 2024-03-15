@@ -112,6 +112,18 @@ impl Payload {
         &self.payload[0..self.length]
     }
 
+    /// Message payload as mutable byte slice.
+    ///
+    /// For `MAVLink 2` zero trailing bytes will be truncated.
+    /// See [MAVLink 2 payload truncation](https://mavlink.io/en/guide/serialization.html#payload_truncation).
+    pub fn bytes_mut(&mut self) -> &mut [u8] {
+        #[cfg(feature = "alloc")]
+        let slice = &mut self.payload.as_mut_slice()[0..self.length];
+        #[cfg(not(feature = "alloc"))]
+        let slice = &mut self.payload.content.as_mut_slice()[0..self.length];
+        slice
+    }
+
     /// MAVLink protocol version.
     ///
     /// See [`MavLinkVersion`].
