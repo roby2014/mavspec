@@ -27,7 +27,7 @@ pub trait Dialect: MessageSpec + IntoPayload + Sized + Sync + Send {
     /// Returns [`SpecError::NotInDialect`] if message with specified ID is not supported.
     fn message_info(id: MessageId) -> Result<&'static dyn MessageSpec, SpecError>;
 
-    /// Decode [`Message`](Self::Message) from [`Payload`].
+    /// Decode dialect message from [`Payload`].
     fn decode(payload: &Payload) -> Result<Self, SpecError>;
 
     /// Dialect specification.

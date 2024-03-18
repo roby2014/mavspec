@@ -35,19 +35,24 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(feature = "rust")]
+#[cfg_attr(docsrs, doc(cfg(feature = "rust")))]
 pub mod rust {
-    //! MAVSpec's code generation toolchain for Rust.
+    //! # MAVSpec's code generation toolchain for Rust
     #![cfg_attr(
         feature = "rust_gen",
         doc = "\n\nCheck [`gen`] module documentation to learn about code generation specifics."
     )]
 
     #[doc(inline)]
+    #[cfg_attr(docsrs, doc(cfg(feature = "rust")))]
     pub use mavspec_rust_derive as derive;
     #[doc(inline)]
+    #[cfg_attr(docsrs, doc(cfg(feature = "rust")))]
     pub use mavspec_rust_spec as spec;
 
     #[cfg(feature = "rust_gen")]
     #[doc(inline)]
+    #[cfg_attr(docsrs, doc(cfg(feature = "rust")))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "rust_gen")))]
     pub use mavspec_rust_gen as gen;
 }
