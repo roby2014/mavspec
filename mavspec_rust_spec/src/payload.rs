@@ -79,7 +79,7 @@ impl Payload {
     /// [`Payload::length`] the maximum length of the
     /// [`Payload::bytes`].
     ///
-    /// If `payload` is longer than [`PAYLOAD_MAX_SIZE`], all trailing elements will be ignored.
+    /// If `payload` is longer, than [`PAYLOAD_MAX_SIZE`], all trailing elements will be ignored.
     pub fn new(id: MessageId, payload: &[u8], version: MavLinkVersion) -> Self {
         let max_size = min(PAYLOAD_MAX_SIZE, payload.len());
 

@@ -31,7 +31,7 @@ pub trait Dialect: MessageSpec + IntoPayload + Sized + Sync + Send {
     fn decode(payload: &Payload) -> Result<Self, SpecError>;
 
     /// Dialect specification.
-    fn spec() -> DialectSpec;
+    fn spec() -> &'static DialectSpec;
 }
 
 /// Dialect specification.

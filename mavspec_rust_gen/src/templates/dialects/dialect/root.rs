@@ -27,6 +27,7 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
 
     let message_spec_const_ident = format_ident!("__MAVSPEC__MESSAGES");
     let messages_count = specs.messages().len();
+    let dialect_spec_const_ident = format_ident!("__MAVSPEC__DIALECT_SPEC");
 
     let messages_specs = specs.messages().iter().map(|msg| {
         let msg_id = msg.id();
@@ -156,6 +157,12 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
         pub mod enums;
 
         const #message_spec_const_ident: [MessageInfo; #messages_count] = [#(#messages_specs,)*];
+        const #dialect_spec_const_ident: DialectSpec = DialectSpec::new(
+            #dialect_name_quoted,
+            #dialect_id,
+            #dialect_version,
+            &#message_spec_const_ident
+        );
 
         #[doc = #messages_enum_comment]
         #[derive(core::clone::Clone, core::fmt::Debug)]
@@ -203,13 +210,9 @@ pub fn dialect_module(specs: &DialectModuleSpec) -> syn::File {
             }
 
             /// Dialect specification.
-            fn spec() -> DialectSpec {
-                DialectSpec::new(
-                    #dialect_name_quoted,
-                    #dialect_id,
-                    #dialect_version,
-                    &#message_spec_const_ident
-                )
+            #[inline(always)]
+            fn spec() -> &'static DialectSpec {
+                &#dialect_spec_const_ident
             }
         }
 
