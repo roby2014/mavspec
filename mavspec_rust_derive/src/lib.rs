@@ -21,7 +21,6 @@
 //!
 //! #[derive(Clone, Debug, Message)]
 //! #[message_id(255)] // Specify message ID
-//! #[crc_extra(32)]   // Set CRC_EXTRA byte
 //! struct CustomMessage {
 //!     scalar_u8: u8,
 //!     array_u8_4: [u8; 4],
@@ -44,6 +43,28 @@
 //!     OptionC = 2,
 //! }
 //! ```
+//!
+//! Custom MAVLink dialect:
+//!
+//! ```rust
+//! use mavspec::rust::derive::{Dialect, Message};
+//!
+//! #[derive(Clone, Debug, Message)]
+//! #[message_id(255)] // Specify message ID
+//! struct CustomMessage {
+//!     scalar_u8: u8,
+//!     array_u8_4: [u8; 4],
+//!     #[extension] // This marks an extension fields
+//!     ext_array_u32_4: [u32; 4],
+//! }
+//!
+//! #[derive(Clone, Debug, Dialect)]
+//! #[dialect(1099)] // Specify unique dialect `ID`
+//! #[version(99)]   // Specify dialect version
+//! enum CustomDialect {
+//!     Custom(CustomMessage),
+//! }
+//! ```
 
 #![warn(missing_docs)]
 #![deny(rustdoc::broken_intra_doc_links)]
@@ -60,6 +81,7 @@ pub(crate) mod field_types;
 mod message_attributes;
 pub(crate) mod message_field;
 
+mod dialect;
 pub(crate) mod enums;
 pub(crate) mod message;
 
@@ -74,12 +96,43 @@ pub(crate) mod message;
 ///
 /// #[derive(Clone, Debug, Message)]
 /// #[message_id(255)] // Specify message ID
-/// #[crc_extra(32)]   // Set CRC_EXTRA byte
 /// struct CustomMessage {
 ///     scalar_u8: u8,
 ///     array_u8_4: [u8; 4],
 ///     #[extension] // This marks an extension fields
 ///     ext_array_u32_4: [u32; 4],
+/// }
+/// ```
+///
+/// It is possible to override `CRC_EXTRA` byte using `#[crc_extra(32)]` attribute:
+///
+/// ```rust
+/// use mavspec::rust::derive::Message;
+///
+/// #[derive(Clone, Debug, Message)]
+/// #[message_id(255)] // Specify message ID
+/// #[crc_extra(32)]   // Set `CRC_EXTRA` byte
+/// struct CustomMessage {
+///     scalar_u8: u8,
+///     array_u8_4: [u8; 4],
+/// }
+///
+/// assert_eq!(CustomMessage::crc_extra(), 32);
+/// ```
+///
+/// Auto-calculated `CRC_EXTRA` is not supported for arrays with lengths specified by constants. The
+/// following won't compile:
+///
+/// ```rust,compile_fail
+/// use mavspec::rust::derive::Message;
+///
+/// const FOUR: usize = 4;
+///
+/// #[derive(Clone, Debug, Message)]
+/// #[message_id(255)]
+/// struct CustomMessage {
+///     scalar_u8: u8,
+///     array_u8_4: [u8; FOUR], // Can't calculate `CRC_EXTRA`
 /// }
 /// ```
 ///
@@ -110,7 +163,6 @@ pub(crate) mod message;
 ///
 /// #[derive(Clone, Debug, Message)]
 /// #[message_id(255)]
-/// #[crc_extra(32)]
 /// struct CustomMessage {
 ///     #[base_type(u8)]
 ///     scalar_u8: Variants,
@@ -154,7 +206,6 @@ pub(crate) mod message;
 ///
 /// #[derive(Clone, Debug, Message)]
 /// #[message_id(255)]
-/// #[crc_extra(32)]
 /// struct CustomMessage {
 ///     #[bitmask]
 ///     #[base_type(u8)]
@@ -190,7 +241,7 @@ pub fn derive_mavlink_message(input: proc_macro::TokenStream) -> proc_macro::Tok
     proc_macro::TokenStream::from(message.to_token_stream())
 }
 
-/// Derive MAvLink enum from enum.
+/// Derive MAVLink enum from enum.
 ///
 /// # Usage
 ///
@@ -238,4 +289,57 @@ pub fn derive_mavlink_enum(input: proc_macro::TokenStream) -> proc_macro::TokenS
     };
 
     proc_macro::TokenStream::from(mav_enum.to_token_stream())
+}
+
+/// Derive MAVLink dialect from enum.
+///
+/// # Usage
+///
+/// Create a simple ad-hoc dialect for meaningless smalltalk:
+///
+/// ```rust
+/// use mavspec::rust::derive::{Dialect, Enum, Message};
+///
+/// #[repr(u8)]
+/// #[derive(Copy, Clone, Debug, Default, Enum)]
+/// enum Mood {
+///     #[default]
+///     Serious = 0,
+///     Grumpy = 1,
+///     Delighted = 2,
+///     Confused = 3,
+/// }
+///
+/// #[derive(Clone, Debug, Message)]
+/// #[message_id(42)]
+/// struct Howdy {
+///     #[base_type(u8)]
+///     mood: Mood,
+/// }
+///
+/// #[derive(Clone, Debug, Message)]
+/// #[message_id(43)]
+/// struct FineAndYou {
+///     #[base_type(u8)]
+///     mood: Mood,
+/// }
+///
+/// #[derive(Clone, Debug, Dialect)]
+/// #[dialect(1099)]
+/// #[version(99)]
+/// enum SmallTalk {
+///     Howdy(Howdy),
+///     FineAndYou(FineAndYou),
+/// }
+/// ```
+#[proc_macro_derive(Dialect, attributes(name, dialect, version))]
+pub fn derive_mavlink_dialect(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input: DeriveInput = syn::parse(input).unwrap();
+
+    let dialect = match dialect::Dialect::try_from(input) {
+        Ok(dialect) => dialect,
+        Err(err) => panic!("{}", err),
+    };
+
+    proc_macro::TokenStream::from(dialect.to_token_stream())
 }

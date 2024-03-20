@@ -24,6 +24,23 @@ pub(crate) enum ScalarType {
     Float64,
 }
 
+impl ScalarType {
+    pub(crate) fn c_type(&self) -> String {
+        match self {
+            ScalarType::Int8 => "int8_t".to_string(),
+            ScalarType::Int16 => "int16_t".to_string(),
+            ScalarType::Int32 => "int32_t".to_string(),
+            ScalarType::Int64 => "int64_t".to_string(),
+            ScalarType::UInt8 => "uint8_t".to_string(),
+            ScalarType::UInt16 => "uint16_t".to_string(),
+            ScalarType::UInt32 => "uint32_t".to_string(),
+            ScalarType::UInt64 => "uint64_t".to_string(),
+            ScalarType::Float32 => "float".to_string(),
+            ScalarType::Float64 => "double".to_string(),
+        }
+    }
+}
+
 impl TryFrom<syn::Type> for FieldType {
     type Error = Error;
 

@@ -26,6 +26,15 @@ impl TryFrom<&Vec<syn::Attribute>> for CrcExtra {
     }
 }
 
+impl From<u8> for CrcExtra {
+    fn from(value: u8) -> Self {
+        Self(syn::LitInt::new(
+            value.to_string().as_str(),
+            proc_macro2::Span::call_site(),
+        ))
+    }
+}
+
 impl MessageId {
     pub(crate) fn try_from_attrs(attrs: &Vec<syn::Attribute>) -> Result<Self, Error> {
         let mut message_id: Option<MessageId> = None;

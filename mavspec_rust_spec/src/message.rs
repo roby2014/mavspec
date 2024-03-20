@@ -39,6 +39,23 @@ pub trait MessageSpec {
     fn crc_extra(&self) -> CrcExtra;
 }
 
+/// Generic MAVLink message specification with constant functions.
+///
+/// Each message should implement this trait. This is required for building correct dialects.
+pub trait MessageSpecStatic {
+    /// Returns specification for this message.
+    fn spec() -> MessageInfo;
+
+    /// Message `ID`.
+    fn message_id() -> MessageId;
+
+    /// Message `CRC_EXTRA`.
+    fn crc_extra() -> CrcExtra;
+
+    /// Minimum supported MAVLink version for this message.
+    fn min_supported_mavlink_version() -> MavLinkVersion;
+}
+
 /// MAVLink message implementation.
 ///
 /// Concrete MAVLink message that knows its specs through [`MessageSpec`] and allows to decode itself into

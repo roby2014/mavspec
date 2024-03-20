@@ -14,6 +14,8 @@ pub(crate) enum Error {
     Message(#[from] SpecError),
     #[error(transparent)]
     Enum(#[from] EnumError),
+    #[error(transparent)]
+    Dialect(#[from] DialectError),
 }
 
 #[derive(Debug, Clone, thiserror::Error)]
@@ -75,6 +77,12 @@ pub(crate) enum FieldError {
 pub(crate) enum SpecError {
     #[error("`Message` can be derived only from structs")]
     NotAStruct,
+    #[error(
+        "`Message` can calculate `CRC_EXTRA` only for arrays with length specified by literals"
+    )]
+    CrcExtraNonLiteralArrayLength,
+    #[error("`Message` can't calculate `CRC_EXTRA` byte due to an invalid array length")]
+    CrcExtraInvalidArrayLength,
 }
 
 #[derive(Debug, Clone, thiserror::Error)]
@@ -87,4 +95,20 @@ pub(crate) enum EnumError {
         "all variants should have explicit discriminants, but enum variant `{0}` is missing one"
     )]
     MissingDiscriminant(String),
+}
+
+#[derive(Debug, Clone, thiserror::Error)]
+pub(crate) enum DialectError {
+    #[error("`Dialect` can be derived only from enums")]
+    NotAnEnum,
+    #[error("`Dialect` enum variants should contain exactly one field but none provided")]
+    MissingEnumFields,
+    #[error("`Dialect` enum variants should contain exactly one field but several provided")]
+    MultipleEnumFields,
+    #[error("#[name(..)] attribute for `Dialect` should be a string")]
+    InvalidDialectName,
+    #[error("#[dialect(..)] attribute for `Dialect` should be a u32 integer")]
+    InvalidDialectId,
+    #[error("#[version(..)] attribute for `Dialect` should be a u8 integer")]
+    InvalidDialectVersion,
 }

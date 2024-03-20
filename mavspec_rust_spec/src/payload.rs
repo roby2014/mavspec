@@ -9,7 +9,7 @@ use core::cmp::min;
 use std::fmt::{Debug, Formatter};
 
 use crate::consts::PAYLOAD_MAX_SIZE;
-use crate::errors::SpecError;
+use crate::error::SpecError;
 use crate::types::{MavLinkVersion, MessageId};
 
 #[cfg(feature = "alloc")]

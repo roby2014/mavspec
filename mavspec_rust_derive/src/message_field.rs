@@ -85,6 +85,10 @@ impl Field {
         &self.ident
     }
 
+    pub(crate) fn canonical_name(&self) -> String {
+        heck::AsSnakeCase(self.ident.to_string()).to_string()
+    }
+
     pub(crate) fn field_type(&self) -> &FieldType {
         &self.field_type
     }

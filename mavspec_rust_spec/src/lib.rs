@@ -49,27 +49,19 @@
 )]
 #![cfg_attr(not(feature = "std"), no_std)]
 
+pub mod consts;
+mod dialect;
+mod error;
+mod message;
+mod payload;
+pub mod types;
+
 pub use bitflags;
 pub use tbytes;
 
-pub mod message;
-#[doc(inline)]
-pub use message::{Message, MessageInfo, MessageSpec};
-
-pub mod payload;
-#[doc(inline)]
+pub use dialect::{Dialect, DialectSpec};
+pub use error::SpecError;
+pub use message::{Message, MessageInfo, MessageSpec, MessageSpecStatic};
 pub use payload::{IntoPayload, Payload};
-
-mod errors;
-#[doc(inline)]
-pub use errors::{PayloadError, SpecError};
-
-pub mod types;
 #[doc(inline)]
 pub use types::MavLinkVersion;
-
-pub mod consts;
-
-mod dialect;
-#[doc(inline)]
-pub use dialect::{Dialect, DialectSpec};

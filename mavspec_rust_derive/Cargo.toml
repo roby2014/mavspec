@@ -1,7 +1,7 @@
 [package]
 name = "mavspec_rust_derive"
 description = "Procedural macros for MAVSpec's Rust code generation toolchain."
-version = "0.3.1"
+version = "0.3.2"
 edition = "2021"
 authors = ["Mykhailo Ziatin <ziatin@mathwithoutend.org>"]
 repository = "https://gitlab.com/mavka/libs/mavspec"
@@ -27,6 +27,10 @@ path = "src/lib.rs"
 name = "mavspec_rust_derive_example"
 test = true
 
+[[example]]
+name = "mavspec_rust_derive_example_dialect"
+test = true
+
 ###########################################################
 # Dependencies
 ###########################################################
@@ -36,6 +40,7 @@ proc-macro2 = "1.0.76"
 syn = "2.0.48"
 quote = "1.0.35"
 thiserror = "1.0.56"
+crc-any = { version = "2.4.3", default-features = false }
 
 [dev-dependencies]
 bitflags = "2.4.2"

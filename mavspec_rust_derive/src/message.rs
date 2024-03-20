@@ -1,6 +1,7 @@
+use crc_any::CRCu16;
 use std::cmp::Ordering;
 
-use quote::{format_ident, quote, TokenStreamExt};
+use quote::{format_ident, quote, ToTokens, TokenStreamExt};
 
 use crate::errors::{Error, SpecError};
 use crate::field_types::FieldType;
@@ -43,11 +44,22 @@ impl Message {
         let mut ordered_fields = fields;
         Self::reorder_fields(&mut ordered_fields);
 
+        let crc_extra = match CrcExtra::try_from(&value.attrs) {
+            Ok(value) => value,
+            Err(_) => {
+                let name = Self::canonical_name(&value.ident);
+                Self::calculate_crc_extra(
+                    name.as_str(),
+                    ordered_fields.iter().filter(|field| !field.is_extension()),
+                )?
+            }
+        };
+
         Ok(Self {
             ident: value.ident,
             ordered_fields,
             message_id: MessageId::try_from(&value.attrs)?,
-            crc_extra: CrcExtra::try_from(&value.attrs)?,
+            crc_extra,
         })
     }
 
@@ -93,6 +105,7 @@ impl Message {
         let ident = self.ident();
         let message_id = self.message_id().literal();
         let crc_extra = self.crc_extra().literal();
+        let min_supported_mavlink_version = self.message_id().min_supported_mavlink_version();
 
         quote! {
             impl #ident {
@@ -103,6 +116,46 @@ impl Message {
                         #message_id,
                         #crc_extra
                     )
+                }
+
+                /// Message `ID`.
+                #[inline]
+                pub const fn message_id() -> mavspec::rust::spec::types::MessageId {
+                    #message_id
+                }
+
+                /// Message `CRC_EXTRA`.
+                #[inline]
+                pub const fn crc_extra() -> mavspec::rust::spec::types::CrcExtra {
+                    #crc_extra
+                }
+
+                /// Minimum supported MAVLink version for this message.
+                #[inline]
+                pub const fn min_supported_mavlink_version() -> mavspec::rust::spec::MavLinkVersion {
+                    #min_supported_mavlink_version
+                }
+            }
+
+            impl mavspec::rust::spec::MessageSpecStatic for #ident {
+                #[inline]
+                fn spec() -> mavspec::rust::spec::MessageInfo {
+                    #ident::spec()
+                }
+
+                #[inline]
+                fn message_id() -> mavspec::rust::spec::types::MessageId {
+                    #message_id
+                }
+
+                #[inline]
+                fn crc_extra() -> mavspec::rust::spec::types::CrcExtra {
+                    #crc_extra
+                }
+
+                #[inline]
+                fn min_supported_mavlink_version() -> mavspec::rust::spec::MavLinkVersion {
+                    #min_supported_mavlink_version
                 }
             }
         }
@@ -283,10 +336,10 @@ impl Message {
         match payload_type {
             PayloadType::Strict => quote! {
                 if payload.len() != PAYLOAD_SIZE {
-                    return Err(mavspec::rust::spec::PayloadError::InvalidV1PayloadSize {
+                    return Err(mavspec::rust::spec::SpecError::InvalidV1PayloadSize {
                         actual: payload.len(),
                         expected: PAYLOAD_SIZE,
-                    }.into());
+                    });
                 }
                 let reader = TBytesReader::from(payload);
             },
@@ -324,7 +377,7 @@ impl Message {
         match field.field_type() {
             FieldType::Scalar(scalar) => match field.custom_type() {
                 None => quote! {
-                    #field_ident: reader.read()?
+                    #field_ident: reader.read().unwrap()
                 },
                 Some(_) => {
                     let base_type = scalar.to_token_stream();
@@ -332,7 +385,7 @@ impl Message {
 
                     quote! {
                         #field_ident: {
-                            let raw_value: #base_type = reader.read()?;
+                            let raw_value: #base_type = reader.read().unwrap();
                             #raw_value_converter
                         }
                     }
@@ -340,7 +393,7 @@ impl Message {
             },
             FieldType::Array(scalar, len) => match field.custom_type() {
                 None => quote! {
-                    #field_ident: reader.read_array()?
+                    #field_ident: reader.read_array().unwrap()
                 },
                 Some(custom_type) => {
                     let base_type = scalar.to_token_stream();
@@ -348,7 +401,7 @@ impl Message {
                     let default_value = field.default_value();
                     quote! {
                         #field_ident: {
-                            let raw_values: [#base_type; #len] = reader.read_array()?;
+                            let raw_values: [#base_type; #len] = reader.read_array().unwrap();
                             let mut values: [#custom_type; #len] = #default_value;
                             for i in 0..#len {
                                 let raw_value = raw_values[i];
@@ -442,7 +495,7 @@ impl Message {
         match field.field_type() {
             FieldType::Scalar(_) => match field.custom_type() {
                 None => quote! {
-                    writer.write(message.#field_ident)?
+                    writer.write(message.#field_ident).unwrap()
                 },
                 Some(_) => {
                     let value_converter = field.encode_value_converter();
@@ -450,18 +503,18 @@ impl Message {
                         writer.write({
                             let value = message.#field_ident;
                             #value_converter
-                        })?
+                        }).unwrap()
                     }
                 }
             },
             FieldType::Array(_, _) => match field.custom_type() {
                 None => quote! {
-                    writer.write_array(message.#field_ident)?
+                    writer.write_array(message.#field_ident).unwrap()
                 },
                 Some(_) => {
                     let value_converter = field.encode_value_converter();
                     quote! {
-                        writer.write_array(message.#field_ident.map(|value| #value_converter))?
+                        writer.write_array(message.#field_ident.map(|value| #value_converter)).unwrap()
                     }
                 }
             },
@@ -507,6 +560,45 @@ impl Message {
                     .reverse()
             }
         });
+    }
+
+    fn canonical_name(ident: &syn::Ident) -> String {
+        heck::AsSnakeCase(ident.to_string()).to_string()
+    }
+
+    fn calculate_crc_extra<'a>(
+        name: &str,
+        fields: impl Iterator<Item = &'a Field>,
+    ) -> Result<CrcExtra, Error> {
+        let mut crc_calculator = CRCu16::crc16mcrf4cc();
+
+        crc_calculator.digest(name.as_bytes());
+        crc_calculator.digest(b" ");
+
+        for field in fields {
+            // Primitive type name as in definition
+            crc_calculator.digest(field.field_type().base_type().c_type().as_bytes());
+            crc_calculator.digest(b" ");
+
+            // Field name
+            crc_calculator.digest(field.canonical_name().as_bytes());
+            crc_calculator.digest(b" ");
+
+            // Type length for array types
+            if let FieldType::Array(_, length_expr) = field.field_type() {
+                let length_literal: syn::LitInt = syn::parse2(length_expr.to_token_stream())
+                    .map_err(|_| Error::from(SpecError::CrcExtraNonLiteralArrayLength))?;
+                let length = length_literal
+                    .base10_parse::<u8>()
+                    .map_err(|_| Error::from(SpecError::CrcExtraInvalidArrayLength))?;
+                crc_calculator.digest(&[length]);
+            }
+        }
+
+        // Get CRC and convert it to `u8`
+        let crc_value = crc_calculator.get_crc();
+        let value = ((crc_value & 0xFF) ^ (crc_value >> 8)) as u8;
+        Ok(CrcExtra::from(value))
     }
 }
 

@@ -88,6 +88,17 @@ struct MyMessage {
     ext_scalar_f64: f64,
 }
 
+#[derive(Clone, Debug, Message)]
+#[message_id(40)]
+pub struct MyMessageAutoCrc {
+    scalar_i16: i16,
+    array_u16_5: [u16; 5],
+    array_u8_40: [u16; 40],
+
+    #[base_type(u8)]
+    enum_scalar_u8: MyEnum,
+}
+
 fn make_message() -> MyMessage {
     MyMessage {
         enum_f32: MyEnum::OptionB,
@@ -129,6 +140,10 @@ fn encode_decode() {
     log::info!("Decoded message: {decoded_message:#?}");
 }
 
+fn auto_crc_extra() {
+    assert_eq!(MyMessageAutoCrc::crc_extra(), 166);
+}
+
 pub fn main() {
     // Setup logger
     env_logger::builder()
@@ -138,9 +153,12 @@ pub fn main() {
 
     // Encode/decode custom message
     encode_decode();
+    // Check automatic `CRC_EXTRA` calculation
+    auto_crc_extra();
 }
 
 #[test]
 fn test_example() {
     encode_decode();
+    auto_crc_extra();
 }
