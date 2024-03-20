@@ -20,7 +20,7 @@ mod cli {
         #[arg(short = 'o', long, default_value = DEFAULT_OUT_PATH)]
         pub out: String,
 
-        /// Clean output path. Otherwise files will be added incrementally.
+        /// Clean output path. Otherwise, files will be added incrementally.
         #[arg(short = 'c', long, default_value_t = false)]
         pub clean: bool,
     }
@@ -78,9 +78,10 @@ mod cli {
 #[cfg(feature = "rust_gen")]
 mod process {
     use crate::cli::{Cli, Commands};
+    use mavspec::rust::gen::error::RustGenResult;
     use std::fs::remove_dir_all;
 
-    pub fn process(cli: &Cli) -> anyhow::Result<()> {
+    pub fn process(cli: &Cli) -> RustGenResult<()> {
         match &cli.command {
             None => Ok(()),
             Some(command) => {

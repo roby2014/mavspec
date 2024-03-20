@@ -13,6 +13,7 @@ use serde::Serialize;
 use mavinspect::protocol::{Dialect, Enum, Protocol};
 
 use crate::conventions;
+use crate::error::RustGenResult;
 use crate::specs::dialects::dialect::enums::{
     EnumImplModuleSpec, EnumInheritedModuleSpec, EnumsRootModuleSpec,
 };
@@ -52,7 +53,7 @@ impl Generator {
     }
 
     /// Generate Rust bindings.
-    pub fn generate(&self) -> anyhow::Result<()> {
+    pub fn generate(&self) -> RustGenResult<()> {
         log::info!("Generating Rust code from MAVLink protocol.");
 
         #[cfg(feature = "fingerprints")]
@@ -81,7 +82,7 @@ impl Generator {
     }
 
     #[cfg(feature = "fingerprints")]
-    fn fingerprint_has_updated(&self) -> anyhow::Result<bool> {
+    fn fingerprint_has_updated(&self) -> RustGenResult<bool> {
         if self.fingerprint_path().exists() {
             let existing_fingerprint = read_to_string(self.fingerprint_path())?;
             return Ok(existing_fingerprint != self.fingerprint());
@@ -91,13 +92,13 @@ impl Generator {
     }
 
     #[cfg(feature = "fingerprints")]
-    fn generate_fingerprint(&self) -> anyhow::Result<()> {
+    fn generate_fingerprint(&self) -> RustGenResult<()> {
         let mut file = File::create(self.fingerprint_path())?;
         file.write_all(self.fingerprint().as_bytes())?;
         Ok(())
     }
 
-    fn generate_root_module(&self) -> anyhow::Result<()> {
+    fn generate_root_module(&self) -> RustGenResult<()> {
         create_dir_all(self.path.as_path())?;
 
         let mut file = File::create(self.root_module_file_path("mod.rs"))?;
@@ -109,7 +110,7 @@ impl Generator {
         Ok(())
     }
 
-    fn generate_dialects(&self) -> anyhow::Result<()> {
+    fn generate_dialects(&self) -> RustGenResult<()> {
         create_dir_all(self.dialects_dir())?;
 
         let mut file = File::create(self.dialects_mod_rs())?;
@@ -128,7 +129,7 @@ impl Generator {
         Ok(())
     }
 
-    fn generate_dialect(&self, dialect_spec: &DialectModuleSpec) -> anyhow::Result<()> {
+    fn generate_dialect(&self, dialect_spec: &DialectModuleSpec) -> RustGenResult<()> {
         create_dir_all(self.dialect_dir(dialect_spec.name()))?;
 
         let mut file = File::create(self.dialect_mod_rs(dialect_spec.name()))?;
@@ -147,7 +148,7 @@ impl Generator {
         Ok(())
     }
 
-    fn generate_enums(&self, dialect_spec: &DialectModuleSpec) -> anyhow::Result<()> {
+    fn generate_enums(&self, dialect_spec: &DialectModuleSpec) -> RustGenResult<()> {
         create_dir_all(self.enums_dir(dialect_spec.name()))?;
 
         let mut file = File::create(self.enums_mod_rs(dialect_spec.name()))?;
@@ -192,7 +193,7 @@ impl Generator {
         Ok(())
     }
 
-    fn generate_messages(&self, dialect_spec: &DialectModuleSpec) -> anyhow::Result<()> {
+    fn generate_messages(&self, dialect_spec: &DialectModuleSpec) -> RustGenResult<()> {
         create_dir_all(self.messages_dir(dialect_spec.name()))?;
 
         let mut file = File::create(self.messages_mod_rs(dialect_spec.name()))?;

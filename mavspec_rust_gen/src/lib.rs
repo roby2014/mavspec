@@ -119,6 +119,7 @@ pub use build_helper::{BuildHelper, BuildHelperBuilder};
 pub mod utils;
 
 pub(crate) mod conventions;
+pub mod error;
 pub(crate) mod generator;
 pub(crate) mod specs;
 pub(crate) mod templates;

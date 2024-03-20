@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 extern crate cargo_manifest;
+use crate::error::RustGenResult;
 use cargo_manifest::{Manifest, Value};
 use mavinspect::parser::InspectorBuilder;
 use mavinspect::protocol::{Filter, Microservices, Protocol};
@@ -77,7 +78,7 @@ impl BuildHelper {
     }
 
     /// Scans for dialects and generates MAVLink dialects.
-    pub fn generate(&self) -> anyhow::Result<()> {
+    pub fn generate(&self) -> RustGenResult<()> {
         if let Err(err) = remove_dir_all(&self.out_path) {
             log::debug!("Error while cleaning output directory: {err:?}");
         }
@@ -212,7 +213,7 @@ impl BuildHelper {
         self.generate_tests.unwrap_or(false)
     }
 
-    fn load_filtered_protocol(&self) -> anyhow::Result<Arc<Protocol>> {
+    fn load_filtered_protocol(&self) -> RustGenResult<Arc<Protocol>> {
         Ok(if let Some(protocol) = &self.protocol {
             protocol.clone()
         } else {
@@ -267,7 +268,7 @@ impl BuildHelper {
         protocol.retain(&filters);
     }
 
-    fn apply_manifest_config(&mut self) -> anyhow::Result<()> {
+    fn apply_manifest_config(&mut self) -> RustGenResult<()> {
         // Spaghetti mode: ON
         if let Some(manifest_path) = &self.manifest_path {
             let manifest = Manifest::from_path(manifest_path)?;
@@ -349,7 +350,7 @@ impl BuildHelperBuilder {
     }
 
     /// Builds [`BuildHelper`] from configuration.
-    pub fn build(&self) -> anyhow::Result<BuildHelper> {
+    pub fn build(&self) -> RustGenResult<BuildHelper> {
         let mut helper = self.0.clone();
         if helper.manifest_path.is_some() {
             helper.apply_manifest_config()?;
@@ -359,7 +360,7 @@ impl BuildHelperBuilder {
     }
 
     /// Builds [`BuildHelper`] and use it to generates dialects according to configuration.
-    pub fn generate(&self) -> anyhow::Result<()> {
+    pub fn generate(&self) -> RustGenResult<()> {
         self.build()?.generate()
     }
 
