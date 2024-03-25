@@ -40,7 +40,7 @@ proc-macro2 = "1.0.79"
 syn = "2.0.55"
 quote = "1.0.35"
 thiserror = "1.0.58"
-crc-any = { version = "2.4.34", default-features = false }
+crc-any = { version = "2.4.4", default-features = false }
 
 [dev-dependencies]
 bitflags = "2.5.0"
