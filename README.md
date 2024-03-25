@@ -27,7 +27,7 @@ responsible for code generation. Other [Mavka](https://mavka.gitlab.io/home/) pr
   `MAVSpec` is using this library to discover and parse MAVLink dialects.
 * [Mavio](https://gitlab.com/mavka/libs/mavio), a minimalistic library for transport-agnostic MAVLink communication
   written in Rust. It supports `no-std` (and `no-alloc`) targets and focuses on **stateless** parts of MAVLink protocol.
-* [Maviola](https://gitlab.com/mavka/libs/maviola) (WIP), is a MAVLink communication library based on `Mavio` that
+* [Maviola](https://gitlab.com/mavka/libs/maviola) is a MAVLink communication library based on `Mavio` that
   provides a high-level interface for MAVLink messaging and takes care about **stateful** features of the protocol:
   sequencing, message time-stamping, automatic heartbeats, simplifies message signing, and so on.
 
@@ -36,7 +36,7 @@ This project respects [`semantic versioning`](https://semver.org).
 Install
 -------
 
-Install as a Cargo dependency. 
+Install as a Cargo dependency.
 
 ```shell
 cargo add mavspec --features specs
@@ -133,10 +133,12 @@ Finally, import generated code in your `lib.rs` (or anywhere it seems appropriat
 mod mavlink {
     include!(concat!(env!("OUT_DIR"), "/mavlink/mod.rs"));
 }
+
 pub use mavlink::dialects;
 ```
 
-Check [`examples/rust`](examples/rust/README.md) for a slightly more elaborated example which uses Cargo features as flags for MAVLink
+Check [`examples/rust`](examples/rust/README.md) for a slightly more elaborated example which uses Cargo features as
+flags for MAVLink
 dialect selection.
 
 #### Rust naming conventions
@@ -230,7 +232,7 @@ Other code generators (will form a basis for other [Mavka](https://mavka.gitlab.
 
 - [`telemetry`](https://gitlab.com/mavka/libs/mavspec/-/milestones/2) milestone is focused on code generators required
   for storing MAVLink data in time-series databases like [InfluxDB](https://www.influxdata.com) or
-  [Timescale](https://www.timescale.com). 
+  [Timescale](https://www.timescale.com).
 - [`gRPC`](https://gitlab.com/mavka/libs/mavspec/-/milestones/3) milestone is reserved for
   [Protobuf](https://protobuf.dev) and [gRPC](https://grpc.io) bindings.
 
@@ -245,15 +247,18 @@ First of all, there is an official MAVLink client for Rust worth mentioning:
 to decouple parser and code generator into the separate projects.
 
 I was personally inspired by [`gomavlib`](https://github.com/bluenviron/gomavlib) library for MAVLink (Go). I like the
-way it is written, and its source code helped me in several cases when official MAVLink documentation wasn't clear enough.
+way it is written, and its source code helped me in several cases when official MAVLink documentation wasn't clear
+enough.
 
 If you want to autogenerate language bindings and prefer Python, you might be interested in the official
 [`mavgen`](https://mavlink.io/en/getting_started/generate_libraries.html#mavgen) code-generation tool. If you are
 looking for a router for MAVLink messages, then we suggest [`mavp2p`](https://github.com/bluenviron/mavp2p). If
-you want a solution that supports MAVLink microservices, then it worth checking [`MAVSDK`](https://github.com/mavlink/MAVSDK)
+you want a solution that supports MAVLink microservices, then it worth
+checking [`MAVSDK`](https://github.com/mavlink/MAVSDK)
 that uses [gRPC](https://grpc.io) API.
 
-MAVLink is almost 15 years old, but the ecosystem around this protocol is still dynamic and developing. Some projects are
+MAVLink is almost 15 years old, but the ecosystem around this protocol is still dynamic and developing. Some projects
+are
 stable and robust, while others are nice and feature-rich but incomplete.
 
 License
