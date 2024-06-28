@@ -85,6 +85,11 @@ pub(crate) fn message_module(spec: &MessageImplModuleSpec) -> syn::File {
         } else {
             quote!()
         };
+        let extension_attr = if field.is_extension() {
+            quote! { #[extension] }
+        } else {
+            quote!()
+        };
 
         let field_definition = if field.is_enum() {
             if field.is_array() {
@@ -110,6 +115,7 @@ pub(crate) fn message_module(spec: &MessageImplModuleSpec) -> syn::File {
             #bitmask_attr
             #base_type_attr
             #repr_type_attr
+            #extension_attr
             #field_definition
         }
     });

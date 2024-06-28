@@ -149,6 +149,7 @@ pub struct FieldSpec {
     array_length: usize,
     requires_enum_casting: bool,
     requires_serde_arrays: bool,
+    is_extension: bool,
 }
 
 impl FieldSpec {
@@ -158,6 +159,7 @@ impl FieldSpec {
             description: split_description(value.description()),
             r#type: value.r#type().clone(),
             is_array: value.r#type().is_array(),
+            is_extension: value.extension(),
             ..Default::default()
         };
 
@@ -236,6 +238,10 @@ impl FieldSpec {
 
     pub(crate) fn requires_serde_arrays(&self) -> bool {
         self.requires_serde_arrays
+    }
+
+    pub(crate) fn is_extension(&self) -> bool {
+        self.is_extension
     }
 }
 
