@@ -224,7 +224,7 @@ dependencies = [
 
 [[package]]
 name = "mavspec"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "clap",
  "env_logger",
@@ -247,7 +247,7 @@ dependencies = [
 
 [[package]]
 name = "mavspec_rust_derive"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "bitflags",
  "crc-any",
@@ -265,7 +265,7 @@ dependencies = [
 
 [[package]]
 name = "mavspec_rust_gen"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "base64",
  "cargo-manifest",
@@ -284,7 +284,7 @@ dependencies = [
 
 [[package]]
 name = "mavspec_rust_spec"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "bitflags",
  "serde",
