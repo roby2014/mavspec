@@ -37,9 +37,9 @@ env_logger = { version = "0.11.3", optional = true }
 log = { version = "0.4.20", optional = true }
 
 # Internal crates
-mavspec_rust_gen = { version = "0.3.3", path = "../mavspec_rust_gen", optional = true }
-mavspec_rust_spec = { version = "0.3.3", path = "../mavspec_rust_spec", optional = true }
-mavspec_rust_derive = { version = "0.3.3", path = "../mavspec_rust_derive", optional = true }
+mavspec_rust_gen = { version = "0.3.4", path = "../mavspec_rust_gen", optional = true }
+mavspec_rust_spec = { version = "0.3.4", path = "../mavspec_rust_spec", optional = true }
+mavspec_rust_derive = { version = "0.3.4", path = "../mavspec_rust_derive", optional = true }
 
 ###########################################################
 # Features
