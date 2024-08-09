@@ -17,6 +17,10 @@ categories = [
     "no-std::no-alloc",
 ]
 resolver = "2"
+include = [
+    "src",
+    "Cargo.toml"
+]
 
 [lib]
 proc-macro = true

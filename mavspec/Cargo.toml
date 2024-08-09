@@ -17,6 +17,10 @@ categories = [
     "parsing"
 ]
 resolver = "2"
+include = [
+    "src",
+    "Cargo.toml"
+]
 
 [lib]
 name = "mavspec"

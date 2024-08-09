@@ -17,6 +17,12 @@ categories = [
     "no-std::no-alloc",
 ]
 resolver = "2"
+include = [
+    "message_definitions",
+    "src",
+    "build.rs",
+    "Cargo.toml"
+]
 
 [lib]
 name = "mavspec_rust_gen"
