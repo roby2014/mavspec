@@ -162,19 +162,12 @@ impl Payload {
     }
 
     fn truncated_length(slice: &[u8]) -> usize {
-        let n: usize = slice.len();
-        // Assume that all elements are zeros
-        let mut num_non_zero = 0usize;
-        // Seek from the end to start
-        for i in 1..=n {
-            // Stop when non-zero element is found
-            if slice[n - i] != 0u8 {
-                num_non_zero = n - i + 1;
-                break;
-            }
+        let mut n: usize = slice.len();
+        // The first byte of the payload is never truncated, even if the payload consists entirely of zeros.
+        while n > 1 && slice[n - 1] == 0 {
+            n -= 1;
         }
-
-        num_non_zero
+        n
     }
 
     fn container_from_slice(value: &[u8], max_size: usize) -> PayloadContainer {
@@ -291,5 +284,7 @@ mod tests {
     fn truncated_length() {
         assert_eq!(Payload::truncated_length(&[1, 2, 3, 4, 5, 6u8]), 6);
         assert_eq!(Payload::truncated_length(&[1, 2, 3, 4, 0, 0u8]), 4);
+        assert_eq!(Payload::truncated_length(&[1u8]), 1);
+        assert_eq!(Payload::truncated_length(&[0u8]), 1);
     }
 }
