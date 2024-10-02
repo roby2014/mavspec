@@ -161,7 +161,7 @@ impl Payload {
         Self::new(self.id, self.bytes(), MavLinkVersion::V2)
     }
 
-    fn truncated_length(slice: &[u8]) -> usize {
+    pub fn truncated_length(slice: &[u8]) -> usize {
         let mut n: usize = slice.len();
         // The first byte of the payload is never truncated, even if the payload consists entirely of zeros.
         while n > 1 && slice[n - 1] == 0 {
